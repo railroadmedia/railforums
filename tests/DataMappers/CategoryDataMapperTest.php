@@ -1,8 +1,8 @@
 <?php
 
-use Orchestra\Testbench\TestCase;
 use Railroad\Railforums\DataMappers\CategoryDataMapper;
 use Railroad\Railforums\Entities\Category;
+use Tests\TestCase;
 
 class CategoryDataMapperTest extends TestCase
 {
@@ -22,6 +22,7 @@ class CategoryDataMapperTest extends TestCase
     {
         $entity = new Category();
         $entity->randomize();
+        $entity->persist();
 
         $extracted = $this->classBeingTested->extract($entity);
 

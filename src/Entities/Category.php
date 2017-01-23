@@ -106,6 +106,12 @@ class Category extends EntityBase
 
     public function randomize()
     {
+        /** @var Generator $faker */
         $faker = app(Generator::class);
+
+        $this->setTitle($faker->words(3, true));
+        $this->setSlug(strtolower(implode('-', $faker->words(3))));
+        $this->setDescription($faker->paragraph());
+        $this->setWeight($faker->numberBetween());
     }
 }

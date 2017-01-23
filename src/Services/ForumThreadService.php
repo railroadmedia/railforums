@@ -2,7 +2,7 @@
 
 namespace Railroad\Railforums\Services;
 
-interface ForumThreadService
+class ForumThreadService
 {
 
 }

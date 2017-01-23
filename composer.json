@@ -11,7 +11,8 @@
   "require": {
     "php": "~7",
     "laravel/framework": "5.3.*",
-    "guzzlehttp/guzzle": "~6.0"
+    "guzzlehttp/guzzle": "~6.0",
+    "doctrine/dbal": "^2.5"
   },
   "require-dev": {
     "orchestra/testbench": "^3.3"
@@ -19,6 +20,11 @@
   "autoload": {
     "psr-4": {
       "Railroad\\Railforums\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
     }
   }
 }
