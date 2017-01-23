@@ -17,7 +17,9 @@
   "require-dev": {
     "orchestra/testbench": "^3.3"
   },
-  "psr-4": {
-    "Railroad\\Railforums\\": "src/"
+  "autoload": {
+    "psr-4": {
+      "Railroad\\Railforums\\": "src/"
+    }
   }
 }
