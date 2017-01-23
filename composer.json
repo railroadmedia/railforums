@@ -18,6 +18,6 @@
     "orchestra/testbench": "^3.3"
   },
   "psr-4": {
-    "Railroad\\Railforums\\": "packages/railroad/railforums/src"
+    "Railroad\\Railforums\\": "src/"
   }
 }
