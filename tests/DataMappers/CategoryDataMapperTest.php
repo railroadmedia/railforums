@@ -1,9 +1,42 @@
 <?php
 
-class CategoryDataMapperTest extends \Orchestra\Testbench\TestCase
+use Orchestra\Testbench\TestCase;
+use Railroad\Railforums\DataMappers\CategoryDataMapper;
+use Railroad\Railforums\Entities\Category;
+
+class CategoryDataMapperTest extends TestCase
 {
-    public function testtest()
+    /**
+     * @var CategoryDataMapper
+     */
+    private $classBeingTested;
+
+    public function setUp()
     {
-        $this->assertEquals(1, 1);
+        parent::setUp();
+
+        $this->classBeingTested = app(CategoryDataMapper::class);
+    }
+
+    public function test_map()
+    {
+        $entity = new Category();
+        $entity->randomize();
+
+        $extracted = $this->classBeingTested->extract($entity);
+
+        $this->assertEquals(
+            array_values($this->classBeingTested->map()),
+            array_keys($extracted)
+        );
+
+        $entityClone = clone $entity;
+
+        $this->classBeingTested->fill($entityClone, $extracted);
+
+        $this->assertEquals(
+            $entity,
+            $entityClone
+        );
     }
 }

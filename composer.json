@@ -8,11 +8,12 @@
       "email": "calebfavor@gmail.com"
     }
   ],
-  "minimum-stability": "dev",
   "require": {
-    "php": ">=5.6.0",
-    "laravel/framework": "~5.3",
-    "doctrine/dbal": "^2.5",
+    "php": "~7",
+    "laravel/framework": "5.3.*",
+    "guzzlehttp/guzzle": "~6.0"
+  },
+  "require-dev": {
     "orchestra/testbench": "^3.3"
   },
   "autoload": {
