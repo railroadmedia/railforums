@@ -9,7 +9,7 @@ class CategoryDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_categories';
 
-    public function map()
+    public function mapTo()
     {
         return [
             'id' => 'id',

@@ -32,18 +32,23 @@ class ForumThreadServiceTest extends TestCase
             $replyCount = rand(0, 4);
 
             for ($x = 0; $x < $replyCount; $x++) {
+                $userData = $this->fakeUser();
+
                 $post = new Post();
                 $post->randomize();
                 $post->setThreadId($entity->getId());
+                $post->setAuthorId($userData['id']);
                 $post->persist();
             }
 
-            $entity->setLastPostTime($replyCount);
+            $entity->setLastPostPublishedOn($replyCount);
 
             $entities[] = $entity;
         }
 
-        $this->classBeingTested->getThreadsSortedPaginated(3, 1, 'posted_on', 'desc');
+        $responseEntities = $this->classBeingTested->getAll();
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(3, 1, 'posted_on', 'desc');
 
     }
 }

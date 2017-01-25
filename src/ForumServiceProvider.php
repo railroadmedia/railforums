@@ -12,6 +12,12 @@ class ForumServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
+
+        $this->publishes(
+            [
+                __DIR__ . '/../config/railforums.php' => config_path('railforums.php'),
+            ]
+        );
     }
 
     /**

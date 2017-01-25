@@ -42,7 +42,7 @@ class Post extends EntityBase
     /**
      * @var string
      */
-    protected $postedOn;
+    protected $publishedOn;
 
     /**
      * @var string
@@ -140,17 +140,17 @@ class Post extends EntityBase
     /**
      * @return string
      */
-    public function getPostedOn()
+    public function getPublishedOn()
     {
-        return $this->postedOn;
+        return $this->publishedOn;
     }
 
     /**
-     * @param string $postedOn
+     * @param string $publishedOn
      */
-    public function setPostedOn($postedOn)
+    public function setPublishedOn($publishedOn)
     {
-        $this->postedOn = $postedOn;
+        $this->publishedOn = $publishedOn;
     }
 
     /**
@@ -178,7 +178,7 @@ class Post extends EntityBase
         $this->setPromptingPostId($faker->randomNumber());
         $this->setContent($faker->paragraph());
         $this->setLikes($faker->randomNumber());
-        $this->setPostedOn(Carbon::instance($faker->dateTime())->toDateTimeString());
+        $this->setPublishedOn(Carbon::instance($faker->dateTime())->toDateTimeString());
 
         if ($faker->boolean()) {
             $this->setEditedOn(Carbon::instance($faker->dateTime())->toDateTimeString());

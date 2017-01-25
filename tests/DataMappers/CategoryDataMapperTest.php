@@ -27,7 +27,7 @@ class CategoryDataMapperTest extends TestCase
         $extracted = $this->classBeingTested->extract($entity);
 
         $this->assertEquals(
-            array_values($this->classBeingTested->map()),
+            array_values($this->classBeingTested->mapFrom()),
             array_keys($extracted)
         );
 

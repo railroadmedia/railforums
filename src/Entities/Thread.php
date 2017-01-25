@@ -45,19 +45,19 @@ class Thread extends EntityBase
     protected $locked;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $postedOn;
-
-    /**
-     * @var int
-     */
-    protected $replyCount = 0;
+    protected $publishedOn;
 
     /**
      * @var string
      */
-    protected $lastPostTime;
+    protected $lastPostPublishedOn;
+
+    /**
+     * @var string
+     */
+    protected $lastPostUserDisplayName;
 
     /**
      * @var int
@@ -75,7 +75,7 @@ class Thread extends EntityBase
     /**
      * @return int
      */
-    public function getCategoryId()
+    public function getCategoryId(): int
     {
         return $this->categoryId;
     }
@@ -83,7 +83,7 @@ class Thread extends EntityBase
     /**
      * @param int $categoryId
      */
-    public function setCategoryId($categoryId)
+    public function setCategoryId(int $categoryId)
     {
         $this->categoryId = $categoryId;
     }
@@ -91,7 +91,7 @@ class Thread extends EntityBase
     /**
      * @return int
      */
-    public function getAuthorId()
+    public function getAuthorId(): int
     {
         return $this->authorId;
     }
@@ -99,7 +99,7 @@ class Thread extends EntityBase
     /**
      * @param int $authorId
      */
-    public function setAuthorId($authorId)
+    public function setAuthorId(int $authorId)
     {
         $this->authorId = $authorId;
     }
@@ -107,7 +107,7 @@ class Thread extends EntityBase
     /**
      * @return string
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -115,7 +115,7 @@ class Thread extends EntityBase
     /**
      * @param string $title
      */
-    public function setTitle($title)
+    public function setTitle(string $title)
     {
         $this->title = $title;
     }
@@ -123,7 +123,7 @@ class Thread extends EntityBase
     /**
      * @return string
      */
-    public function getSlug()
+    public function getSlug(): string
     {
         return $this->slug;
     }
@@ -131,7 +131,7 @@ class Thread extends EntityBase
     /**
      * @param string $slug
      */
-    public function setSlug($slug)
+    public function setSlug(string $slug)
     {
         $this->slug = $slug;
     }
@@ -139,7 +139,7 @@ class Thread extends EntityBase
     /**
      * @return bool
      */
-    public function isPinned()
+    public function isPinned(): bool
     {
         return $this->pinned;
     }
@@ -147,7 +147,7 @@ class Thread extends EntityBase
     /**
      * @param bool $pinned
      */
-    public function setPinned($pinned)
+    public function setPinned(bool $pinned)
     {
         $this->pinned = $pinned;
     }
@@ -155,7 +155,7 @@ class Thread extends EntityBase
     /**
      * @return bool
      */
-    public function isLocked()
+    public function isLocked(): bool
     {
         return $this->locked;
     }
@@ -163,55 +163,71 @@ class Thread extends EntityBase
     /**
      * @param bool $locked
      */
-    public function setLocked($locked)
+    public function setLocked(bool $locked)
     {
         $this->locked = $locked;
     }
 
     /**
+     * @return null|string
+     */
+    public function getPublishedOn()
+    {
+        return $this->publishedOn;
+    }
+
+    /**
+     * @param null|string $publishedOn
+     */
+    public function setPublishedOn($publishedOn)
+    {
+        $this->publishedOn = $publishedOn;
+    }
+
+    /**
      * @return string
      */
-    public function getPostedOn()
+    public function getLastPostPublishedOn(): string
     {
-        return $this->postedOn;
+        return $this->lastPostPublishedOn;
     }
 
     /**
-     * @param string $postedOn
+     * @param string $lastPostPublishedOn
      */
-    public function setPostedOn($postedOn)
+    public function setLastPostPublishedOn(string $lastPostPublishedOn)
     {
-        $this->postedOn = $postedOn;
+        $this->lastPostPublishedOn = $lastPostPublishedOn;
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function getLastPostTime()
+    public function getLastPostUserDisplayName(): string
     {
-        return $this->lastPostTime;
+        return $this->lastPostUserDisplayName;
     }
 
     /**
-     * @param string|null $lastPostTime
+     * @param string $lastPostUserDisplayName
      */
-    public function setLastPostTime($lastPostTime)
+    public function setLastPostUserDisplayName(string $lastPostUserDisplayName)
     {
-        $this->lastPostTime = $lastPostTime;
+        $this->lastPostUserDisplayName = $lastPostUserDisplayName;
     }
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getLastPostUserId()
+    public function getLastPostUserId(): int
     {
         return $this->lastPostUserId;
     }
 
     /**
-     * @param int|null $lastPostUserId
+     * @param int $lastPostUserId
      */
-    public function setLastPostUserId($lastPostUserId)
+    public function setLastPostUserId(int $lastPostUserId)
     {
         $this->lastPostUserId = $lastPostUserId;
     }
@@ -227,6 +243,6 @@ class Thread extends EntityBase
         $this->setSlug(strtolower(implode('-', $faker->words(4))));
         $this->setPinned($faker->boolean());
         $this->setLocked($faker->boolean());
-        $this->setPostedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
+        $this->setPublishedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
     }
 }

@@ -9,7 +9,7 @@ class ThreadReadDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_thread_reads';
 
-    public function map()
+    public function mapTo()
     {
         return [
             'id' => 'id',

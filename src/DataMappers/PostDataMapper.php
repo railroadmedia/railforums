@@ -9,7 +9,7 @@ class PostDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_posts';
 
-    public function map()
+    public function mapFrom()
     {
         return [
             'id' => 'id',
@@ -18,7 +18,27 @@ class PostDataMapper extends DatabaseDataMapperBase
             'promptingPostId' => 'prompting_post_id',
             'content' => 'content',
             'likes' => 'likes',
-            'postedOn' => 'posted_on',
+            'publishedOn' => 'published_on',
+            'editedOn' => 'edited_on',
+            'createdAt' => 'created_at',
+            'updatedAt' => 'updated_at',
+            'deletedAt' => 'deleted_at',
+            'versionMasterId' => 'version_master_id',
+            'versionSavedAt' => 'version_saved_at'
+        ];
+    }
+
+    public function mapTo()
+    {
+        return [
+            'id' => 'id',
+            'threadId' => 'thread_id',
+            'authorId' => 'author_id',
+            'promptingPostId' => 'prompting_post_id',
+            'content' => 'content',
+            'likes' => 'likes',
+            'publishedOn' => 'published_on',
+            'editedOn' => 'edited_on',
             'createdAt' => 'created_at',
             'updatedAt' => 'updated_at',
             'deletedAt' => 'deleted_at',
