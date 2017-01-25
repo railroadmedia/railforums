@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\Entities;
 
+use Carbon\Carbon;
 use Faker\Generator;
 use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railmap\Entity\EntityBase;
@@ -170,6 +171,17 @@ class Post extends EntityBase
 
     public function randomize()
     {
+        /** @var Generator $faker */
         $faker = app(Generator::class);
+        $this->setThreadId($faker->randomNumber());
+        $this->setAuthorId($faker->randomNumber());
+        $this->setPromptingPostId($faker->randomNumber());
+        $this->setContent($faker->paragraph());
+        $this->setLikes($faker->randomNumber());
+        $this->setPostedOn(Carbon::instance($faker->dateTime())->toDateTimeString());
+
+        if ($faker->boolean()) {
+            $this->setEditedOn(Carbon::instance($faker->dateTime())->toDateTimeString());
+        }
     }
 }

@@ -7,18 +7,17 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
 class PostDataMapper extends DatabaseDataMapperBase
 {
-    protected $table = 'forums_posts';
+    protected $table = 'forum_posts';
 
     public function map()
     {
         return [
             'id' => 'id',
-            'categoryId' => 'category_id',
+            'threadId' => 'thread_id',
             'authorId' => 'author_id',
-            'title' => 'title',
-            'slug' => 'slug',
-            'pinned' => 'pinned',
-            'locked' => 'locked',
+            'promptingPostId' => 'prompting_post_id',
+            'content' => 'content',
+            'likes' => 'likes',
             'postedOn' => 'posted_on',
             'createdAt' => 'created_at',
             'updatedAt' => 'updated_at',

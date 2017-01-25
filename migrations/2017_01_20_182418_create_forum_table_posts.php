@@ -22,7 +22,7 @@ class CreateForumTablePosts extends Migration
             $table->text('content');
             $table->integer('likes')->default(0);
             $table->dateTime('posted_on');
-            $table->dateTime('edited_on');
+            $table->dateTime('edited_on')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

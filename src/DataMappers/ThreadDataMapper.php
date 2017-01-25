@@ -7,7 +7,7 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
 class ThreadDataMapper extends DatabaseDataMapperBase
 {
-    protected $table = 'forums_threads';
+    protected $table = 'forum_threads';
 
     public function map()
     {

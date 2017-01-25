@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\Entities;
 
+use Carbon\Carbon;
 use Faker\Generator;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railmap\Entity\EntityBase;
@@ -47,6 +48,21 @@ class Thread extends EntityBase
      * @var string
      */
     protected $postedOn;
+
+    /**
+     * @var int
+     */
+    protected $replyCount = 0;
+
+    /**
+     * @var string
+     */
+    protected $lastPostTime;
+
+    /**
+     * @var int
+     */
+    protected $lastPostUserId;
 
     /**
      * Category constructor.
@@ -163,13 +179,54 @@ class Thread extends EntityBase
     /**
      * @param string $postedOn
      */
-    public function setPostedOn(string $postedOn)
+    public function setPostedOn($postedOn)
     {
         $this->postedOn = $postedOn;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getLastPostTime()
+    {
+        return $this->lastPostTime;
+    }
+
+    /**
+     * @param string|null $lastPostTime
+     */
+    public function setLastPostTime($lastPostTime)
+    {
+        $this->lastPostTime = $lastPostTime;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getLastPostUserId()
+    {
+        return $this->lastPostUserId;
+    }
+
+    /**
+     * @param int|null $lastPostUserId
+     */
+    public function setLastPostUserId($lastPostUserId)
+    {
+        $this->lastPostUserId = $lastPostUserId;
+    }
+
     public function randomize()
     {
+        /** @var Generator $faker */
         $faker = app(Generator::class);
+
+        $this->setCategoryId($faker->randomNumber());
+        $this->setAuthorId($faker->randomNumber());
+        $this->setTitle($faker->sentence(4));
+        $this->setSlug(strtolower(implode('-', $faker->words(4))));
+        $this->setPinned($faker->boolean());
+        $this->setLocked($faker->boolean());
+        $this->setPostedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
     }
 }
