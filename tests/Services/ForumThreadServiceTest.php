@@ -43,5 +43,7 @@ class ForumThreadServiceTest extends TestCase
             $entities[] = $entity;
         }
 
+        $this->classBeingTested->getThreadsSortedPaginated(3, 1, 'posted_on', 'desc');
+
     }
 }

@@ -22,7 +22,8 @@ class CreateForumTableThreads extends Migration
             $table->string('slug');
             $table->boolean('pinned')->nullable()->default(0);
             $table->boolean('locked')->nullable()->default(0);
-            $table->dateTime('posted_on');
+            $table->dateTime('last_posted_on');
+            $table->dateTime('published_on');
 
             $table->timestamps();
             $table->softDeletes();

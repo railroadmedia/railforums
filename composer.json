@@ -10,7 +10,7 @@
   ],
   "require": {
     "php": "~7",
-    "laravel/framework": "5.3.*",
+    "laravel/framework": "5.*",
     "guzzlehttp/guzzle": "~6.0",
     "doctrine/dbal": "^2.5"
   },
