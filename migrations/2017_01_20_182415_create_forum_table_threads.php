@@ -23,6 +23,7 @@ class CreateForumTableThreads extends Migration
                 $table->string('slug');
                 $table->boolean('pinned')->default(false);
                 $table->boolean('locked')->default(false);
+                $table->boolean('state');
                 $table->dateTime('published_on')->nullable();
 
                 $table->timestamps();

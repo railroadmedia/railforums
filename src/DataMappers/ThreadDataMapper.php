@@ -10,6 +10,8 @@ class ThreadDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_threads';
 
+    public static $viewingUserId = 0;
+
     public function mapTo()
     {
         return [
@@ -38,13 +40,14 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                 'lastPostUserDisplayName' => 'last_post_user_display_name',
                 'lastPostUserId' => 'last_post_user_id',
                 'postCount' => 'post_count',
+                'isRead' => 'is_read',
             ]
         );
     }
 
-    public function query()
+    public function gettingQuery()
     {
-        return parent::query()->selectRaw(
+        return parent::gettingQuery()->selectRaw(
             'forum_threads.*, ' .
             'forum_posts.published_on as last_post_published_on, ' .
             'forum_posts.author_id as last_post_user_id, ' .
@@ -52,7 +55,8 @@ class ThreadDataMapper extends DatabaseDataMapperBase
             '.' .
             config('railforums.author_table_display_name_column_name') .
             ' as last_post_user_display_name, ' .
-            '(select count(*) from forum_posts where forum_posts.thread_id = forum_threads.id) as post_count'
+            '(select count(*) from forum_posts where forum_posts.thread_id = forum_threads.id) as post_count, ' .
+            'forum_thread_reads.id IS NOT NULL AND forum_thread_reads.read_on >= forum_posts.published_on as is_read'
         )->join(
             'forum_posts',
             function (JoinClause $query) {
@@ -74,6 +78,19 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                     config('railforums.author_table_name') .
                     '.' .
                     config('railforums.author_table_id_column_name')
+                );
+            }
+        )->leftJoin(
+            'forum_thread_reads',
+            function (JoinClause $query) {
+                $query->on(
+                    'forum_thread_reads.thread_id',
+                    '=',
+                    'forum_threads.id'
+                )->on(
+                    'forum_thread_reads.reader_id',
+                    '=',
+                    self::$viewingUserId
                 );
             }
         );

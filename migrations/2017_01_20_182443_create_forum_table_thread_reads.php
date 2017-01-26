@@ -13,8 +13,9 @@ class CreateForumTableThreadReads extends Migration
      */
     public function up()
     {
-        Schema::create('forum_threads_read', function (Blueprint $table)
+        Schema::create('forum_thread_reads', function (Blueprint $table)
         {
+            $table->increments('id');
             $table->integer('thread_id')->unsigned();
             $table->integer('reader_id')->unsigned();
             $table->dateTime('read_on');

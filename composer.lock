@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "69e3585f6d357b9290664e8b3e7a25d2",
-    "content-hash": "2b68916572a5a0083e6596b6b2df10fd",
+    "hash": "e3904099a7d07eab009caa4d24ed33dd",
+    "content-hash": "75cfefbff32d90a86cf314b322d289dd",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -692,16 +692,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v5.4.3",
+            "version": "v5.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "9fa94bf77272ea7f920292c6f016b0f6e0853f98"
+                "reference": "4274ed5646f8a9ec0a4b201aab7440e2890610a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/9fa94bf77272ea7f920292c6f016b0f6e0853f98",
-                "reference": "9fa94bf77272ea7f920292c6f016b0f6e0853f98",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/4274ed5646f8a9ec0a4b201aab7440e2890610a1",
+                "reference": "4274ed5646f8a9ec0a4b201aab7440e2890610a1",
                 "shasum": ""
             },
             "require": {
@@ -817,7 +817,7 @@
                 "framework",
                 "laravel"
             ],
-            "time": "2017-01-25 16:40:49"
+            "time": "2017-01-26 14:29:30"
         },
         {
             "name": "league/flysystem",
@@ -1221,6 +1221,49 @@
                 "psr-3"
             ],
             "time": "2016-10-10 12:19:37"
+        },
+        {
+            "name": "railroad/railmap",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/calebfavor/railmap.git",
+                "reference": "91db1fd48f0546a6fa7ca4bf6747986911c2f6eb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/91db1fd48f0546a6fa7ca4bf6747986911c2f6eb",
+                "reference": "91db1fd48f0546a6fa7ca4bf6747986911c2f6eb",
+                "shasum": ""
+            },
+            "require": {
+                "doctrine/dbal": "^2.5",
+                "laravel/framework": "5.*",
+                "php": "~7"
+            },
+            "require-dev": {
+                "orchestra/testbench": "3.4.x@dev",
+                "phpunit/php-code-coverage": "3.*",
+                "phpunit/phpunit": "~5."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Railroad\\Railmap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Caleb Favor",
+                    "email": "calebfavor@gmail.com"
+                }
+            ],
+            "description": "Entity System",
+            "time": "2017-01-26 17:32:35"
         },
         {
             "name": "ramsey/uuid",
@@ -2388,12 +2431,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/orchestral/testbench.git",
-                "reference": "4bebf0b435246e5ce5ad97cab8616f9b1cbee9af"
+                "reference": "dd487141cb7f193b85fecd130549a95cb110cca6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/orchestral/testbench/zipball/4bebf0b435246e5ce5ad97cab8616f9b1cbee9af",
-                "reference": "4bebf0b435246e5ce5ad97cab8616f9b1cbee9af",
+                "url": "https://api.github.com/repos/orchestral/testbench/zipball/dd487141cb7f193b85fecd130549a95cb110cca6",
+                "reference": "dd487141cb7f193b85fecd130549a95cb110cca6",
                 "shasum": ""
             },
             "require": {
@@ -2401,8 +2444,8 @@
                 "laravel/framework": "~5.4.0",
                 "orchestra/database": "~3.4.0",
                 "php": ">=5.6.0",
-                "symfony/css-selector": "~3.2.0",
-                "symfony/dom-crawler": "~3.2.0"
+                "symfony/css-selector": "~3.1",
+                "symfony/dom-crawler": "~3.1"
             },
             "require-dev": {
                 "mockery/mockery": "^0.9.4",
@@ -2443,7 +2486,7 @@
                 "orchestral",
                 "testing"
             ],
-            "time": "2017-01-25 11:53:05"
+            "time": "2017-01-25 23:16:56"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -3707,6 +3750,7 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
+        "railroad/railmap": 20,
         "orchestra/testbench": 20
     },
     "prefer-stable": true,

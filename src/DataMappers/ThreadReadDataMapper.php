@@ -13,9 +13,9 @@ class ThreadReadDataMapper extends DatabaseDataMapperBase
     {
         return [
             'id' => 'id',
-            'threadId' => '$thread_id',
-            'readerId' => '$reader_id',
-            'readOn' => '$read_on',
+            'threadId' => 'thread_id',
+            'readerId' => 'reader_id',
+            'readOn' => 'read_on',
             'createdAt' => 'created_at',
             'updatedAt' => 'updated_at',
         ];

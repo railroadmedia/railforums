@@ -70,6 +70,11 @@ class Thread extends EntityBase
     protected $postCount;
 
     /**
+     * @var bool
+     */
+    protected $isRead;
+
+    /**
      * Category constructor.
      */
     public function __construct()
@@ -251,6 +256,22 @@ class Thread extends EntityBase
     public function setPostCount(int $postCount)
     {
         $this->postCount = $postCount;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsRead(): bool
+    {
+        return $this->isRead;
+    }
+
+    /**
+     * @param bool $isRead
+     */
+    public function setIsRead(bool $isRead)
+    {
+        $this->isRead = $isRead;
     }
 
     public function randomize()
