@@ -4,6 +4,7 @@ namespace Railroad\Railforums\Services;
 
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
+use Railroad\Railforums\Entities\Thread;
 use Railroad\Railmap\Entity\EntityInterface;
 
 class ForumThreadService
@@ -20,25 +21,27 @@ class ForumThreadService
      * @param $amount
      * @param $page
      * @param $viewingUserId
+     * @param array $states
      * @param string $sortColumn
      * @param string $sortDirection
-     * @return EntityInterface|EntityInterface[]
+     * @return Thread|Thread[]
      */
     public function getThreadsSortedPaginated(
         $amount,
         $page,
         $viewingUserId,
+        $states = [Thread::STATE_PUBLISHED],
         $sortColumn = 'last_post_published_on',
         $sortDirection = 'desc'
     ) {
         ThreadDataMapper::$viewingUserId = $viewingUserId;
 
         return $this->threadDataMapper->getWithQuery(
-            function (Builder $builder) use ($amount, $page, $sortColumn, $sortDirection) {
+            function (Builder $builder) use ($amount, $page, $sortColumn, $sortDirection, $states) {
                 return $builder->limit($amount)->skip($amount * ($page - 1))->orderBy(
                     $sortColumn,
                     $sortDirection
-                )->get();
+                )->whereIn('forum_threads.state', $states)->get();
             }
         );
     }
@@ -46,7 +49,7 @@ class ForumThreadService
     /**
      * @param int $id
      * @param $viewingUserId
-     * @return null|EntityInterface
+     * @return null|Thread
      */
     public function getThread(int $id, $viewingUserId)
     {

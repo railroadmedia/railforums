@@ -14,6 +14,10 @@ class Thread extends EntityBase
 {
     use Timestamps, SoftDelete, Versioned;
 
+    const STATE_DRAFT = 'draft';
+    const STATE_PUBLISHED = 'published';
+    const STATE_HIDDEN = 'hidden';
+
     /**
      * @var int
      */
@@ -45,6 +49,21 @@ class Thread extends EntityBase
     protected $locked;
 
     /**
+     * @var string
+     */
+    protected $state;
+
+    /**
+     * @var int
+     */
+    protected $postCount;
+
+    /**
+     * @var int
+     */
+    protected $lastPostId;
+
+    /**
      * @var string|null
      */
     protected $publishedOn;
@@ -63,11 +82,6 @@ class Thread extends EntityBase
      * @var int
      */
     protected $lastPostUserId;
-
-    /**
-     * @var int
-     */
-    protected $postCount;
 
     /**
      * @var bool
@@ -179,6 +193,54 @@ class Thread extends EntityBase
     }
 
     /**
+     * @return string
+     */
+    public function getState(): string
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param string $state
+     */
+    public function setState(string $state)
+    {
+        $this->state = $state;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPostCount(): int
+    {
+        return $this->postCount;
+    }
+
+    /**
+     * @param int $postCount
+     */
+    public function setPostCount(int $postCount)
+    {
+        $this->postCount = $postCount;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLastPostId(): int
+    {
+        return $this->lastPostId;
+    }
+
+    /**
+     * @param int $lastPostId
+     */
+    public function setLastPostId(int $lastPostId)
+    {
+        $this->lastPostId = $lastPostId;
+    }
+
+    /**
      * @return null|string
      */
     public function getPublishedOn()
@@ -243,22 +305,6 @@ class Thread extends EntityBase
     }
 
     /**
-     * @return int
-     */
-    public function getPostCount(): int
-    {
-        return $this->postCount;
-    }
-
-    /**
-     * @param int $postCount
-     */
-    public function setPostCount(int $postCount)
-    {
-        $this->postCount = $postCount;
-    }
-
-    /**
      * @return bool
      */
     public function getIsRead(): bool
@@ -285,6 +331,13 @@ class Thread extends EntityBase
         $this->setSlug(strtolower(implode('-', $faker->words(4))));
         $this->setPinned($faker->boolean());
         $this->setLocked($faker->boolean());
+        $this->setState(
+            $faker->randomElement(
+                [self::STATE_DRAFT, self::STATE_PUBLISHED, self::STATE_HIDDEN]
+            )
+        );
+        $this->setPostCount($faker->randomNumber());
+        $this->setLastPostId($faker->randomNumber());
         $this->setPublishedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
     }
 }

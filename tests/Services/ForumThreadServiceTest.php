@@ -32,6 +32,7 @@ class ForumThreadServiceTest extends TestCase
         for ($i = 0; $i < 10; $i++) {
             $entity = new Thread();
             $entity->randomize();
+            $entity->setState(Thread::STATE_PUBLISHED);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -78,7 +79,10 @@ class ForumThreadServiceTest extends TestCase
             $entity->setLastPostPublishedOn($mostRecentPost->getPublishedOn());
             $entity->setLastPostUserDisplayName($mostRecentUserData['display_name']);
             $entity->setLastPostUserId($mostRecentUserData['id']);
-            $entity->setPostCount($postCount);
+
+            $entity->setLastPostId($mostRecentPost->getId());
+
+            $entity->persist();
 
             $entities[] = $entity;
         }

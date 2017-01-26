@@ -6,6 +6,12 @@ use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
+/**
+ * Class ThreadDataMapper
+ *
+ * @package Railroad\Railforums\DataMappers
+ * @method Thread|Thread[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
+ */
 class ThreadDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_threads';
@@ -22,6 +28,9 @@ class ThreadDataMapper extends DatabaseDataMapperBase
             'slug' => 'slug',
             'pinned' => 'pinned',
             'locked' => 'locked',
+            'state' => 'state',
+            'postCount' => 'post_count',
+            'lastPostId' => 'last_post_id',
             'publishedOn' => 'published_on',
             'createdAt' => 'created_at',
             'updatedAt' => 'updated_at',
@@ -55,18 +64,15 @@ class ThreadDataMapper extends DatabaseDataMapperBase
             '.' .
             config('railforums.author_table_display_name_column_name') .
             ' as last_post_user_display_name, ' .
-            '(select count(*) from forum_posts where forum_posts.thread_id = forum_threads.id) as post_count, ' .
             'forum_thread_reads.id IS NOT NULL AND forum_thread_reads.read_on >= forum_posts.published_on as is_read'
         )->join(
             'forum_posts',
             function (JoinClause $query) {
                 $query->on('forum_posts.thread_id', '=', 'forum_threads.id')
                     ->on(
-                        'forum_posts.published_on',
+                        'forum_posts.id',
                         '=',
-                        $query->raw(
-                            '(SELECT MAX(published_on) FROM forum_posts WHERE thread_id = forum_threads.id)'
-                        )
+                        'forum_threads.last_post_id'
                     );
             }
         )->join(

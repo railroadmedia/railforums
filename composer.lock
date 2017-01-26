@@ -1228,12 +1228,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/calebfavor/railmap.git",
-                "reference": "91db1fd48f0546a6fa7ca4bf6747986911c2f6eb"
+                "reference": "a27ed9a8b2f8ff2da78620aeba7086ab26b80529"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/91db1fd48f0546a6fa7ca4bf6747986911c2f6eb",
-                "reference": "91db1fd48f0546a6fa7ca4bf6747986911c2f6eb",
+                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/a27ed9a8b2f8ff2da78620aeba7086ab26b80529",
+                "reference": "a27ed9a8b2f8ff2da78620aeba7086ab26b80529",
                 "shasum": ""
             },
             "require": {
@@ -1263,7 +1263,7 @@
                 }
             ],
             "description": "Entity System",
-            "time": "2017-01-26 17:32:35"
+            "time": "2017-01-26 18:43:01"
         },
         {
             "name": "ramsey/uuid",

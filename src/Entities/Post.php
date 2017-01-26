@@ -14,6 +14,10 @@ class Post extends EntityBase
 {
     use Timestamps, SoftDelete, Versioned;
 
+    const STATE_DRAFT = 'draft';
+    const STATE_PUBLISHED = 'published';
+    const STATE_HIDDEN = 'hidden';
+
     /**
      * @var int
      */
@@ -35,9 +39,9 @@ class Post extends EntityBase
     protected $content;
 
     /**
-     * @var int
+     * @var string
      */
-    protected $likes;
+    protected $state;
 
     /**
      * @var string
@@ -122,19 +126,19 @@ class Post extends EntityBase
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getLikes()
+    public function getState(): string
     {
-        return $this->likes;
+        return $this->state;
     }
 
     /**
-     * @param int $likes
+     * @param string $state
      */
-    public function setLikes($likes)
+    public function setState(string $state)
     {
-        $this->likes = $likes;
+        $this->state = $state;
     }
 
     /**
@@ -177,7 +181,11 @@ class Post extends EntityBase
         $this->setAuthorId($faker->randomNumber());
         $this->setPromptingPostId($faker->randomNumber());
         $this->setContent($faker->paragraph());
-        $this->setLikes($faker->randomNumber());
+        $this->setState(
+            $faker->randomElement(
+                [self::STATE_DRAFT, self::STATE_PUBLISHED, self::STATE_HIDDEN]
+            )
+        );
         $this->setPublishedOn(Carbon::instance($faker->dateTime())->toDateTimeString());
 
         if ($faker->boolean()) {

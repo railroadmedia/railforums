@@ -20,7 +20,6 @@ class CreateForumTablePosts extends Migration
             $table->integer('author_id')->unsigned();
             $table->integer('prompting_post_id')->nullable()->unsigned();
             $table->text('content');
-            $table->integer('likes')->default(0);
             $table->string('state');
             $table->dateTime('published_on')->nullable();
             $table->dateTime('edited_on')->nullable();
