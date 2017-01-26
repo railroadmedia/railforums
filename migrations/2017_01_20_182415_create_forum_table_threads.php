@@ -21,8 +21,8 @@ class CreateForumTableThreads extends Migration
                 $table->integer('author_id')->unsigned();
                 $table->string('title');
                 $table->string('slug');
-                $table->boolean('pinned')->default(0);
-                $table->boolean('locked')->default(0);
+                $table->boolean('pinned')->default(false);
+                $table->boolean('locked')->default(false);
                 $table->dateTime('published_on')->nullable();
 
                 $table->timestamps();

@@ -37,6 +37,7 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                 'lastPostPublishedOn' => 'last_post_published_on',
                 'lastPostUserDisplayName' => 'last_post_user_display_name',
                 'lastPostUserId' => 'last_post_user_id',
+                'postCount' => 'post_count',
             ]
         );
     }
@@ -50,7 +51,8 @@ class ThreadDataMapper extends DatabaseDataMapperBase
             config('railforums.author_table_name') .
             '.' .
             config('railforums.author_table_display_name_column_name') .
-            ' as last_post_user_display_name'
+            ' as last_post_user_display_name, ' .
+            '(select count(*) from forum_posts where forum_posts.thread_id = forum_threads.id) as post_count'
         )->join(
             'forum_posts',
             function (JoinClause $query) {
@@ -59,7 +61,7 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                         'forum_posts.published_on',
                         '=',
                         $query->raw(
-                            '(SELECT min(published_on) from forum_posts where thread_id = forum_threads.id)'
+                            '(SELECT MAX(published_on) FROM forum_posts WHERE thread_id = forum_threads.id)'
                         )
                     );
             }

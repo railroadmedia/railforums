@@ -65,6 +65,11 @@ class Thread extends EntityBase
     protected $lastPostUserId;
 
     /**
+     * @var int
+     */
+    protected $postCount;
+
+    /**
      * Category constructor.
      */
     public function __construct()
@@ -139,7 +144,7 @@ class Thread extends EntityBase
     /**
      * @return bool
      */
-    public function isPinned(): bool
+    public function getPinned(): bool
     {
         return $this->pinned;
     }
@@ -155,7 +160,7 @@ class Thread extends EntityBase
     /**
      * @return bool
      */
-    public function isLocked(): bool
+    public function getLocked(): bool
     {
         return $this->locked;
     }
@@ -230,6 +235,22 @@ class Thread extends EntityBase
     public function setLastPostUserId(int $lastPostUserId)
     {
         $this->lastPostUserId = $lastPostUserId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPostCount(): int
+    {
+        return $this->postCount;
+    }
+
+    /**
+     * @param int $postCount
+     */
+    public function setPostCount(int $postCount)
+    {
+        $this->postCount = $postCount;
     }
 
     public function randomize()

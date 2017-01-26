@@ -2,9 +2,11 @@
 
 namespace Tests;
 
+use Carbon\Carbon;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Services\ForumThreadService;
+use Railroad\Railmap\Helpers\RailmapHelpers;
 
 class ForumThreadServiceTest extends TestCase
 {
@@ -29,9 +31,11 @@ class ForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->persist();
 
-            $replyCount = rand(0, 4);
+            $postCount = rand(1, 6);
+            $mostRecentPost = null;
+            $mostRecentUserData = null;
 
-            for ($x = 0; $x < $replyCount; $x++) {
+            for ($x = 0; $x < $postCount; $x++) {
                 $userData = $this->fakeUser();
 
                 $post = new Post();
@@ -39,16 +43,31 @@ class ForumThreadServiceTest extends TestCase
                 $post->setThreadId($entity->getId());
                 $post->setAuthorId($userData['id']);
                 $post->persist();
+
+                if (is_null($mostRecentPost) ||
+                    Carbon::parse($post->getPublishedOn()) > $mostRecentPost->getPublishedOn()
+                ) {
+                    $mostRecentPost = $post;
+                    $mostRecentUserData = $userData;
+                }
             }
 
-            $entity->setLastPostPublishedOn($replyCount);
+            $entity->setLastPostPublishedOn($mostRecentPost->getPublishedOn());
+            $entity->setLastPostUserDisplayName($mostRecentUserData['display_name']);
+            $entity->setLastPostUserId($mostRecentUserData['id']);
+            $entity->setPostCount($postCount);
 
             $entities[] = $entity;
         }
 
-        $responseEntities = $this->classBeingTested->getAll();
+        $entities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'publishedOn', 'desc'),
+            0,
+            3
+        );
 
-        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(3, 1, 'posted_on', 'desc');
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(3, 1, 'published_on', 'desc');
 
+        $this->assertEquals($entities, $responseEntities);
     }
 }
