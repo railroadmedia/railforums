@@ -5,6 +5,7 @@ namespace Tests;
 use Faker\Generator;
 use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Railroad\Railforums\ForumServiceProvider;
 
 class TestCase extends BaseTestCase
 {
@@ -65,6 +66,8 @@ class TestCase extends BaseTestCase
                 $table->string('display_name');
             }
         );
+
+        $app->register(ForumServiceProvider::class);
     }
 
     /**

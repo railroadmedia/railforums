@@ -11,6 +11,7 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
  *
  * @package Railroad\Railforums\DataMappers
  * @method Thread|Thread[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
+ * @method Thread|Thread[] get($idOrIds)
  */
 class ThreadDataMapper extends DatabaseDataMapperBase
 {
@@ -65,7 +66,7 @@ class ThreadDataMapper extends DatabaseDataMapperBase
             config('railforums.author_table_display_name_column_name') .
             ' as last_post_user_display_name, ' .
             'forum_thread_reads.id IS NOT NULL AND forum_thread_reads.read_on >= forum_posts.published_on as is_read'
-        )->join(
+        )->leftJoin(
             'forum_posts',
             function (JoinClause $query) {
                 $query->on('forum_posts.thread_id', '=', 'forum_threads.id')
@@ -75,7 +76,7 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                         'forum_threads.last_post_id'
                     );
             }
-        )->join(
+        )->leftJoin(
             config('railforums.author_table_name'),
             function (JoinClause $query) {
                 $query->on(

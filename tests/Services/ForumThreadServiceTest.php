@@ -80,8 +80,6 @@ class ForumThreadServiceTest extends TestCase
             $entity->setLastPostUserDisplayName($mostRecentUserData['display_name']);
             $entity->setLastPostUserId($mostRecentUserData['id']);
 
-            $entity->setLastPostId($mostRecentPost->getId());
-
             $entity->persist();
 
             $entities[] = $entity;
@@ -121,7 +119,6 @@ class ForumThreadServiceTest extends TestCase
         $entity->setLastPostPublishedOn($post->getPublishedOn());
         $entity->setLastPostUserDisplayName($userData['display_name']);
         $entity->setLastPostUserId($userData['id']);
-        $entity->setPostCount(1);
         $entity->setIsRead(false);
 
         $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
@@ -156,7 +153,6 @@ class ForumThreadServiceTest extends TestCase
         $entity->setLastPostPublishedOn($post->getPublishedOn());
         $entity->setLastPostUserDisplayName($userData['display_name']);
         $entity->setLastPostUserId($userData['id']);
-        $entity->setPostCount(1);
         $entity->setIsRead(false);
 
         $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);

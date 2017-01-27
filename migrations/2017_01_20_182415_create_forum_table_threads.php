@@ -24,7 +24,7 @@ class CreateForumTableThreads extends Migration
                 $table->boolean('pinned')->default(false);
                 $table->boolean('locked')->default(false);
                 $table->boolean('state');
-                $table->integer('post_count');
+                $table->integer('post_count')->default(0);;
                 $table->integer('last_post_id');
                 $table->dateTime('published_on')->nullable();
 
