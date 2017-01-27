@@ -93,8 +93,6 @@ class Thread extends EntityBase
      */
     public function __construct()
     {
-        parent::__construct();
-
         $this->setOwningDataMapper(app(ThreadDataMapper::class));
     }
 

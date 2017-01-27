@@ -108,6 +108,11 @@ class ForumThreadServiceTest extends TestCase
         $entity->randomize();
         $entity->persist();
 
+        $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
+
+        $responseEntity->getPostCount(5);
+        $entity->getPostCount(5);
+
         $userData = $this->fakeUser();
 
         $post = new Post();

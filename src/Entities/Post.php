@@ -58,8 +58,6 @@ class Post extends EntityBase
      */
     public function __construct()
     {
-        parent::__construct();
-
         $this->setOwningDataMapper(app(PostDataMapper::class));
     }
 
