@@ -21,4 +21,9 @@ class HTMLPurifierService
 
         $this->purifier->config->loadArray(config('railforums.html_purifier_settings.settings.default'));
     }
+
+    public function clean($string)
+    {
+        return $this->purifier->purify($string);
+    }
 }
