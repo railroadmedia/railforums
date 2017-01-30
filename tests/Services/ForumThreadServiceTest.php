@@ -8,6 +8,7 @@ use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railforums\Services\ForumThreadService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class ForumThreadServiceTest extends TestCase
 {
@@ -16,11 +17,17 @@ class ForumThreadServiceTest extends TestCase
      */
     private $classBeingTested;
 
+    /**
+     * @var IdentityMap
+     */
+    private $identityMap;
+
     public function setUp()
     {
         parent::setUp();
 
         $this->classBeingTested = app(ForumThreadService::class);
+        $this->identityMap = app(IdentityMap::class);
     }
 
     public function test_get_threads_sorted_paginated()
@@ -108,11 +115,6 @@ class ForumThreadServiceTest extends TestCase
         $entity->randomize();
         $entity->persist();
 
-        $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
-
-        $responseEntity->getPostCount(5);
-        $entity->getPostCount(5);
-
         $userData = $this->fakeUser();
 
         $post = new Post();
@@ -125,6 +127,8 @@ class ForumThreadServiceTest extends TestCase
         $entity->setLastPostUserDisplayName($userData['display_name']);
         $entity->setLastPostUserId($userData['id']);
         $entity->setIsRead(false);
+
+        $this->identityMap->remove(get_class($entity), $entity->getId());
 
         $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
 

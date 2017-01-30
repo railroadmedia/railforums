@@ -6,6 +6,7 @@ use Faker\Generator;
 use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use Railroad\Railforums\ForumServiceProvider;
+use Railroad\Railmap\RailmapServiceProvider;
 
 class TestCase extends BaseTestCase
 {
@@ -67,6 +68,7 @@ class TestCase extends BaseTestCase
             }
         );
 
+        $app->register(RailmapServiceProvider::class);
         $app->register(ForumServiceProvider::class);
     }
 

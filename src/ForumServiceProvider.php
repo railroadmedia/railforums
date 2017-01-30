@@ -20,6 +20,8 @@ class ForumServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        parent::boot();
+        
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
 
         $this->publishes(
