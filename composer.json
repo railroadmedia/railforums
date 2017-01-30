@@ -15,7 +15,8 @@
     "laravel/framework": "5.*",
     "guzzlehttp/guzzle": "~6.0",
     "doctrine/dbal": "^2.5",
-    "railroad/railmap": "dev-master"
+    "railroad/railmap": "dev-master",
+    "ezyang/htmlpurifier": "dev-master"
   },
   "require-dev": {
     "phpunit/phpunit": "~5.",

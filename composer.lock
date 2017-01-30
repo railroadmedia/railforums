@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e3904099a7d07eab009caa4d24ed33dd",
-    "content-hash": "75cfefbff32d90a86cf314b322d289dd",
+    "hash": "27638cae9bc3c0adef020dab31f9729d",
+    "content-hash": "284391b6121def04aadf8dcb5919e575",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -520,6 +520,53 @@
             "time": "2016-11-02 15:56:58"
         },
         {
+            "name": "ezyang/htmlpurifier",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ezyang/htmlpurifier.git",
+                "reference": "d4a96463efe5d31f52fec0dad6b7871060862dfa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/d4a96463efe5d31f52fec0dad6b7871060862dfa",
+                "reference": "d4a96463efe5d31f52fec0dad6b7871060862dfa",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2"
+            },
+            "require-dev": {
+                "simpletest/simpletest": "^1.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "HTMLPurifier": "library/"
+                },
+                "files": [
+                    "library/HTMLPurifier.composer.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL"
+            ],
+            "authors": [
+                {
+                    "name": "Edward Z. Yang",
+                    "email": "admin@htmlpurifier.org",
+                    "homepage": "http://ezyang.com"
+                }
+            ],
+            "description": "Standards compliant HTML filter written in PHP",
+            "homepage": "http://htmlpurifier.org/",
+            "keywords": [
+                "html"
+            ],
+            "time": "2017-01-19 17:28:40"
+        },
+        {
             "name": "guzzlehttp/guzzle",
             "version": "6.2.2",
             "source": {
@@ -692,16 +739,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v5.4.4",
+            "version": "v5.4.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "4274ed5646f8a9ec0a4b201aab7440e2890610a1"
+                "reference": "5913b960656d7f978605ff9c1513ffbfd190c173"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/4274ed5646f8a9ec0a4b201aab7440e2890610a1",
-                "reference": "4274ed5646f8a9ec0a4b201aab7440e2890610a1",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/5913b960656d7f978605ff9c1513ffbfd190c173",
+                "reference": "5913b960656d7f978605ff9c1513ffbfd190c173",
                 "shasum": ""
             },
             "require": {
@@ -817,20 +864,20 @@
                 "framework",
                 "laravel"
             ],
-            "time": "2017-01-26 14:29:30"
+            "time": "2017-01-27 19:27:15"
         },
         {
             "name": "league/flysystem",
-            "version": "1.0.33",
+            "version": "1.0.34",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "5c7f98498b12d47f9de90ec9186a90000125777c"
+                "reference": "469ad53c13ea19a0e54e3e5d70f61227ddcc0299"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/5c7f98498b12d47f9de90ec9186a90000125777c",
-                "reference": "5c7f98498b12d47f9de90ec9186a90000125777c",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/469ad53c13ea19a0e54e3e5d70f61227ddcc0299",
+                "reference": "469ad53c13ea19a0e54e3e5d70f61227ddcc0299",
                 "shasum": ""
             },
             "require": {
@@ -900,7 +947,7 @@
                 "sftp",
                 "storage"
             ],
-            "time": "2017-01-23 10:32:09"
+            "time": "2017-01-30 17:41:17"
         },
         {
             "name": "monolog/monolog",
@@ -1228,12 +1275,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/calebfavor/railmap.git",
-                "reference": "a27ed9a8b2f8ff2da78620aeba7086ab26b80529"
+                "reference": "bc35b2f95e8251ef70202a82ed65b665cd10fdcb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/a27ed9a8b2f8ff2da78620aeba7086ab26b80529",
-                "reference": "a27ed9a8b2f8ff2da78620aeba7086ab26b80529",
+                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/bc35b2f95e8251ef70202a82ed65b665cd10fdcb",
+                "reference": "bc35b2f95e8251ef70202a82ed65b665cd10fdcb",
                 "shasum": ""
             },
             "require": {
@@ -1263,7 +1310,7 @@
                 }
             ],
             "description": "Entity System",
-            "time": "2017-01-26 18:43:01"
+            "time": "2017-01-30 22:24:51"
         },
         {
             "name": "ramsey/uuid",
@@ -2331,16 +2378,16 @@
         },
         {
             "name": "myclabs/deep-copy",
-            "version": "1.5.5",
+            "version": "1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "399c1f9781e222f6eb6cc238796f5200d1b7f108"
+                "reference": "5a5a9fc8025a08d8919be87d6884d5a92520cefe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/399c1f9781e222f6eb6cc238796f5200d1b7f108",
-                "reference": "399c1f9781e222f6eb6cc238796f5200d1b7f108",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/5a5a9fc8025a08d8919be87d6884d5a92520cefe",
+                "reference": "5a5a9fc8025a08d8919be87d6884d5a92520cefe",
                 "shasum": ""
             },
             "require": {
@@ -2369,90 +2416,39 @@
                 "object",
                 "object graph"
             ],
-            "time": "2016-10-31 17:19:45"
-        },
-        {
-            "name": "orchestra/database",
-            "version": "3.4.x-dev",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/orchestral/database.git",
-                "reference": "8fe082aeaee485a01fe240d54287856bab6c204d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/orchestral/database/zipball/8fe082aeaee485a01fe240d54287856bab6c204d",
-                "reference": "8fe082aeaee485a01fe240d54287856bab6c204d",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "~5.4.0",
-                "illuminate/database": "~5.4.0",
-                "php": ">=5.6.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.4-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Orchestra\\Database\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mior Muhammad Zaki",
-                    "email": "crynobone@gmail.com",
-                    "homepage": "https://github.com/crynobone"
-                },
-                {
-                    "name": "Taylor Otwell",
-                    "email": "taylorotwell@gmail.com",
-                    "homepage": "https://github.com/taylorotwell"
-                }
-            ],
-            "description": "Database Component for Orchestra Platform",
-            "keywords": [
-                "database",
-                "orchestra-platform",
-                "orchestral"
-            ],
-            "time": "2017-01-21 06:08:08"
+            "time": "2017-01-26 22:05:40"
         },
         {
             "name": "orchestra/testbench",
-            "version": "3.4.x-dev",
+            "version": "v3.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/orchestral/testbench.git",
-                "reference": "dd487141cb7f193b85fecd130549a95cb110cca6"
+                "reference": "34eb7fd834cc28c29568df9fc8cc8f0f8e3a05d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/orchestral/testbench/zipball/dd487141cb7f193b85fecd130549a95cb110cca6",
-                "reference": "dd487141cb7f193b85fecd130549a95cb110cca6",
+                "url": "https://api.github.com/repos/orchestral/testbench/zipball/34eb7fd834cc28c29568df9fc8cc8f0f8e3a05d0",
+                "reference": "34eb7fd834cc28c29568df9fc8cc8f0f8e3a05d0",
                 "shasum": ""
             },
             "require": {
                 "fzaninotto/faker": "~1.4",
                 "laravel/framework": "~5.4.0",
-                "orchestra/database": "~3.4.0",
                 "php": ">=5.6.0",
-                "symfony/css-selector": "~3.1",
-                "symfony/dom-crawler": "~3.1"
+                "symfony/css-selector": "~3.2.0",
+                "symfony/dom-crawler": "~3.2.0"
             },
             "require-dev": {
                 "mockery/mockery": "^0.9.4",
+                "orchestra/database": "~3.4.0",
                 "phpunit/phpunit": "~5.7"
             },
             "suggest": {
-                "phpunit/phpunit": "Allow to use PHPUnit for testing your Laravel Application/Package (~4.0|~5.0)."
+                "mockery/mockery": "Allow to use Mockery for testing (^0.9.4).",
+                "orchestra/database": "Allow to use --realpath migration for testing (~3.4).",
+                "orchestra/testbench-browser-kit": "Allow to use legacy BrowserKit for testing (~3.4).",
+                "phpunit/phpunit": "Allow to use PHPUnit for testing (~5.7)."
             },
             "type": "library",
             "extra": {
@@ -2486,7 +2482,7 @@
                 "orchestral",
                 "testing"
             ],
-            "time": "2017-01-25 23:16:56"
+            "time": "2017-01-27 14:58:24"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -3119,16 +3115,16 @@
         },
         {
             "name": "sebastian/comparator",
-            "version": "1.2.2",
+            "version": "1.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/comparator.git",
-                "reference": "6a1ed12e8b2409076ab22e3897126211ff8b1f7f"
+                "reference": "2b7424b55f5047b47ac6e5ccb20b2aea4011d9be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/6a1ed12e8b2409076ab22e3897126211ff8b1f7f",
-                "reference": "6a1ed12e8b2409076ab22e3897126211ff8b1f7f",
+                "url": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/2b7424b55f5047b47ac6e5ccb20b2aea4011d9be",
+                "reference": "2b7424b55f5047b47ac6e5ccb20b2aea4011d9be",
                 "shasum": ""
             },
             "require": {
@@ -3179,7 +3175,7 @@
                 "compare",
                 "equality"
             ],
-            "time": "2016-11-19 09:18:40"
+            "time": "2017-01-29 09:50:25"
         },
         {
             "name": "sebastian/diff",
@@ -3751,6 +3747,7 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "railroad/railmap": 20,
+        "ezyang/htmlpurifier": 20,
         "orchestra/testbench": 20
     },
     "prefer-stable": true,
