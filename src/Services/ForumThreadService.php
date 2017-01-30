@@ -27,6 +27,7 @@ class ForumThreadService
      * @param $amount
      * @param $page
      * @param $viewingUserId
+     * @param $categoryId
      * @param array $states
      * @param string $sortColumn
      * @param string $sortDirection
@@ -36,6 +37,7 @@ class ForumThreadService
         $amount,
         $page,
         $viewingUserId,
+        $categoryId,
         $states = [Thread::STATE_PUBLISHED],
         $sortColumn = 'last_post_published_on',
         $sortDirection = 'desc'
@@ -43,11 +45,18 @@ class ForumThreadService
         ThreadDataMapper::$viewingUserId = $viewingUserId;
 
         return $this->threadDataMapper->getWithQuery(
-            function (Builder $builder) use ($amount, $page, $sortColumn, $sortDirection, $states) {
+            function (Builder $builder) use (
+                $amount,
+                $page,
+                $sortColumn,
+                $sortDirection,
+                $states,
+                $categoryId
+            ) {
                 return $builder->limit($amount)->skip($amount * ($page - 1))->orderBy(
                     $sortColumn,
                     $sortDirection
-                )->whereIn('forum_threads.state', $states)->get();
+                )->whereIn('forum_threads.state', $states)->get()->where('category_id', $categoryId);
             }
         );
     }
@@ -191,13 +200,14 @@ class ForumThreadService
 
     /**
      * @param array $states
+     * @param $categoryId
      * @return int
      */
-    public function getThreadCount($states = [Thread::STATE_PUBLISHED])
+    public function getThreadCount($categoryId, $states = [Thread::STATE_PUBLISHED])
     {
         return $this->threadDataMapper->count(
-            function (Builder $builder) use ($states) {
-                return $builder->whereIn('forum_threads.state', $states);
+            function (Builder $builder) use ($states, $categoryId) {
+                return $builder->whereIn('forum_threads.state', $states)->where('category_id', $categoryId);
             }
         );
     }
@@ -220,5 +230,16 @@ class ForumThreadService
         }
 
         return false;
+    }
+
+    public function createThread(
+        $title,
+        $firstPostContent,
+        $categoryId,
+        $authorId,
+        $pinned = false,
+        $locked = false
+    ) {
+
     }
 }

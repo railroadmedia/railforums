@@ -25,6 +25,8 @@ class ForumThreadServiceTest extends TestCase
 
     public function test_get_threads_sorted_paginated()
     {
+        $categoryId = rand();
+
         $entities = [];
 
         $currentUserData = $this->fakeUser();
@@ -33,6 +35,7 @@ class ForumThreadServiceTest extends TestCase
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setCategoryId($categoryId);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -95,7 +98,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             5,
             1,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $categoryId
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
@@ -110,7 +114,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             5,
             2,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $categoryId
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
@@ -125,7 +130,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             5,
             3,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $categoryId
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
@@ -133,6 +139,8 @@ class ForumThreadServiceTest extends TestCase
 
     public function test_get_threads_sorted_paginated_single_page()
     {
+        $categoryId = rand();
+
         $entities = [];
 
         $currentUserData = $this->fakeUser();
@@ -141,6 +149,7 @@ class ForumThreadServiceTest extends TestCase
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setCategoryId($categoryId);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -202,7 +211,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             5,
             1,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $categoryId
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
@@ -215,7 +225,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             5,
             1,
-            $currentUserData['id']
+            $currentUserData['id'],
+            rand()
         );
 
         $this->assertEmpty($responseEntities);
@@ -252,7 +263,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             1,
             1,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $entity->getCategoryId()
         );
 
         $this->assertEquals([$entity], $responseEntities);
@@ -289,7 +301,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             1,
             1,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $entity->getCategoryId()
         );
 
         $this->assertEquals([], $responseEntities);
@@ -326,7 +339,8 @@ class ForumThreadServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
             1,
             1,
-            $currentUserData['id']
+            $currentUserData['id'],
+            $entity->getCategoryId()
         );
 
         $this->assertEquals([], $responseEntities);
@@ -441,12 +455,15 @@ class ForumThreadServiceTest extends TestCase
 
     public function test_get_thread_count()
     {
+        $categoryId = rand();
+
         $entities = [];
 
         for ($i = 0; $i < 13; $i++) {
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setCategoryId($categoryId);
             $entity->persist();
 
             $userData = $this->fakeUser();
@@ -460,19 +477,22 @@ class ForumThreadServiceTest extends TestCase
             $entities[] = $entity;
         }
 
-        $responseCount = $this->classBeingTested->getThreadCount();
+        $responseCount = $this->classBeingTested->getThreadCount($categoryId);
 
         $this->assertEquals(13, $responseCount);
     }
 
     public function test_get_thread_count_some_drafts()
     {
+        $categoryId = rand();
+
         $entities = [];
 
         for ($i = 0; $i < 9; $i++) {
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setCategoryId($categoryId);
             $entity->persist();
 
             $userData = $this->fakeUser();
@@ -490,6 +510,7 @@ class ForumThreadServiceTest extends TestCase
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_DRAFT);
+            $entity->setCategoryId($categoryId);
             $entity->persist();
 
             $userData = $this->fakeUser();
@@ -502,20 +523,22 @@ class ForumThreadServiceTest extends TestCase
 
             $entities[] = $entity;
         }
-
-        $responseCount = $this->classBeingTested->getThreadCount();
+        $responseCount = $this->classBeingTested->getThreadCount($categoryId);
 
         $this->assertEquals(9, $responseCount);
     }
 
     public function test_get_thread_count_one_deleted()
     {
+        $categoryId = rand();
+
         $entities = [];
 
         for ($i = 0; $i < 9; $i++) {
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setCategoryId($categoryId);
             $entity->persist();
 
             $userData = $this->fakeUser();
@@ -531,7 +554,7 @@ class ForumThreadServiceTest extends TestCase
 
         $entities[0]->destroy();
 
-        $responseCount = $this->classBeingTested->getThreadCount();
+        $responseCount = $this->classBeingTested->getThreadCount($categoryId);
 
         $this->assertEquals(8, $responseCount);
     }
