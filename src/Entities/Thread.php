@@ -56,10 +56,10 @@ class Thread extends EntityBase
     /**
      * @var int
      */
-    protected $postCount;
+    protected $postCount = 0;
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $lastPostId;
 
@@ -69,24 +69,24 @@ class Thread extends EntityBase
     protected $publishedOn;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $lastPostPublishedOn;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $lastPostUserDisplayName;
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $lastPostUserId;
 
     /**
      * @var bool
      */
-    protected $isRead;
+    protected $isRead = false;
 
     /**
      * Category constructor.
@@ -225,17 +225,17 @@ class Thread extends EntityBase
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getLastPostId(): int
+    public function getLastPostId()
     {
         return $this->lastPostId;
     }
 
     /**
-     * @param int $lastPostId
+     * @param int|null $lastPostId
      */
-    public function setLastPostId(int $lastPostId)
+    public function setLastPostId($lastPostId)
     {
         $this->lastPostId = $lastPostId;
     }
@@ -257,49 +257,49 @@ class Thread extends EntityBase
     }
 
     /**
-     * @return string
+     * @return null|string
      */
-    public function getLastPostPublishedOn(): string
+    public function getLastPostPublishedOn()
     {
         return $this->lastPostPublishedOn;
     }
 
     /**
-     * @param string $lastPostPublishedOn
+     * @param null|string $lastPostPublishedOn
      */
-    public function setLastPostPublishedOn(string $lastPostPublishedOn)
+    public function setLastPostPublishedOn($lastPostPublishedOn)
     {
         $this->lastPostPublishedOn = $lastPostPublishedOn;
     }
 
     /**
-     * @return string
+     * @return null|string
      */
-    public function getLastPostUserDisplayName(): string
+    public function getLastPostUserDisplayName()
     {
         return $this->lastPostUserDisplayName;
     }
 
     /**
-     * @param string $lastPostUserDisplayName
+     * @param null|string $lastPostUserDisplayName
      */
-    public function setLastPostUserDisplayName(string $lastPostUserDisplayName)
+    public function setLastPostUserDisplayName($lastPostUserDisplayName)
     {
         $this->lastPostUserDisplayName = $lastPostUserDisplayName;
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getLastPostUserId(): int
+    public function getLastPostUserId()
     {
         return $this->lastPostUserId;
     }
 
     /**
-     * @param int $lastPostUserId
+     * @param int|null $lastPostUserId
      */
-    public function setLastPostUserId(int $lastPostUserId)
+    public function setLastPostUserId($lastPostUserId)
     {
         $this->lastPostUserId = $lastPostUserId;
     }

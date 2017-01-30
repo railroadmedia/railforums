@@ -17,17 +17,11 @@ class ForumThreadServiceTest extends TestCase
      */
     private $classBeingTested;
 
-    /**
-     * @var IdentityMap
-     */
-    private $identityMap;
-
     public function setUp()
     {
         parent::setUp();
 
         $this->classBeingTested = app(ForumThreadService::class);
-        $this->identityMap = app(IdentityMap::class);
     }
 
     public function test_get_threads_sorted_paginated()
@@ -105,137 +99,5 @@ class ForumThreadServiceTest extends TestCase
         );
 
         $this->assertEquals($entities, $responseEntities);
-    }
-
-    public function test_thread_read_none_exist_false()
-    {
-        $currentUserData = $this->fakeUser();
-
-        $entity = new Thread();
-        $entity->randomize();
-        $entity->persist();
-
-        $userData = $this->fakeUser();
-
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($entity->getId());
-        $post->setAuthorId($userData['id']);
-        $post->persist();
-
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($userData['display_name']);
-        $entity->setLastPostUserId($userData['id']);
-        $entity->setIsRead(false);
-
-        $this->identityMap->remove(get_class($entity), $entity->getId());
-
-        $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
-
-        $this->assertEquals($entity, $responseEntity);
-    }
-
-    public function test_thread_read_exists_but_out_of_date_false()
-    {
-        $currentUserData = $this->fakeUser();
-
-        $entity = new Thread();
-        $entity->randomize();
-        $entity->persist();
-
-        $userData = $this->fakeUser();
-
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($entity->getId());
-        $post->setAuthorId($userData['id']);
-        $post->persist();
-
-        $threadRead = new ThreadRead();
-        $threadRead->setThreadId($entity->getId());
-        $threadRead->setReaderId($currentUserData['id']);
-        $threadRead->setReadOn(
-            Carbon::parse($post->getPublishedOn())->subDay()->toDateTimeString()
-        );
-        $threadRead->persist();
-
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($userData['display_name']);
-        $entity->setLastPostUserId($userData['id']);
-        $entity->setIsRead(false);
-
-        $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
-
-        $this->assertEquals($entity, $responseEntity);
-    }
-
-    public function test_thread_read_exists_exact_date_true()
-    {
-        $currentUserData = $this->fakeUser();
-
-        $entity = new Thread();
-        $entity->randomize();
-        $entity->persist();
-
-        $userData = $this->fakeUser();
-
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($entity->getId());
-        $post->setAuthorId($userData['id']);
-        $post->persist();
-
-        $threadRead = new ThreadRead();
-        $threadRead->setThreadId($entity->getId());
-        $threadRead->setReaderId($currentUserData['id']);
-        $threadRead->setReadOn(
-            Carbon::parse($post->getPublishedOn())->toDateTimeString()
-        );
-        $threadRead->persist();
-
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($userData['display_name']);
-        $entity->setLastPostUserId($userData['id']);
-        $entity->setPostCount(1);
-        $entity->setIsRead(true);
-
-        $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
-
-        $this->assertEquals($entity, $responseEntity);
-    }
-
-    public function test_thread_read_exists_and_is_up_to_date_true()
-    {
-        $currentUserData = $this->fakeUser();
-
-        $entity = new Thread();
-        $entity->randomize();
-        $entity->persist();
-
-        $userData = $this->fakeUser();
-
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($entity->getId());
-        $post->setAuthorId($userData['id']);
-        $post->persist();
-
-        $threadRead = new ThreadRead();
-        $threadRead->setThreadId($entity->getId());
-        $threadRead->setReaderId($currentUserData['id']);
-        $threadRead->setReadOn(
-            Carbon::parse($post->getPublishedOn())->addDay()->toDateTimeString()
-        );
-        $threadRead->persist();
-
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($userData['display_name']);
-        $entity->setLastPostUserId($userData['id']);
-        $entity->setPostCount(1);
-        $entity->setIsRead(true);
-
-        $responseEntity = $this->classBeingTested->getThread($entity->getId(), $currentUserData['id']);
-
-        $this->assertEquals($entity, $responseEntity);
     }
 }

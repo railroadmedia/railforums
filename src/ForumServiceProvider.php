@@ -8,8 +8,8 @@ use Railroad\Railmap\Events\EntitySaved;
 class ForumServiceProvider extends ServiceProvider
 {
     protected $listen = [
-        EntityCreated::class => [
-            EntityEventListener::class . '@onCreated',
+        EntitySaved::class => [
+            EntityEventListener::class . '@onSaved',
         ],
     ];
 
@@ -21,7 +21,7 @@ class ForumServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
-        
+
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
 
         $this->publishes(

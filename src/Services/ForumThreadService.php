@@ -5,7 +5,6 @@ namespace Railroad\Railforums\Services;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\Entities\Thread;
-use Railroad\Railmap\Entity\EntityInterface;
 
 class ForumThreadService
 {
