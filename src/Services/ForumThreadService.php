@@ -9,7 +9,6 @@ use Railroad\Railforums\Entities\Thread;
 class ForumThreadService
 {
     private $threadDataMapper;
-    private $viewingUserId;
 
     public function __construct(ThreadDataMapper $threadDataMapper)
     {
@@ -55,21 +54,5 @@ class ForumThreadService
         ThreadDataMapper::$viewingUserId = $viewingUserId;
 
         return $this->threadDataMapper->get($id);
-    }
-
-    /**
-     * @return int
-     */
-    public function getViewingUserId()
-    {
-        return $this->viewingUserId;
-    }
-
-    /**
-     * @param int $viewingUserId
-     */
-    public function setViewingUserId($viewingUserId)
-    {
-        $this->viewingUserId = $viewingUserId;
     }
 }

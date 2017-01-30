@@ -86,7 +86,8 @@ class ForumThreadServiceTest extends TestCase
             $entities[] = $entity;
         }
 
-        $entities = array_slice(
+        // Page 1
+        $expectedEntities = array_slice(
             RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
             0,
             5
@@ -98,6 +99,21 @@ class ForumThreadServiceTest extends TestCase
             $currentUserData['id']
         );
 
-        $this->assertEquals($entities, $responseEntities);
+        $this->assertEquals($expectedEntities, $responseEntities);
+
+        // Page 2
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            5,
+            5
+        );
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            5,
+            2,
+            $currentUserData['id']
+        );
+
+        $this->assertEquals($expectedEntities, $responseEntities);
     }
 }
