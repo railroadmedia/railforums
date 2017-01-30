@@ -220,4 +220,222 @@ class ForumThreadServiceTest extends TestCase
 
         $this->assertEmpty($responseEntities);
     }
+
+    public function test_set_thread_state_published_shows_in_list()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_DRAFT);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->persist();
+
+        $entity->setLastPostPublishedOn($post->getPublishedOn());
+        $entity->setLastPostUserDisplayName($currentUserData['display_name']);
+        $entity->setLastPostUserId($currentUserData['id']);
+
+        $entity->persist();
+
+        $this->classBeingTested->setThreadAsPublished($entity->getId());
+
+        $this->assertDatabaseHas(
+            'forum_threads',
+            ['id' => $entity->getId(), 'state' => Thread::STATE_PUBLISHED]
+        );
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            1,
+            1,
+            $currentUserData['id']
+        );
+
+        $this->assertEquals([$entity], $responseEntities);
+    }
+
+    public function test_set_thread_state_draft_hide_from_list()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->persist();
+
+        $entity->setLastPostPublishedOn($post->getPublishedOn());
+        $entity->setLastPostUserDisplayName($currentUserData['display_name']);
+        $entity->setLastPostUserId($currentUserData['id']);
+
+        $entity->persist();
+
+        $this->classBeingTested->setThreadAsDraft($entity->getId());
+
+        $this->assertDatabaseHas(
+            'forum_threads',
+            ['id' => $entity->getId(), 'state' => Thread::STATE_DRAFT]
+        );
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            1,
+            1,
+            $currentUserData['id']
+        );
+
+        $this->assertEquals([], $responseEntities);
+    }
+
+    public function test_set_thread_state_hidden_hide_from_list()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->persist();
+
+        $entity->setLastPostPublishedOn($post->getPublishedOn());
+        $entity->setLastPostUserDisplayName($currentUserData['display_name']);
+        $entity->setLastPostUserId($currentUserData['id']);
+
+        $entity->persist();
+
+        $this->classBeingTested->setThreadAsHidden($entity->getId());
+
+        $this->assertDatabaseHas(
+            'forum_threads',
+            ['id' => $entity->getId(), 'state' => Thread::STATE_HIDDEN]
+        );
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            1,
+            1,
+            $currentUserData['id']
+        );
+
+        $this->assertEquals([], $responseEntities);
+    }
+
+    public function test_update_thread_read_now_new()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->persist();
+
+        $this->classBeingTested->updateThreadRead($entity->getId(), $currentUserData['id']);
+
+        $this->assertTrue($entity->getIsRead());
+
+        $this->assertDatabaseHas(
+            'forum_thread_reads',
+            ['thread_id' => $entity->getId(), 'reader_id' => $currentUserData['id']]
+        );
+    }
+
+    public function test_update_thread_read_past_new()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->setPublishedOn(Carbon::now());
+        $post->persist();
+
+        $this->classBeingTested->updateThreadRead(
+            $entity->getId(),
+            $currentUserData['id'],
+            Carbon::now()->subDay()->toDateTimeString()
+        );
+
+        $this->assertFalse($entity->getIsRead());
+
+        $this->assertDatabaseHas(
+            'forum_thread_reads',
+            ['thread_id' => $entity->getId(), 'reader_id' => $currentUserData['id']]
+        );
+    }
+
+    public function test_update_thread_read_update_to_new()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->setPublishedOn(Carbon::now());
+        $post->persist();
+
+        $this->classBeingTested->updateThreadRead(
+            $entity->getId(),
+            $currentUserData['id'],
+            Carbon::now()->subDay()->toDateTimeString()
+        );
+
+        $this->assertFalse($entity->getIsRead());
+
+        $this->classBeingTested->updateThreadRead(
+            $entity->getId(),
+            $currentUserData['id'],
+            Carbon::now()
+        );
+
+        $this->assertTrue($entity->getIsRead());
+    }
+
+    public function test_update_thread_read_false_if_none()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($currentUserData['id']);
+        $post->setPublishedOn(Carbon::now());
+        $post->persist();
+
+        $this->assertFalse($entity->getIsRead());
+    }
 }

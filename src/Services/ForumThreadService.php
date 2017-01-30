@@ -2,17 +2,24 @@
 
 namespace Railroad\Railforums\Services;
 
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
+use Railroad\Railforums\DataMappers\ThreadReadDataMapper;
 use Railroad\Railforums\Entities\Thread;
+use Railroad\Railforums\Entities\ThreadRead;
 
 class ForumThreadService
 {
     private $threadDataMapper;
+    private $threadReadDataMapper;
 
-    public function __construct(ThreadDataMapper $threadDataMapper)
-    {
+    public function __construct(
+        ThreadDataMapper $threadDataMapper,
+        ThreadReadDataMapper $threadReadDataMapper
+    ) {
         $this->threadDataMapper = $threadDataMapper;
+        $this->threadReadDataMapper = $threadReadDataMapper;
     }
 
     /**
@@ -46,18 +53,50 @@ class ForumThreadService
 
     /**
      * @param $id
-     * @param bool $state
      * @return bool
      */
-    public function setThreadState($id, $state)
+    public function setThreadAsDraft($id)
     {
         $thread = $this->threadDataMapper->get($id);
 
-        if (!empty($thread) &&
-            array_search($state, [Thread::STATE_PUBLISHED, Thread::STATE_HIDDEN, Thread::STATE_DRAFT]) !==
-            false
-        ) {
-            $thread->setState($state);
+        if (!empty($thread)) {
+            $thread->setState(Thread::STATE_DRAFT);
+            $thread->persist();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $id
+     * @return bool
+     */
+    public function setThreadAsPublished($id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread)) {
+            $thread->setState(Thread::STATE_PUBLISHED);
+            $thread->persist();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $id
+     * @return bool
+     */
+    public function setThreadAsHidden($id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread)) {
+            $thread->setState(Thread::STATE_HIDDEN);
             $thread->persist();
 
             return true;
@@ -71,7 +110,7 @@ class ForumThreadService
      * @param bool $state
      * @return bool
      */
-    public function setThreadLockedState($id, bool $state)
+    public function setThreadLocked($id, bool $state)
     {
         $thread = $this->threadDataMapper->get($id);
 
@@ -90,7 +129,7 @@ class ForumThreadService
      * @param bool $state
      * @return bool
      */
-    public function setThreadPinnedState($id, bool $state)
+    public function setThreadPinned($id, bool $state)
     {
         $thread = $this->threadDataMapper->get($id);
 
@@ -104,6 +143,10 @@ class ForumThreadService
         return false;
     }
 
+    /**
+     * @param $id
+     * @return bool
+     */
     public function destroyThread($id)
     {
         $thread = $this->threadDataMapper->get($id);
@@ -115,5 +158,33 @@ class ForumThreadService
         }
 
         return false;
+    }
+
+    /**
+     * @param $id
+     * @param $readerId
+     * @param null $dateTimeString
+     * @return bool
+     */
+    public function updateThreadRead($id, $readerId, $dateTimeString = null)
+    {
+        if (is_null($dateTimeString)) {
+            $dateTime = Carbon::now();
+        } else {
+            $dateTime = Carbon::parse($dateTimeString);
+        }
+
+        $threadRead = $this->threadReadDataMapper->get($id);
+
+        if (empty($threadRead)) {
+            $threadRead = new ThreadRead();
+            $threadRead->setThreadId($id);
+            $threadRead->setReaderId($readerId);
+        }
+
+        $threadRead->setReadOn($dateTime->toDateTimeString());
+        $threadRead->persist();
+
+        return true;
     }
 }
