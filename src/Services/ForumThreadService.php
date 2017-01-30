@@ -45,14 +45,75 @@ class ForumThreadService
     }
 
     /**
-     * @param int $id
-     * @param $viewingUserId
-     * @return null|Thread
+     * @param $id
+     * @param bool $state
+     * @return bool
      */
-    public function getThread(int $id, $viewingUserId)
+    public function setThreadState($id, $state)
     {
-        ThreadDataMapper::$viewingUserId = $viewingUserId;
+        $thread = $this->threadDataMapper->get($id);
 
-        return $this->threadDataMapper->get($id);
+        if (!empty($thread) &&
+            array_search($state, [Thread::STATE_PUBLISHED, Thread::STATE_HIDDEN, Thread::STATE_DRAFT]) !==
+            false
+        ) {
+            $thread->setState($state);
+            $thread->persist();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $id
+     * @param bool $state
+     * @return bool
+     */
+    public function setThreadLockedState($id, bool $state)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread)) {
+            $thread->setLocked($state);
+            $thread->persist();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $id
+     * @param bool $state
+     * @return bool
+     */
+    public function setThreadPinnedState($id, bool $state)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread)) {
+            $thread->setPinned($state);
+            $thread->persist();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function destroyThread($id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread)) {
+            $thread->destroy();
+
+            return true;
+        }
+
+        return false;
     }
 }

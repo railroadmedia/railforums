@@ -8,7 +8,6 @@ use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railforums\Services\ForumThreadService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
-use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class ForumThreadServiceTest extends TestCase
 {
@@ -30,7 +29,7 @@ class ForumThreadServiceTest extends TestCase
 
         $currentUserData = $this->fakeUser();
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 12; $i++) {
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
@@ -115,5 +114,110 @@ class ForumThreadServiceTest extends TestCase
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
+
+        // Page 3
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            10,
+            5
+        );
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            5,
+            3,
+            $currentUserData['id']
+        );
+
+        $this->assertEquals($expectedEntities, $responseEntities);
+    }
+
+    public function test_get_threads_sorted_paginated_single_page()
+    {
+        $entities = [];
+
+        $currentUserData = $this->fakeUser();
+
+        for ($i = 0; $i < 3; $i++) {
+            $entity = new Thread();
+            $entity->randomize();
+            $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->persist();
+
+            $postCount = rand(1, 6);
+            $mostRecentPost = null;
+            $mostRecentUserData = null;
+
+            for ($x = 0; $x < $postCount; $x++) {
+                $userData = $this->fakeUser();
+
+                $post = new Post();
+                $post->randomize();
+                $post->setThreadId($entity->getId());
+                $post->setAuthorId($userData['id']);
+                $post->persist();
+
+                if (is_null($mostRecentPost) ||
+                    Carbon::parse($post->getPublishedOn()) > $mostRecentPost->getPublishedOn()
+                ) {
+                    $mostRecentPost = $post;
+                    $mostRecentUserData = $userData;
+                }
+            }
+
+            if ($this->faker->boolean()) {
+                $threadRead = new ThreadRead();
+                $threadRead->setThreadId($entity->getId());
+                $threadRead->setReaderId($currentUserData['id']);
+                $threadRead->setReadOn($mostRecentPost->getPublishedOn());
+                $threadRead->persist();
+
+                $entity->setIsRead(true);
+            } else {
+                $threadRead = new ThreadRead();
+                $threadRead->setThreadId($entity->getId());
+                $threadRead->setReaderId($currentUserData['id']);
+                $threadRead->setReadOn(
+                    Carbon::parse($mostRecentPost->getPublishedOn())->subDay()->toDateTimeString()
+                );
+                $threadRead->persist();
+
+                $entity->setIsRead(false);
+            }
+
+            $entity->setLastPostPublishedOn($mostRecentPost->getPublishedOn());
+            $entity->setLastPostUserDisplayName($mostRecentUserData['display_name']);
+            $entity->setLastPostUserId($mostRecentUserData['id']);
+
+            $entity->persist();
+
+            $entities[] = $entity;
+        }
+
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            0,
+            5
+        );
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            5,
+            1,
+            $currentUserData['id']
+        );
+
+        $this->assertEquals($expectedEntities, $responseEntities);
+    }
+
+    public function test_get_threads_sorted_paginated_none_exist()
+    {
+        $currentUserData = $this->fakeUser();
+
+        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
+            5,
+            1,
+            $currentUserData['id']
+        );
+
+        $this->assertEmpty($responseEntities);
     }
 }
