@@ -6,19 +6,23 @@ use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\ThreadReadDataMapper;
+use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railmap\Helpers\RailmapHelpers;
 
 class ForumThreadService
 {
+    private $htmlPurifierService;
     private $threadDataMapper;
     private $threadReadDataMapper;
 
     public function __construct(
+        HTMLPurifierService $htmlPurifierService,
         ThreadDataMapper $threadDataMapper,
         ThreadReadDataMapper $threadReadDataMapper
     ) {
+        $this->htmlPurifierService = $htmlPurifierService;
         $this->threadDataMapper = $threadDataMapper;
         $this->threadReadDataMapper = $threadReadDataMapper;
     }
@@ -232,6 +236,15 @@ class ForumThreadService
         return false;
     }
 
+    /**
+     * @param string $title
+     * @param string $firstPostContent
+     * @param int $categoryId
+     * @param int $authorId
+     * @param bool $pinned
+     * @param bool $locked
+     * @return Thread
+     */
     public function createThread(
         $title,
         $firstPostContent,
@@ -240,6 +253,27 @@ class ForumThreadService
         $pinned = false,
         $locked = false
     ) {
+        $firstPostContent = $this->htmlPurifierService->clean($firstPostContent);
 
+        $thread = new Thread();
+        $thread->setTitle($title);
+        $thread->setSlug(RailmapHelpers::sanitizeForSlug($title));
+        $thread->setCategoryId($categoryId);
+        $thread->setAuthorId($authorId);
+        $thread->setPinned($pinned);
+        $thread->setLocked($locked);
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->setPublishedOn(Carbon::now()->toDateTimeString());
+        $thread->persist();
+
+        $post = new Post();
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($authorId);
+        $post->setContent($firstPostContent);
+        $post->setState(Thread::STATE_PUBLISHED);
+        $post->setPublishedOn($thread->getPublishedOn());
+        $post->persist();
+
+        return $thread;
     }
 }

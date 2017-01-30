@@ -589,4 +589,41 @@ class ForumThreadServiceTest extends TestCase
             ]
         );
     }
+
+    public function test_create_thread()
+    {
+        Carbon::setTestNow(Carbon::now());
+
+        $title = $this->faker->sentence();
+        $firstPostContent = $this->faker->paragraph();
+        $categoryId = $this->faker->randomNumber();
+        $authorId = $this->faker->randomNumber();
+        $pinned = false;
+        $locked = true;
+
+        $thread = $this->classBeingTested->createThread(
+            $title,
+            $firstPostContent,
+            $categoryId,
+            $authorId,
+            $pinned,
+            $locked
+        );
+
+        $this->assertDatabaseHas(
+            'forum_threads',
+            [
+                'category_id' => $categoryId,
+                'author_id' => $authorId,
+                'title' => $title,
+                'slug' => RailmapHelpers::sanitizeForSlug($title),
+                'pinned' => $pinned,
+                'locked' => $locked,
+                'state' => Thread::STATE_PUBLISHED,
+                'post_count' => 1,
+                'last_post_id' => 1,
+                'published_on' => Carbon::now(),
+            ]
+        );
+    }
 }

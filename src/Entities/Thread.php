@@ -61,7 +61,7 @@ class Thread extends EntityBase
     /**
      * @var int|null
      */
-    protected $lastPostId;
+    protected $lastPostId = 0;
 
     /**
      * @var string|null
