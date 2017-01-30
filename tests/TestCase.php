@@ -19,12 +19,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->loadMigrationsFrom(
-            [
-                '--database' => 'testbench',
-                '--realpath' => realpath(__DIR__ . '/../migrations'),
-            ]
-        );
+        $this->artisan('migrate', []);
 
         $this->faker = $this->app->make(Generator::class);
     }
