@@ -8,6 +8,7 @@ use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\ThreadReadDataMapper;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
+use Railroad\Railmap\Helpers\RailmapHelpers;
 
 class ForumThreadService
 {
@@ -186,5 +187,38 @@ class ForumThreadService
         $threadRead->persist();
 
         return true;
+    }
+
+    /**
+     * @param array $states
+     * @return int
+     */
+    public function getThreadCount($states = [Thread::STATE_PUBLISHED])
+    {
+        return $this->threadDataMapper->count(
+            function (Builder $builder) use ($states) {
+                return $builder->whereIn('forum_threads.state', $states);
+            }
+        );
+    }
+
+    /**
+     * @param $id
+     * @param string $title
+     * @return bool
+     */
+    public function updateThreadTitle($id, $title)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread)) {
+            $thread->setTitle($title);
+            $thread->setSlug(RailmapHelpers::sanitizeForSlug($title));
+            $thread->persist();
+
+            return true;
+        }
+
+        return false;
     }
 }

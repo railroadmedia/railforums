@@ -438,4 +438,132 @@ class ForumThreadServiceTest extends TestCase
 
         $this->assertFalse($entity->getIsRead());
     }
+
+    public function test_get_thread_count()
+    {
+        $entities = [];
+
+        for ($i = 0; $i < 13; $i++) {
+            $entity = new Thread();
+            $entity->randomize();
+            $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->persist();
+
+            $userData = $this->fakeUser();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($entity->getId());
+            $post->setAuthorId($userData['id']);
+            $post->persist();
+
+            $entities[] = $entity;
+        }
+
+        $responseCount = $this->classBeingTested->getThreadCount();
+
+        $this->assertEquals(13, $responseCount);
+    }
+
+    public function test_get_thread_count_some_drafts()
+    {
+        $entities = [];
+
+        for ($i = 0; $i < 9; $i++) {
+            $entity = new Thread();
+            $entity->randomize();
+            $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->persist();
+
+            $userData = $this->fakeUser();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($entity->getId());
+            $post->setAuthorId($userData['id']);
+            $post->persist();
+
+            $entities[] = $entity;
+        }
+
+        for ($i = 0; $i < 6; $i++) {
+            $entity = new Thread();
+            $entity->randomize();
+            $entity->setState(Thread::STATE_DRAFT);
+            $entity->persist();
+
+            $userData = $this->fakeUser();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($entity->getId());
+            $post->setAuthorId($userData['id']);
+            $post->persist();
+
+            $entities[] = $entity;
+        }
+
+        $responseCount = $this->classBeingTested->getThreadCount();
+
+        $this->assertEquals(9, $responseCount);
+    }
+
+    public function test_get_thread_count_one_deleted()
+    {
+        $entities = [];
+
+        for ($i = 0; $i < 9; $i++) {
+            $entity = new Thread();
+            $entity->randomize();
+            $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->persist();
+
+            $userData = $this->fakeUser();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($entity->getId());
+            $post->setAuthorId($userData['id']);
+            $post->persist();
+
+            $entities[] = $entity;
+        }
+
+        $entities[0]->destroy();
+
+        $responseCount = $this->classBeingTested->getThreadCount();
+
+        $this->assertEquals(8, $responseCount);
+    }
+
+    public function test_update_thread_title()
+    {
+        $entity = new Thread();
+        $entity->randomize();
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        $userData = $this->fakeUser();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($entity->getId());
+        $post->setAuthorId($userData['id']);
+        $post->persist();
+
+        $newTitle = $this->faker->sentence();
+
+        $response = $this->classBeingTested->updateThreadTitle($entity->getId(), $newTitle);
+
+        $this->assertTrue($response);
+
+        $this->assertDatabaseHas(
+            'forum_threads',
+            [
+                'id' => $entity->getId(),
+                'title' => $newTitle,
+                'slug' => RailmapHelpers::sanitizeForSlug($newTitle)
+            ]
+        );
+    }
 }
