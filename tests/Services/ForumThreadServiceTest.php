@@ -31,7 +31,7 @@ class ForumThreadServiceTest extends TestCase
 
         $currentUserData = $this->fakeUser();
 
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < 13; $i++) {
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
@@ -79,10 +79,6 @@ class ForumThreadServiceTest extends TestCase
                 $entity->setIsRead(false);
             }
 
-            $entity->setLastPostPublishedOn($mostRecentPost->getPublishedOn());
-            $entity->setLastPostUserDisplayName($mostRecentUserData['display_name']);
-            $entity->setLastPostUserId($mostRecentUserData['id']);
-
             $entity->persist();
 
             $entities[] = $entity;
@@ -90,7 +86,11 @@ class ForumThreadServiceTest extends TestCase
 
         // Page 1
         $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'lastPostPublishedOn',
+                'desc'
+            ),
             0,
             5
         );
@@ -106,7 +106,11 @@ class ForumThreadServiceTest extends TestCase
 
         // Page 2
         $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'lastPostPublishedOn',
+                'desc'
+            ),
             5,
             5
         );
@@ -122,7 +126,11 @@ class ForumThreadServiceTest extends TestCase
 
         // Page 3
         $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'lastPostPublishedOn',
+                'desc'
+            ),
             10,
             5
         );
@@ -193,17 +201,17 @@ class ForumThreadServiceTest extends TestCase
                 $entity->setIsRead(false);
             }
 
-            $entity->setLastPostPublishedOn($mostRecentPost->getPublishedOn());
-            $entity->setLastPostUserDisplayName($mostRecentUserData['display_name']);
-            $entity->setLastPostUserId($mostRecentUserData['id']);
-
             $entity->persist();
 
             $entities[] = $entity;
         }
 
         $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute($entities, 'lastPostPublishedOn', 'desc'),
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'lastPostPublishedOn',
+                'desc'
+            ),
             0,
             5
         );
@@ -247,10 +255,6 @@ class ForumThreadServiceTest extends TestCase
         $post->setAuthorId($currentUserData['id']);
         $post->persist();
 
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($currentUserData['display_name']);
-        $entity->setLastPostUserId($currentUserData['id']);
-
         $entity->persist();
 
         $this->classBeingTested->setThreadAsPublished($entity->getId());
@@ -285,10 +289,6 @@ class ForumThreadServiceTest extends TestCase
         $post->setAuthorId($currentUserData['id']);
         $post->persist();
 
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($currentUserData['display_name']);
-        $entity->setLastPostUserId($currentUserData['id']);
-
         $entity->persist();
 
         $this->classBeingTested->setThreadAsDraft($entity->getId());
@@ -322,10 +322,6 @@ class ForumThreadServiceTest extends TestCase
         $post->setThreadId($entity->getId());
         $post->setAuthorId($currentUserData['id']);
         $post->persist();
-
-        $entity->setLastPostPublishedOn($post->getPublishedOn());
-        $entity->setLastPostUserDisplayName($currentUserData['display_name']);
-        $entity->setLastPostUserId($currentUserData['id']);
 
         $entity->persist();
 

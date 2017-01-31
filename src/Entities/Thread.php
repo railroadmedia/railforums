@@ -10,6 +10,12 @@ use Railroad\Railmap\Entity\Properties\SoftDelete;
 use Railroad\Railmap\Entity\Properties\Timestamps;
 use Railroad\Railmap\Entity\Properties\Versioned;
 
+/**
+ * Class Thread
+ *
+ * @method Post|null getLastPost()
+ * @method setLastPost(Post|null $lastPost)
+ */
 class Thread extends EntityBase
 {
     use Timestamps, SoftDelete, Versioned;
@@ -67,21 +73,6 @@ class Thread extends EntityBase
      * @var string|null
      */
     protected $publishedOn;
-
-    /**
-     * @var string|null
-     */
-    protected $lastPostPublishedOn;
-
-    /**
-     * @var string|null
-     */
-    protected $lastPostUserDisplayName;
-
-    /**
-     * @var int|null
-     */
-    protected $lastPostUserId;
 
     /**
      * @var bool
@@ -254,54 +245,6 @@ class Thread extends EntityBase
     public function setPublishedOn($publishedOn)
     {
         $this->publishedOn = $publishedOn;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getLastPostPublishedOn()
-    {
-        return $this->lastPostPublishedOn;
-    }
-
-    /**
-     * @param null|string $lastPostPublishedOn
-     */
-    public function setLastPostPublishedOn($lastPostPublishedOn)
-    {
-        $this->lastPostPublishedOn = $lastPostPublishedOn;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getLastPostUserDisplayName()
-    {
-        return $this->lastPostUserDisplayName;
-    }
-
-    /**
-     * @param null|string $lastPostUserDisplayName
-     */
-    public function setLastPostUserDisplayName($lastPostUserDisplayName)
-    {
-        $this->lastPostUserDisplayName = $lastPostUserDisplayName;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getLastPostUserId()
-    {
-        return $this->lastPostUserId;
-    }
-
-    /**
-     * @param int|null $lastPostUserId
-     */
-    public function setLastPostUserId($lastPostUserId)
-    {
-        $this->lastPostUserId = $lastPostUserId;
     }
 
     /**

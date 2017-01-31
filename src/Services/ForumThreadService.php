@@ -57,9 +57,8 @@ class ForumThreadService
                 $states,
                 $categoryId
             ) {
-                return $builder->limit($amount)->skip($amount * ($page - 1))->orderBy(
-                    $sortColumn,
-                    $sortDirection
+                return $builder->limit($amount)->skip($amount * ($page - 1))->orderByRaw(
+                    $sortColumn . ' ' . $sortDirection . ', id ' . $sortDirection
                 )->whereIn('forum_threads.state', $states)->get()->where('category_id', $categoryId);
             }
         );

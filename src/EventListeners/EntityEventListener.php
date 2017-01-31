@@ -22,21 +22,20 @@ class EntityEventListener
         if ($event->newEntity instanceof Post) {
             $thread = $this->threadDataMapper->get($event->newEntity->getThreadId());
 
-            if (empty($thread->getLastPostPublishedOn()) ||
-                Carbon::parse($thread->getLastPostPublishedOn()) <=
+            if (empty($thread->getLastPost()) ||
+                Carbon::parse($thread->getLastPost()->getPublishedOn()) <=
                 Carbon::parse($event->newEntity->getPublishedOn())
             ) {
                 $thread->setLastPostId($event->newEntity->getId());
-                $thread->setLastPostPublishedOn($event->newEntity->getPublishedOn());
-                $thread->setLastPostUserId($event->newEntity->getAuthorId());
                 $thread->setPostCount($thread->getPostCount() + 1);
+                $thread->setLastPost($event->newEntity);
                 $thread->persist();
             }
         }
 
         if ($event->newEntity instanceof ThreadRead) {
             $thread = $this->threadDataMapper->get($event->newEntity->getThreadId());
-            $thread->setIsRead($event->newEntity->getReadOn() >= $thread->getLastPostPublishedOn());
+            $thread->setIsRead($event->newEntity->getReadOn() >= $thread->getLastPost()->getPublishedOn());
             $thread->persist();
         }
     }
