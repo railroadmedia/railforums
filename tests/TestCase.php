@@ -72,11 +72,18 @@ class TestCase extends BaseTestCase
             ]
         );
 
+        $app['config']->set(
+            'railforums.user_data_mapper_class',
+            \Railroad\Railforums\DataMappers\UserCloakDataMapper::class
+        );
+
         $app['db']->connection()->getSchemaBuilder()->create(
             'users',
             function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('display_name');
+                $table->string('avatar_url')->nullable();
+                $table->string('access_type');
             }
         );
 
@@ -92,11 +99,12 @@ class TestCase extends BaseTestCase
         $displayName = $this->faker->userName . rand();
 
         $this->app['db']->connection()->table('users')->insert(
-            ['display_name' => $displayName]
+            ['display_name' => $displayName, 'access_type' => 'user',]
         );
 
         return [
             'display_name' => $displayName,
+            'access_type' => 'user',
             'id' => $this->app['db']->connection()->getPdo()->lastInsertId('id')
         ];
     }

@@ -5,6 +5,7 @@ namespace Railroad\Railforums\DataMappers;
 use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
+use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 use Railroad\Railmap\Entity\Links\OneToOne;
 
@@ -18,7 +19,7 @@ use Railroad\Railmap\Entity\Links\OneToOne;
 class ThreadDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_threads';
-    protected $with = ['lastPost'];
+    protected $with = ['lastPost', 'author'];
 
     public static $viewingUserId = 0;
 
@@ -117,7 +118,8 @@ class ThreadDataMapper extends DatabaseDataMapperBase
     public function links()
     {
         return [
-            'lastPost' => new OneToOne(Post::class, 'lastPostId', 'id', 'lastPost')
+            'lastPost' => new OneToOne(Post::class, 'lastPostId', 'id', 'lastPost'),
+            'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
         ];
     }
 }

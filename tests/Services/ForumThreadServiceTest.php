@@ -3,6 +3,8 @@
 namespace Tests;
 
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
@@ -32,10 +34,13 @@ class ForumThreadServiceTest extends TestCase
         $currentUserData = $this->fakeUser();
 
         for ($i = 0; $i < 13; $i++) {
+            $userData = $this->fakeUser();
+
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setAuthorId($userData['id']);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -154,9 +159,12 @@ class ForumThreadServiceTest extends TestCase
         $currentUserData = $this->fakeUser();
 
         for ($i = 0; $i < 3; $i++) {
+            $userData = $this->fakeUser();
+
             $entity = new Thread();
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setAuthorId($userData['id']);
             $entity->setCategoryId($categoryId);
             $entity->persist();
 
