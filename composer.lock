@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "6afa61d4b111a6a4c901e7be388c1ae0",
-    "content-hash": "780b10f164994cb75e82bab93ed69c77",
+    "hash": "4967d0c4239634181e340e7c32d359e0",
+    "content-hash": "37ae0aa150ed1516781cea7ef94f801c",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -739,16 +739,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v5.4.6",
+            "version": "v5.4.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "5913b960656d7f978605ff9c1513ffbfd190c173"
+                "reference": "749be15d955845abbb83207a4d59abd775a994a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/5913b960656d7f978605ff9c1513ffbfd190c173",
-                "reference": "5913b960656d7f978605ff9c1513ffbfd190c173",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/749be15d955845abbb83207a4d59abd775a994a9",
+                "reference": "749be15d955845abbb83207a4d59abd775a994a9",
                 "shasum": ""
             },
             "require": {
@@ -864,7 +864,7 @@
                 "framework",
                 "laravel"
             ],
-            "time": "2017-01-27 19:27:15"
+            "time": "2017-01-31 18:02:56"
         },
         {
             "name": "league/flysystem",
@@ -1275,12 +1275,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/calebfavor/railmap.git",
-                "reference": "bc35b2f95e8251ef70202a82ed65b665cd10fdcb"
+                "reference": "c5cc355a6d2852c9f2d1438425e1779ff30f93bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/bc35b2f95e8251ef70202a82ed65b665cd10fdcb",
-                "reference": "bc35b2f95e8251ef70202a82ed65b665cd10fdcb",
+                "url": "https://api.github.com/repos/calebfavor/railmap/zipball/c5cc355a6d2852c9f2d1438425e1779ff30f93bf",
+                "reference": "c5cc355a6d2852c9f2d1438425e1779ff30f93bf",
                 "shasum": ""
             },
             "require": {
@@ -1310,7 +1310,7 @@
                 }
             ],
             "description": "Entity System",
-            "time": "2017-01-30 22:24:51"
+            "time": "2017-01-31 18:32:03"
         },
         {
             "name": "ramsey/uuid",
@@ -2749,16 +2749,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "4.0.x-dev",
+            "version": "4.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "7a2bfe73aa381a76cb6d13599ae37bf74a12a02f"
+                "reference": "c19cfc7cbb0e9338d8c469c7eedecc2a428b0971"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/7a2bfe73aa381a76cb6d13599ae37bf74a12a02f",
-                "reference": "7a2bfe73aa381a76cb6d13599ae37bf74a12a02f",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/c19cfc7cbb0e9338d8c469c7eedecc2a428b0971",
+                "reference": "c19cfc7cbb0e9338d8c469c7eedecc2a428b0971",
                 "shasum": ""
             },
             "require": {
@@ -2808,7 +2808,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-01-24 16:35:00"
+            "time": "2017-01-20 15:06:43"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -3812,7 +3812,6 @@
     "stability-flags": {
         "railroad/railmap": 20,
         "ezyang/htmlpurifier": 20,
-        "phpunit/php-code-coverage": 20,
         "orchestra/testbench": 20,
         "orchestra/database": 20
     },
