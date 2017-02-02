@@ -7,7 +7,7 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
 class PostLikeDataMapper extends DatabaseDataMapperBase
 {
-    protected $table = 'forum_post_likes';
+    public $table = 'forum_post_likes';
 
     public function mapTo()
     {

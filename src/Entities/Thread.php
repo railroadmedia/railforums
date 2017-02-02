@@ -2,7 +2,6 @@
 
 namespace Railroad\Railforums\Entities;
 
-use App\Entities\User\User;
 use Carbon\Carbon;
 use Faker\Generator;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
@@ -15,9 +14,9 @@ use Railroad\Railmap\Entity\Properties\Versioned;
  * Class Thread
  *
  * @method Post|null getLastPost()
- * @method setLastPost(Post|null $lastPost)
- * @method User|null getAuthor()
- * @method setAuthor(User|null $lastPost)
+ * @method setLastPost(Post | null $lastPost)
+ * @method UserCloak|null getAuthor()
+ * @method setAuthor(UserCloak | null $lastPost)
  */
 class Thread extends EntityBase
 {

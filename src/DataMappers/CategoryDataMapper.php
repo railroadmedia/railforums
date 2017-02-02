@@ -7,7 +7,7 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
 class CategoryDataMapper extends DatabaseDataMapperBase
 {
-    protected $table = 'forum_categories';
+    public $table = 'forum_categories';
 
     public function mapTo()
     {

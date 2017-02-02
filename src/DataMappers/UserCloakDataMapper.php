@@ -8,7 +8,7 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
 class UserCloakDataMapper extends DatabaseDataMapperBase
 {
-    protected $table = 'users';
+    public $table = 'users';
 
     public function mapTo()
     {

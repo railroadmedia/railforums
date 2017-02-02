@@ -10,6 +10,14 @@ use Railroad\Railmap\Entity\Properties\SoftDelete;
 use Railroad\Railmap\Entity\Properties\Timestamps;
 use Railroad\Railmap\Entity\Properties\Versioned;
 
+/**
+ * Class Post
+ *
+ * @method Post|null getPromptingPost()
+ * @method setPromptingPost(Post | null $promptingPost)
+ * @method UserCloak|null getAuthor()
+ * @method setAuthor(UserCloak|null $lastPost)
+ */
 class Post extends EntityBase
 {
     use Timestamps, SoftDelete, Versioned;
@@ -52,6 +60,21 @@ class Post extends EntityBase
      * @var string
      */
     protected $editedOn;
+
+    /**
+     * @var int
+     */
+    protected $likeCount;
+
+    /**
+     * @var bool
+     */
+    protected $isLikedByCurrentUser;
+
+    /**
+     * @var array
+     */
+    protected $recentLikerDisplayNames = [];
 
     /**
      * Category constructor.

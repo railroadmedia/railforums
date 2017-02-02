@@ -4,6 +4,7 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Services\ForumPostService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
@@ -47,6 +48,12 @@ class ForumPostServiceTest extends TestCase
             $post->persist();
 
             $entities[] = $post;
+
+            $postLike = new PostLike();
+            $postLike->setPostId($post->getId());
+            $postLike->setLikerId($userData['id']);
+            $postLike->setLikedOn(Carbon::now()->toDateTimeString());
+            $postLike->persist();
         }
 
         // Page 1

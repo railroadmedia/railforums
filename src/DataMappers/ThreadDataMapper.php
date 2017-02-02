@@ -18,8 +18,8 @@ use Railroad\Railmap\Entity\Links\OneToOne;
  */
 class ThreadDataMapper extends DatabaseDataMapperBase
 {
-    protected $table = 'forum_threads';
-    protected $with = ['lastPost', 'author'];
+    public $table = 'forum_threads';
+    public $with = ['lastPost', 'author'];
 
     public static $viewingUserId = 0;
 
