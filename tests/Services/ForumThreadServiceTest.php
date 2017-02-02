@@ -44,7 +44,7 @@ class ForumThreadServiceTest extends TestCase
             $entity->setAuthorId($userData['id']);
             $entity->persist();
 
-            $postCount = rand(1, 1);
+            $postCount = rand(1, 6);
 
             for ($x = 0; $x < $postCount; $x++) {
                 $userData = $this->fakeUser();

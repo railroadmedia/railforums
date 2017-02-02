@@ -5,9 +5,18 @@ namespace Railroad\Railforums\DataMappers;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
+/**
+ * Class PostDataMapper
+ *
+ * @package Railroad\Railforums\DataMappers
+ * @method Post|Post[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
+ * @method Post|Post[] get($idOrIds)
+ */
 class PostDataMapper extends DatabaseDataMapperBase
 {
     protected $table = 'forum_posts';
+
+    public static $viewingUserId = 0;
 
     public function mapTo()
     {
