@@ -24,7 +24,8 @@ class EntityEventListener
 
             if (empty($thread->getLastPost()) ||
                 Carbon::parse($thread->getLastPost()->getPublishedOn()) <=
-                Carbon::parse($event->newEntity->getPublishedOn())
+                Carbon::parse($event->newEntity->getPublishedOn()) &&
+                $event->newEntity->getState() == Post::STATE_PUBLISHED
             ) {
                 $thread->setLastPostId($event->newEntity->getId());
                 $thread->setPostCount($thread->getPostCount() + 1);

@@ -10,6 +10,7 @@ use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railforums\Services\ForumThreadService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class ForumThreadServiceTest extends TestCase
 {
@@ -43,9 +44,7 @@ class ForumThreadServiceTest extends TestCase
             $entity->setAuthorId($userData['id']);
             $entity->persist();
 
-            $postCount = rand(1, 6);
-            $mostRecentPost = null;
-            $mostRecentUserData = null;
+            $postCount = rand(1, 1);
 
             for ($x = 0; $x < $postCount; $x++) {
                 $userData = $this->fakeUser();
@@ -54,21 +53,15 @@ class ForumThreadServiceTest extends TestCase
                 $post->randomize();
                 $post->setThreadId($entity->getId());
                 $post->setAuthorId($userData['id']);
+                $post->setState(Post::STATE_PUBLISHED);
                 $post->persist();
-
-                if (is_null($mostRecentPost) ||
-                    Carbon::parse($post->getPublishedOn()) > $mostRecentPost->getPublishedOn()
-                ) {
-                    $mostRecentPost = $post;
-                    $mostRecentUserData = $userData;
-                }
             }
 
             if ($this->faker->boolean()) {
                 $threadRead = new ThreadRead();
                 $threadRead->setThreadId($entity->getId());
                 $threadRead->setReaderId($currentUserData['id']);
-                $threadRead->setReadOn($mostRecentPost->getPublishedOn());
+                $threadRead->setReadOn($entity->getLastPost()->getPublishedOn());
                 $threadRead->persist();
 
                 $entity->setIsRead(true);
@@ -77,7 +70,7 @@ class ForumThreadServiceTest extends TestCase
                 $threadRead->setThreadId($entity->getId());
                 $threadRead->setReaderId($currentUserData['id']);
                 $threadRead->setReadOn(
-                    Carbon::parse($mostRecentPost->getPublishedOn())->subDay()->toDateTimeString()
+                    Carbon::parse($entity->getLastPost()->getPublishedOn())->subDay()->toDateTimeString()
                 );
                 $threadRead->persist();
 

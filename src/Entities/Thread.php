@@ -283,7 +283,6 @@ class Thread extends EntityBase
             )
         );
         $this->setPostCount($faker->randomNumber());
-        $this->setLastPostId($faker->randomNumber());
         $this->setPublishedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
     }
 }

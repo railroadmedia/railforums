@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Faker\Generator;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use Railroad\Railforums\ForumServiceProvider;
@@ -15,6 +16,11 @@ class TestCase extends BaseTestCase
      */
     protected $faker;
 
+    /**
+     * @var DatabaseManager
+     */
+    protected $databaseManager;
+
     protected function setUp()
     {
         parent::setUp();
@@ -22,6 +28,7 @@ class TestCase extends BaseTestCase
         $this->artisan('migrate', []);
 
         $this->faker = $this->app->make(Generator::class);
+        $this->databaseManager = $this->app->make(DatabaseManager::class);
     }
 
     /**
