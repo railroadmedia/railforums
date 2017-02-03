@@ -6,6 +6,8 @@ use Faker\Generator;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\ForumServiceProvider;
 use Railroad\Railmap\RailmapServiceProvider;
 
@@ -21,6 +23,11 @@ class TestCase extends BaseTestCase
      */
     protected $databaseManager;
 
+    /**
+     * @var UserCloakDataMapper
+     */
+    protected $userCloakDataMapper;
+
     protected function setUp()
     {
         parent::setUp();
@@ -29,6 +36,7 @@ class TestCase extends BaseTestCase
 
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
+        $this->userCloakDataMapper = $this->app->make(UserCloakDataMapper::class);
     }
 
     /**
@@ -99,20 +107,31 @@ class TestCase extends BaseTestCase
     }
 
     /**
-     * @return mixed
+     * @return UserCloak
      */
-    public function fakeUser()
+    public function fakeUserCloak()
     {
-        $displayName = $this->faker->userName . rand();
+        return $this->userCloakDataMapper->fake();
+    }
 
-        $this->app['db']->connection()->table('users')->insert(
-            ['display_name' => $displayName, 'access_type' => 'user',]
-        );
+    /**
+     * @param string $permissionLevel
+     * @return UserCloak
+     */
+    public function fakeCurrentUserCloak($permissionLevel = UserCloak::PERMISSION_LEVEL_USER)
+    {
+        $userCloak = $this->userCloakDataMapper->fake($permissionLevel);
 
-        return [
-            'display_name' => $displayName,
-            'access_type' => 'user',
-            'id' => $this->app['db']->connection()->getPdo()->lastInsertId('id')
-        ];
+        $this->userCloakDataMapper->setCurrent($userCloak);
+
+        return $userCloak;
+    }
+
+    /**
+     * @param UserCloak $userCloak
+     */
+    public function setAuthenticatedUserCloak(UserCloak $userCloak)
+    {
+        $this->userCloakDataMapper->setCurrent($userCloak);
     }
 }

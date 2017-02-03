@@ -5,7 +5,7 @@ namespace Railroad\Railforums\DataMappers;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
-class ThreadReadDataMapper extends DatabaseDataMapperBase
+class ThreadReadDataMapper extends DataMapperBase
 {
     public $table = 'forum_thread_reads';
 

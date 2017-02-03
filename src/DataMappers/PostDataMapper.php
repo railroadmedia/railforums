@@ -2,9 +2,12 @@
 
 namespace Railroad\Railforums\DataMappers;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Post;
-use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
+use Railroad\Railforums\Entities\PostLike;
+use Railroad\Railforums\Entities\UserCloak;
+use Railroad\Railmap\Entity\Links\OneToMany;
 
 /**
  * Class PostDataMapper
@@ -13,11 +16,10 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
  * @method Post|Post[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
  * @method Post|Post[] get($idOrIds)
  */
-class PostDataMapper extends DatabaseDataMapperBase
+class PostDataMapper extends DataMapperBase
 {
     public $table = 'forum_posts';
-
-    public static $viewingUserId = 0;
+    public $with = ['likes'];
 
     public function mapTo()
     {
@@ -43,58 +45,55 @@ class PostDataMapper extends DatabaseDataMapperBase
         return array_merge(
             $this->mapTo(),
             [
-
+                'likeCount' => 'like_count',
+                'isLikedByCurrentUser' => 'is_liked_by_viewer',
             ]
         );
+    }
+
+    public function filter($query)
+    {
+        $permissionLevel = $this->currentUserCloak->getPermissionLevel();
+
+        if ($permissionLevel == UserCloak::PERMISSION_LEVEL_ADMINISTRATOR ||
+            $permissionLevel == UserCloak::PERMISSION_LEVEL_MODERATOR
+        ) {
+            return $query->whereIn('states', [Post::STATE_PUBLISHED, Post::STATE_HIDDEN]);
+        }
+
+        return $query->whereIn('states', [Post::STATE_PUBLISHED]);
     }
 
     public function gettingQuery()
     {
         return parent::gettingQuery()->selectRaw(
             'forum_posts.*, ' .
-            'forum_post_likes_liker_1.' .
-            config('railforums.author_table_display_name_column_name') .
-            ' as liker_1_display_name, ' .
-            'forum_post_likes_liker_2.' .
-            config('railforums.author_table_display_name_column_name') .
-            ' as liker_2_display_name, ' .
-            'forum_post_likes_liker_3.' .
-            config('railforums.author_table_display_name_column_name') .
-            ' as liker_3_display_name'
+            '(SELECT COUNT(id) FROM forum_post_likes WHERE forum_post_likes.post_id = forum_posts.id)' .
+            ' AS like_count, ' .
+            'CASE WHEN current_user_forum_post_like.id IS NULL THEN 0 ELSE 1 END AS is_liked_by_viewer'
         )->leftJoin(
-            'forum_post_likes as forum_post_likes_1',
+            'forum_post_likes as current_user_forum_post_like',
             function (JoinClause $query) {
-                $query->on('forum_posts.id', '=', 'forum_post_likes_1.post_id')
-                    ->orderBy('forum_post_likes.liked_on', 'desc')->skip(0);
-            }
-        )->leftJoin(
-            config('railforums.author_table_name') . ' as forum_post_likes_liker_1',
-            function (JoinClause $query) {
-                $query->on('forum_post_likes_liker_1.id', '=', 'forum_post_likes_1.liker_id');
-            }
-        )->leftJoin(
-            'forum_post_likes as forum_post_likes_2',
-            function (JoinClause $query) {
-                $query->on('forum_posts.id', '=', 'forum_post_likes_2.post_id')
-                    ->orderBy('forum_post_likes.liked_on', 'desc')->skip(1);
-            }
-        )->leftJoin(
-            config('railforums.author_table_name') . ' as forum_post_likes_liker_2',
-            function (JoinClause $query) {
-                $query->on('forum_post_likes_liker_2.id', '=', 'forum_post_likes_2.liker_id');
-            }
-        )->leftJoin(
-            'forum_post_likes as forum_post_likes_3',
-            function (JoinClause $query) {
-                $query->on('forum_posts.id', '=', 'forum_post_likes_3.post_id')
-                    ->orderBy('forum_post_likes.liked_on', 'desc')->skip(2);
-            }
-        )->leftJoin(
-            config('railforums.author_table_name') . ' as forum_post_likes_liker_3',
-            function (JoinClause $query) {
-                $query->on('forum_post_likes_liker_3.id', '=', 'forum_post_likes_3.liker_id');
+                $query->on('current_user_forum_post_like.liker_id', '=', $this->currentUserCloak->getId())
+                    ->on(
+                        'forum_posts.id',
+                        '=',
+                        'current_user_forum_post_like.post_id'
+                    );
             }
         );
+    }
+
+    public function links()
+    {
+        return [
+            'likes' => new OneToMany(
+                PostLike::class, 'id', 'postId', 'recentLikes', 'liked_on', 'desc',
+                function (Builder $query) {
+                    return $query->limit(3);
+                }
+            )
+        ];
     }
 
     /**
@@ -103,5 +102,14 @@ class PostDataMapper extends DatabaseDataMapperBase
     public function entity()
     {
         return new Post();
+    }
+
+    public function countPostsInThread($threadId)
+    {
+        return $this->count(
+            function (Builder $query) use ($threadId) {
+                return $query->where('thread_id', $threadId);
+            }
+        );
     }
 }

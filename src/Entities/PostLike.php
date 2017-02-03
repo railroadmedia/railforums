@@ -8,6 +8,12 @@ use Railroad\Railforums\DataMappers\PostLikeDataMapper;
 use Railroad\Railmap\Entity\EntityBase;
 use Railroad\Railmap\Entity\Properties\Timestamps;
 
+/**
+ * Class PostLike
+ *
+ * @package Railroad\Railforums\Entities
+ * @method PostLikeDataMapper getOwningDataMapper()
+ */
 class PostLike extends EntityBase
 {
     use Timestamps;

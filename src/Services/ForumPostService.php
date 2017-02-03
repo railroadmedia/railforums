@@ -23,7 +23,6 @@ class ForumPostService
     /**
      * @param $amount
      * @param $page
-     * @param $viewingUserId
      * @param $threadId
      * @param array $states
      * @param string $sortColumn
@@ -33,14 +32,11 @@ class ForumPostService
     public function getPostsSortedPaginated(
         $amount,
         $page,
-        $viewingUserId,
         $threadId,
         $states = [Post::STATE_PUBLISHED],
         $sortColumn = 'published_on',
         $sortDirection = 'desc'
     ) {
-        PostDataMapper::$viewingUserId = $viewingUserId;
-
         return $this->postDataMapper->getWithQuery(
             function (Builder $builder) use (
                 $amount,
@@ -52,7 +48,7 @@ class ForumPostService
             ) {
                 return $builder->limit($amount)->skip($amount * ($page - 1))->orderByRaw(
                     $sortColumn . ' ' . $sortDirection . ', id ' . $sortDirection
-                )->whereIn('forum_posts.state', $states)->where('thread_id', $threadId)->get();
+                )->where('thread_id', $threadId)->get();
             }
         );
     }

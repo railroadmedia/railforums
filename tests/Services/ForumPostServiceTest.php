@@ -8,6 +8,7 @@ use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Services\ForumPostService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class ForumPostServiceTest extends TestCase
 {
@@ -25,35 +26,40 @@ class ForumPostServiceTest extends TestCase
 
     public function test_get_posts_sorted_paginated()
     {
+        $this->databaseManager->connection()->enableQueryLog();
+
         $entities = [];
 
-        $currentUserData = $this->fakeUser();
-
-        $userData = $this->fakeUser();
+        $currentUser = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUserCloak();
 
         $thread = new Thread();
         $thread->randomize();
         $thread->setState(Thread::STATE_PUBLISHED);
-        $thread->setAuthorId($userData['id']);
+        $thread->setAuthorId($user->getId());
         $thread->persist();
 
         for ($x = 0; $x < 13; $x++) {
-            $userData = $this->fakeUser();
+            $user = $this->fakeUserCloak();
 
             $post = new Post();
             $post->randomize();
             $post->setThreadId($thread->getId());
-            $post->setAuthorId($userData['id']);
+            $post->setAuthorId($user->getId());
             $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
             $entities[] = $post;
 
-            $postLike = new PostLike();
-            $postLike->setPostId($post->getId());
-            $postLike->setLikerId($userData['id']);
-            $postLike->setLikedOn(Carbon::now()->toDateTimeString());
-            $postLike->persist();
+            for ($x = 0; $x < 12; $x++) {
+                $user = $this->fakeUserCloak();
+
+                $postLike = new PostLike();
+                $postLike->setPostId($post->getId());
+                $postLike->setLikerId($user->getId());
+                $postLike->setLikedOn(Carbon::now()->toDateTimeString());
+                $postLike->persist();
+            }
         }
 
         // Page 1
@@ -70,7 +76,6 @@ class ForumPostServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             5,
             1,
-            $currentUserData['id'],
             $thread->getId()
         );
 
@@ -90,7 +95,6 @@ class ForumPostServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             5,
             2,
-            $currentUserData['id'],
             $thread->getId()
         );
 
@@ -110,7 +114,6 @@ class ForumPostServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             5,
             3,
-            $currentUserData['id'],
             $thread->getId()
         );
 
@@ -121,23 +124,23 @@ class ForumPostServiceTest extends TestCase
     {
         $entities = [];
 
-        $currentUserData = $this->fakeUser();
+        $currentUser = $this->fakeCurrentUserCloak();
 
-        $userData = $this->fakeUser();
+        $user = $this->fakeUserCloak();
 
         $thread = new Thread();
         $thread->randomize();
         $thread->setState(Thread::STATE_PUBLISHED);
-        $thread->setAuthorId($userData['id']);
+        $thread->setAuthorId($user->getId());
         $thread->persist();
 
         for ($x = 0; $x < 3; $x++) {
-            $userData = $this->fakeUser();
+            $user = $this->fakeUserCloak();
 
             $post = new Post();
             $post->randomize();
             $post->setThreadId($thread->getId());
-            $post->setAuthorId($userData['id']);
+            $post->setAuthorId($user->getId());
             $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
@@ -158,7 +161,7 @@ class ForumPostServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             5,
             1,
-            $currentUserData['id'],
+            $currentUser->getId(),
             $thread->getId()
         );
 
@@ -167,12 +170,12 @@ class ForumPostServiceTest extends TestCase
 
     public function test_get_posts_sorted_paginated_none_exist()
     {
-        $currentUserData = $this->fakeUser();
+        $currentUser = $this->fakeCurrentUserCloak();
 
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             5,
             1,
-            $currentUserData['id'],
+            $currentUser->getId(),
             rand()
         );
 
@@ -181,17 +184,17 @@ class ForumPostServiceTest extends TestCase
 
     public function test_set_post_state_published_shows_in_list()
     {
-        $currentUserData = $this->fakeUser();
+        $currentUser = $this->fakeCurrentUserCloak();
 
         $thread = new Thread();
         $thread->randomize();
-        $thread->setState(Thread::STATE_DRAFT);
+        $thread->setState(Thread::STATE_HIDDEN);
         $thread->persist();
 
         $post = new Post();
         $post->randomize();
         $post->setThreadId($thread->getId());
-        $post->setAuthorId($currentUserData['id']);
+        $post->setAuthorId($currentUser->getId());
         $post->persist();
 
         $thread->persist();
@@ -206,7 +209,7 @@ class ForumPostServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             1,
             1,
-            $currentUserData['id'],
+            $currentUser->getId(),
             $thread->getId()
         );
 
@@ -215,7 +218,7 @@ class ForumPostServiceTest extends TestCase
 
     public function test_set_post_state_hidden_hide_from_list()
     {
-        $currentUserData = $this->fakeUser();
+        $currentUser = $this->fakeCurrentUserCloak();
 
         $thread = new Thread();
         $thread->randomize();
@@ -225,7 +228,7 @@ class ForumPostServiceTest extends TestCase
         $post = new Post();
         $post->randomize();
         $post->setThreadId($thread->getId());
-        $post->setAuthorId($currentUserData['id']);
+        $post->setAuthorId($currentUser->getId());
         $post->persist();
 
         $thread->persist();
@@ -240,7 +243,7 @@ class ForumPostServiceTest extends TestCase
         $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
             1,
             1,
-            $currentUserData['id'],
+            $currentUser->getId(),
             $thread->getId()
         );
 
@@ -256,13 +259,13 @@ class ForumPostServiceTest extends TestCase
         $thread->setState(Thread::STATE_PUBLISHED);
         $thread->persist();
 
-        $userData = $this->fakeUser();
+        $user = $this->fakeUserCloak();
 
         for ($i = 0; $i < 13; $i++) {
             $post = new Post();
             $post->randomize();
             $post->setThreadId($thread->getId());
-            $post->setAuthorId($userData['id']);
+            $post->setAuthorId($user->getId());
             $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
@@ -284,12 +287,12 @@ class ForumPostServiceTest extends TestCase
         $thread->persist();
 
         for ($i = 0; $i < 9; $i++) {
-            $userData = $this->fakeUser();
+            $user = $this->fakeUserCloak();
 
             $post = new Post();
             $post->randomize();
             $post->setThreadId($thread->getId());
-            $post->setAuthorId($userData['id']);
+            $post->setAuthorId($user->getId());
             $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
@@ -297,12 +300,12 @@ class ForumPostServiceTest extends TestCase
         }
 
         for ($i = 0; $i < 6; $i++) {
-            $userData = $this->fakeUser();
+            $user = $this->fakeUserCloak();
 
             $post = new Post();
             $post->randomize();
             $post->setThreadId($thread->getId());
-            $post->setAuthorId($userData['id']);
+            $post->setAuthorId($user->getId());
             $post->setState(Post::STATE_HIDDEN);
             $post->persist();
 
@@ -324,12 +327,12 @@ class ForumPostServiceTest extends TestCase
         $thread->persist();
 
         for ($i = 0; $i < 9; $i++) {
-            $userData = $this->fakeUser();
+            $user = $this->fakeUserCloak();
 
             $post = new Post();
             $post->randomize();
             $post->setThreadId($thread->getId());
-            $post->setAuthorId($userData['id']);
+            $post->setAuthorId($user->getId());
             $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
@@ -350,12 +353,12 @@ class ForumPostServiceTest extends TestCase
         $thread->setState(Thread::STATE_PUBLISHED);
         $thread->persist();
 
-        $userData = $this->fakeUser();
+        $user = $this->fakeUserCloak();
 
         $post = new Post();
         $post->randomize();
         $post->setThreadId($thread->getId());
-        $post->setAuthorId($userData['id']);
+        $post->setAuthorId($user->getId());
         $post->setState(Post::STATE_PUBLISHED);
         $post->persist();
 

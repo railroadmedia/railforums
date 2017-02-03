@@ -28,6 +28,11 @@ class UserCloak extends EntityBase
      */
     protected $permissionLevel;
 
+    const PERMISSION_LEVEL_VIEWER = 'viewer';
+    const PERMISSION_LEVEL_USER = 'user';
+    const PERMISSION_LEVEL_MODERATOR = 'moderator';
+    const PERMISSION_LEVEL_ADMINISTRATOR = 'administrator';
+
     /**
      * Category constructor.
      */

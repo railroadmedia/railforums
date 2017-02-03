@@ -6,7 +6,6 @@ use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\UserCloak;
-use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 use Railroad\Railmap\Entity\Links\OneToOne;
 
 /**
@@ -16,12 +15,10 @@ use Railroad\Railmap\Entity\Links\OneToOne;
  * @method Thread|Thread[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
  * @method Thread|Thread[] get($idOrIds)
  */
-class ThreadDataMapper extends DatabaseDataMapperBase
+class ThreadDataMapper extends DataMapperBase
 {
     public $table = 'forum_threads';
     public $with = ['lastPost', 'author'];
-
-    public static $viewingUserId = 0;
 
     public function mapTo()
     {
@@ -57,6 +54,19 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                 'isRead' => 'is_read',
             ]
         );
+    }
+
+    public function filter($query)
+    {
+        $permissionLevel = $this->currentUserCloak->getPermissionLevel();
+
+        if ($permissionLevel == UserCloak::PERMISSION_LEVEL_ADMINISTRATOR ||
+            $permissionLevel == UserCloak::PERMISSION_LEVEL_MODERATOR
+        ) {
+            return $query->whereIn($this->table . '.state', [Thread::STATE_PUBLISHED, Thread::STATE_HIDDEN]);
+        }
+
+        return $query->whereIn($this->table . '.state', [Thread::STATE_PUBLISHED]);
     }
 
     public function gettingQuery()
@@ -101,7 +111,7 @@ class ThreadDataMapper extends DatabaseDataMapperBase
                 )->on(
                     'forum_thread_reads.reader_id',
                     '=',
-                    self::$viewingUserId
+                    $this->currentUserCloak->getId()
                 );
             }
         );

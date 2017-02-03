@@ -247,7 +247,7 @@ class ForumThreadServiceTest extends TestCase
 
         $entity = new Thread();
         $entity->randomize();
-        $entity->setState(Thread::STATE_DRAFT);
+        $entity->setState(Thread::STATE_HIDDEN);
         $entity->persist();
 
         $post = new Post();
@@ -273,40 +273,6 @@ class ForumThreadServiceTest extends TestCase
         );
 
         $this->assertEquals([$entity], $responseEntities);
-    }
-
-    public function test_set_thread_state_draft_hide_from_list()
-    {
-        $currentUserData = $this->fakeUser();
-
-        $entity = new Thread();
-        $entity->randomize();
-        $entity->setState(Thread::STATE_PUBLISHED);
-        $entity->persist();
-
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($entity->getId());
-        $post->setAuthorId($currentUserData['id']);
-        $post->persist();
-
-        $entity->persist();
-
-        $this->classBeingTested->setThreadAsDraft($entity->getId());
-
-        $this->assertDatabaseHas(
-            'forum_threads',
-            ['id' => $entity->getId(), 'state' => Thread::STATE_DRAFT]
-        );
-
-        $responseEntities = $this->classBeingTested->getThreadsSortedPaginated(
-            1,
-            1,
-            $currentUserData['id'],
-            $entity->getCategoryId()
-        );
-
-        $this->assertEquals([], $responseEntities);
     }
 
     public function test_set_thread_state_hidden_hide_from_list()
@@ -479,7 +445,7 @@ class ForumThreadServiceTest extends TestCase
         $this->assertEquals(13, $responseCount);
     }
 
-    public function test_get_thread_count_some_drafts()
+    public function test_get_thread_count_some_hidden()
     {
         $categoryId = rand();
 
@@ -506,7 +472,7 @@ class ForumThreadServiceTest extends TestCase
         for ($i = 0; $i < 6; $i++) {
             $entity = new Thread();
             $entity->randomize();
-            $entity->setState(Thread::STATE_DRAFT);
+            $entity->setState(Thread::STATE_HIDDEN);
             $entity->setCategoryId($categoryId);
             $entity->persist();
 

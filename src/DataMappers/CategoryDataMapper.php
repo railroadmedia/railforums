@@ -5,7 +5,7 @@ namespace Railroad\Railforums\DataMappers;
 use Railroad\Railforums\Entities\Category;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
-class CategoryDataMapper extends DatabaseDataMapperBase
+class CategoryDataMapper extends DataMapperBase
 {
     public $table = 'forum_categories';
 

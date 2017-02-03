@@ -22,7 +22,6 @@ class Thread extends EntityBase
 {
     use Timestamps, SoftDelete, Versioned;
 
-    const STATE_DRAFT = 'draft';
     const STATE_PUBLISHED = 'published';
     const STATE_HIDDEN = 'hidden';
 
@@ -278,7 +277,7 @@ class Thread extends EntityBase
         $this->setLocked($faker->boolean());
         $this->setState(
             $faker->randomElement(
-                [self::STATE_DRAFT, self::STATE_PUBLISHED, self::STATE_HIDDEN]
+                [self::STATE_PUBLISHED, self::STATE_HIDDEN]
             )
         );
         $this->setPostCount($faker->randomNumber());

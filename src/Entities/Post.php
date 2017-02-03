@@ -17,12 +17,13 @@ use Railroad\Railmap\Entity\Properties\Versioned;
  * @method setPromptingPost(Post | null $promptingPost)
  * @method UserCloak|null getAuthor()
  * @method setAuthor(UserCloak|null $lastPost)
+ * @method PostLike[] getRecentLikes()
+ * @method setRecentLikes(PostLike[] $postLikes)
  */
 class Post extends EntityBase
 {
     use Timestamps, SoftDelete, Versioned;
 
-    const STATE_DRAFT = 'draft';
     const STATE_PUBLISHED = 'published';
     const STATE_HIDDEN = 'hidden';
 
@@ -70,11 +71,6 @@ class Post extends EntityBase
      * @var bool
      */
     protected $isLikedByCurrentUser;
-
-    /**
-     * @var array
-     */
-    protected $recentLikerDisplayNames = [];
 
     /**
      * Category constructor.
@@ -196,6 +192,38 @@ class Post extends EntityBase
         $this->editedOn = $editedOn;
     }
 
+    /**
+     * @return int
+     */
+    public function getLikeCount(): int
+    {
+        return $this->likeCount;
+    }
+
+    /**
+     * @param int $likeCount
+     */
+    public function setLikeCount(int $likeCount)
+    {
+        $this->likeCount = $likeCount;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsLikedByCurrentUser(): bool
+    {
+        return $this->isLikedByCurrentUser;
+    }
+
+    /**
+     * @param bool $isLikedByCurrentUser
+     */
+    public function setIsLikedByCurrentUser(bool $isLikedByCurrentUser)
+    {
+        $this->isLikedByCurrentUser = $isLikedByCurrentUser;
+    }
+
     public function randomize()
     {
         /** @var Generator $faker */
@@ -206,7 +234,7 @@ class Post extends EntityBase
         $this->setContent($faker->paragraph());
         $this->setState(
             $faker->randomElement(
-                [self::STATE_DRAFT, self::STATE_PUBLISHED, self::STATE_HIDDEN]
+                [self::STATE_PUBLISHED, self::STATE_HIDDEN]
             )
         );
         $this->setPublishedOn(Carbon::instance($faker->dateTime())->toDateTimeString());

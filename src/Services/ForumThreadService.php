@@ -68,24 +68,6 @@ class ForumThreadService
      * @param $id
      * @return bool
      */
-    public function setThreadAsDraft($id)
-    {
-        $thread = $this->threadDataMapper->get($id);
-
-        if (!empty($thread)) {
-            $thread->setState(Thread::STATE_DRAFT);
-            $thread->persist();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $id
-     * @return bool
-     */
     public function setThreadAsPublished($id)
     {
         $thread = $this->threadDataMapper->get($id);
