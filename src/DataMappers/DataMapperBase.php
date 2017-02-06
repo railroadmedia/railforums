@@ -3,7 +3,6 @@
 namespace Railroad\Railforums\DataMappers;
 
 use Railroad\Railforums\Entities\Post;
-use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
 /**
@@ -16,11 +15,6 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 abstract class DataMapperBase extends DatabaseDataMapperBase
 {
     /**
-     * @var UserCloak
-     */
-    protected $currentUserCloak;
-
-    /**
      * @var UserCloakDataMapper
      */
     protected $userCloakDataMapper;
@@ -30,6 +24,5 @@ abstract class DataMapperBase extends DatabaseDataMapperBase
         parent::__construct();
 
         $this->userCloakDataMapper = app(UserCloakDataMapper::class);
-        $this->currentUserCloak = $this->userCloakDataMapper->getCurrent();
     }
 }

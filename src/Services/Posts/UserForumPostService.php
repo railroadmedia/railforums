@@ -1,92 +1,54 @@
 <?php
 
-namespace Railroad\Railforums\Services;
+namespace Railroad\Railforums\Services\Posts;
 
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\PostDataMapper;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Services\HTMLPurifierService;
 
-class ForumPostService
+class UserForumPostService
 {
-    private $htmlPurifierService;
-    private $postDataMapper;
+    protected $htmlPurifierService;
+    protected $postDataMapper;
+    protected $userCloakDataMapper;
+
+    protected $accessibleStates = [Post::STATE_PUBLISHED];
 
     public function __construct(
         HTMLPurifierService $htmlPurifierService,
-        PostDataMapper $postDataMapper
+        PostDataMapper $postDataMapper,
+        UserCloakDataMapper $userCloakDataMapper
     ) {
         $this->htmlPurifierService = $htmlPurifierService;
         $this->postDataMapper = $postDataMapper;
+        $this->userCloakDataMapper = $userCloakDataMapper;
     }
 
     /**
      * @param $amount
      * @param $page
      * @param $threadId
-     * @param array $states
-     * @param string $sortColumn
-     * @param string $sortDirection
-     * @return Post|Post[]
+     * @return Post[]
      */
-    public function getPostsSortedPaginated(
-        $amount,
-        $page,
-        $threadId,
-        $states = [Post::STATE_PUBLISHED],
-        $sortColumn = 'published_on',
-        $sortDirection = 'desc'
-    ) {
+    public function getPosts($amount, $page, $threadId)
+    {
         return $this->postDataMapper->getWithQuery(
             function (Builder $builder) use (
                 $amount,
                 $page,
-                $sortColumn,
-                $sortDirection,
-                $states,
                 $threadId
             ) {
-                return $builder->limit($amount)->skip($amount * ($page - 1))->orderByRaw(
-                    $sortColumn . ' ' . $sortDirection . ', id ' . $sortDirection
-                )->where('thread_id', $threadId)->get();
+                return $builder->limit($amount)
+                    ->skip($amount * ($page - 1))
+                    ->orderByRaw('published_on desc, id desc')
+                    ->where('thread_id', $threadId)
+                    ->whereIn('state', $this->accessibleStates)
+                    ->get();
             }
         );
-    }
-
-    /**
-     * @param $id
-     * @return bool
-     */
-    public function setPostAsPublished($id)
-    {
-        $post = $this->postDataMapper->get($id);
-
-        if (!empty($post)) {
-            $post->setState(Post::STATE_PUBLISHED);
-            $post->persist();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $id
-     * @return bool
-     */
-    public function setPostAsHidden($id)
-    {
-        $post = $this->postDataMapper->get($id);
-
-        if (!empty($post)) {
-            $post->setState(Post::STATE_HIDDEN);
-            $post->persist();
-
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -97,7 +59,7 @@ class ForumPostService
     {
         $post = $this->postDataMapper->get($id);
 
-        if (!empty($post)) {
+        if ($post->getAuthorId() == $this->userCloakDataMapper->getCurrentId() && !empty($post)) {
             $post->destroy();
 
             return true;
@@ -107,15 +69,15 @@ class ForumPostService
     }
 
     /**
-     * @param array $states
      * @param $threadId
      * @return int
      */
-    public function getPostCount($threadId, $states = [Post::STATE_PUBLISHED])
+    public function getPostCount($threadId)
     {
         return $this->postDataMapper->count(
-            function (Builder $builder) use ($states, $threadId) {
-                return $builder->whereIn('forum_posts.state', $states)->where('thread_id', $threadId);
+            function (Builder $builder) use ($threadId) {
+                return $builder->whereIn('forum_posts.state', $this->accessibleStates)
+                    ->where('thread_id', $threadId);
             }
         );
     }
@@ -130,7 +92,7 @@ class ForumPostService
     {
         $post = $this->postDataMapper->get($id);
 
-        if (!empty($post)) {
+        if ($post->getAuthorId() == $this->userCloakDataMapper->getCurrentId() && !empty($post)) {
             $post->setContent($this->htmlPurifierService->clean($content));
             $post->setEditedOn(Carbon::now()->toDateTimeString());
             $post->persist();
@@ -145,14 +107,12 @@ class ForumPostService
      * @param string $content
      * @param int $promptingPostId
      * @param int $threadId
-     * @param int $authorId
      * @return Post
      */
     public function createPost(
         $content,
         $promptingPostId,
-        $threadId,
-        $authorId
+        $threadId
     ) {
         $content = $this->htmlPurifierService->clean($content);
 
@@ -160,7 +120,7 @@ class ForumPostService
         $post->setContent($content);
         $post->setPromptingPostId($promptingPostId);
         $post->setThreadId($threadId);
-        $post->setAuthorId($authorId);
+        $post->setAuthorId($this->userCloakDataMapper->getCurrentId());
         $post->setState(Post::STATE_PUBLISHED);
         $post->setPublishedOn(Carbon::now()->toDateTimeString());
         $post->persist();

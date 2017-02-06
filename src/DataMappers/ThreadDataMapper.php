@@ -58,7 +58,7 @@ class ThreadDataMapper extends DataMapperBase
 
     public function filter($query)
     {
-        $permissionLevel = $this->currentUserCloak->getPermissionLevel();
+        $permissionLevel = $this->userCloakDataMapper->getCurrentPermissionLevel();
 
         if ($permissionLevel == UserCloak::PERMISSION_LEVEL_ADMINISTRATOR ||
             $permissionLevel == UserCloak::PERMISSION_LEVEL_MODERATOR
@@ -111,7 +111,7 @@ class ThreadDataMapper extends DataMapperBase
                 )->on(
                     'forum_thread_reads.reader_id',
                     '=',
-                    $this->currentUserCloak->getId()
+                    $this->userCloakDataMapper->getCurrentPermissionLevel()
                 );
             }
         );

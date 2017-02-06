@@ -7,6 +7,12 @@ use Illuminate\Auth\AuthManager;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 
+/**
+ * Class UserCloakDataMapper
+ *
+ * @package Railroad\Railforums\DataMappers
+ * @method  UserCloak|UserCloak[]|null get($idOrIds)
+ */
 class UserCloakDataMapper extends DatabaseDataMapperBase
 {
     public $table = 'users';
@@ -16,6 +22,9 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
      */
     protected $authManager;
 
+    /**
+     * @var UserCloak|null
+     */
     private $current;
 
     public function __construct()
@@ -36,7 +45,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
     }
 
     /**
-     * @return UserCloak
+     * @return UserCloak|null
      */
     public function getCurrent()
     {
@@ -45,6 +54,34 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
         }
 
         return $this->get($this->authManager->id());
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getCurrentId()
+    {
+        if (!empty($this->current)) {
+            return $this->current->getId();
+        }
+
+        $current = $this->get($this->authManager->id());
+
+        return !empty($current) ? $current->getId() : null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCurrentPermissionLevel()
+    {
+        if (!empty($this->current)) {
+            return $this->current->getPermissionLevel();
+        }
+
+        $current = $this->get($this->authManager->id());
+
+        return !empty($current) ? $current->getPermissionLevel() : UserCloak::PERMISSION_LEVEL_VIEWER;
     }
 
     /**

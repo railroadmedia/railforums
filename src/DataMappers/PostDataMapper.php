@@ -51,19 +51,6 @@ class PostDataMapper extends DataMapperBase
         );
     }
 
-    public function filter($query)
-    {
-        $permissionLevel = $this->currentUserCloak->getPermissionLevel();
-
-        if ($permissionLevel == UserCloak::PERMISSION_LEVEL_ADMINISTRATOR ||
-            $permissionLevel == UserCloak::PERMISSION_LEVEL_MODERATOR
-        ) {
-            return $query->whereIn('states', [Post::STATE_PUBLISHED, Post::STATE_HIDDEN]);
-        }
-
-        return $query->whereIn('states', [Post::STATE_PUBLISHED]);
-    }
-
     public function gettingQuery()
     {
         return parent::gettingQuery()->selectRaw(
@@ -74,7 +61,11 @@ class PostDataMapper extends DataMapperBase
         )->leftJoin(
             'forum_post_likes as current_user_forum_post_like',
             function (JoinClause $query) {
-                $query->on('current_user_forum_post_like.liker_id', '=', $this->currentUserCloak->getId())
+                $query->on(
+                    'current_user_forum_post_like.liker_id',
+                    '=',
+                    $this->userCloakDataMapper->getCurrentId()
+                )
                     ->on(
                         'forum_posts.id',
                         '=',

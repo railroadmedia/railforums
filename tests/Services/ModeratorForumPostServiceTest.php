@@ -6,125 +6,33 @@ use Carbon\Carbon;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\Thread;
-use Railroad\Railforums\Services\ForumPostService;
+use Railroad\Railforums\Entities\UserCloak;
+use Railroad\Railforums\Services\Posts\ModeratorForumPostService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
-use Railroad\Railmap\IdentityMap\IdentityMap;
 
-class ForumPostServiceTest extends TestCase
+class ModeratorForumPostServiceTest extends TestCase
 {
     /**
-     * @var ForumPostService
+     * @var ModeratorForumPostService
      */
     private $classBeingTested;
+
+    /**
+     * @var UserCloak
+     */
+    private $currentUserCloak;
 
     public function setUp()
     {
         parent::setUp();
 
-        $this->classBeingTested = app(ForumPostService::class);
+        $this->classBeingTested = app(ModeratorForumPostService::class);
+        $this->currentUserCloak = $this->fakeCurrentUserCloak(UserCloak::PERMISSION_LEVEL_USER);
     }
 
-    public function test_get_posts_sorted_paginated()
-    {
-        $this->databaseManager->connection()->enableQueryLog();
-
-        $entities = [];
-
-        $currentUser = $this->fakeCurrentUserCloak();
-        $user = $this->fakeUserCloak();
-
-        $thread = new Thread();
-        $thread->randomize();
-        $thread->setState(Thread::STATE_PUBLISHED);
-        $thread->setAuthorId($user->getId());
-        $thread->persist();
-
-        for ($x = 0; $x < 13; $x++) {
-            $user = $this->fakeUserCloak();
-
-            $post = new Post();
-            $post->randomize();
-            $post->setThreadId($thread->getId());
-            $post->setAuthorId($user->getId());
-            $post->setState(Post::STATE_PUBLISHED);
-            $post->persist();
-
-            $entities[] = $post;
-
-            for ($x = 0; $x < 12; $x++) {
-                $user = $this->fakeUserCloak();
-
-                $postLike = new PostLike();
-                $postLike->setPostId($post->getId());
-                $postLike->setLikerId($user->getId());
-                $postLike->setLikedOn(Carbon::now()->toDateTimeString());
-                $postLike->persist();
-            }
-        }
-
-        // Page 1
-        $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute(
-                $entities,
-                'publishedOn',
-                'desc'
-            ),
-            0,
-            5
-        );
-
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
-            5,
-            1,
-            $thread->getId()
-        );
-
-        $this->assertEquals($expectedEntities, $responseEntities);
-
-        // Page 2
-        $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute(
-                $entities,
-                'publishedOn',
-                'desc'
-            ),
-            5,
-            5
-        );
-
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
-            5,
-            2,
-            $thread->getId()
-        );
-
-        $this->assertEquals($expectedEntities, $responseEntities);
-
-        // Page 3
-        $expectedEntities = array_slice(
-            RailmapHelpers::sortEntitiesByDateAttribute(
-                $entities,
-                'publishedOn',
-                'desc'
-            ),
-            10,
-            5
-        );
-
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
-            5,
-            3,
-            $thread->getId()
-        );
-
-        $this->assertEquals($expectedEntities, $responseEntities);
-    }
-
-    public function test_get_posts_sorted_paginated_single_page()
+    public function test_get_posts_1_page()
     {
         $entities = [];
-
-        $currentUser = $this->fakeCurrentUserCloak();
 
         $user = $this->fakeUserCloak();
 
@@ -158,96 +66,147 @@ class ForumPostServiceTest extends TestCase
             5
         );
 
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
+        $responseEntities = $this->classBeingTested->getPosts(
             5,
             1,
-            $currentUser->getId(),
             $thread->getId()
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
     }
 
-    public function test_get_posts_sorted_paginated_none_exist()
+    public function test_get_posts_2_pages()
     {
-        $currentUser = $this->fakeCurrentUserCloak();
+        $this->databaseManager->connection()->enableQueryLog();
 
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
-            5,
-            1,
-            $currentUser->getId(),
-            rand()
-        );
+        $entities = [];
 
-        $this->assertEmpty($responseEntities);
-    }
-
-    public function test_set_post_state_published_shows_in_list()
-    {
-        $currentUser = $this->fakeCurrentUserCloak();
-
-        $thread = new Thread();
-        $thread->randomize();
-        $thread->setState(Thread::STATE_HIDDEN);
-        $thread->persist();
-
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($thread->getId());
-        $post->setAuthorId($currentUser->getId());
-        $post->persist();
-
-        $thread->persist();
-
-        $this->classBeingTested->setPostAsPublished($thread->getId());
-
-        $this->assertDatabaseHas(
-            'forum_posts',
-            ['id' => $thread->getId(), 'state' => Thread::STATE_PUBLISHED]
-        );
-
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
-            1,
-            1,
-            $currentUser->getId(),
-            $thread->getId()
-        );
-
-        $this->assertEquals([$post], $responseEntities);
-    }
-
-    public function test_set_post_state_hidden_hide_from_list()
-    {
-        $currentUser = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUserCloak();
 
         $thread = new Thread();
         $thread->randomize();
         $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->setAuthorId($user->getId());
         $thread->persist();
 
-        $post = new Post();
-        $post->randomize();
-        $post->setThreadId($thread->getId());
-        $post->setAuthorId($currentUser->getId());
-        $post->persist();
+        for ($x = 0; $x < 7; $x++) {
+            $user = $this->fakeUserCloak();
 
-        $thread->persist();
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($thread->getId());
+            $post->setAuthorId($user->getId());
+            $post->setState(Post::STATE_PUBLISHED);
+            $post->persist();
 
-        $this->classBeingTested->setPostAsHidden($thread->getId());
+            $entities[] = $post;
 
-        $this->assertDatabaseHas(
-            'forum_posts',
-            ['id' => $thread->getId(), 'state' => Thread::STATE_HIDDEN]
+            for ($i = 0; $i < 3; $i++) {
+                $user = $this->fakeUserCloak();
+
+                $postLike = new PostLike();
+                $postLike->setPostId($post->getId());
+                $postLike->setLikerId($user->getId());
+                $postLike->setLikedOn(Carbon::now()->toDateTimeString());
+                $postLike->persist();
+            }
+        }
+
+        // Page 1
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'publishedOn',
+                'desc'
+            ),
+            0,
+            5
         );
 
-        $responseEntities = $this->classBeingTested->getPostsSortedPaginated(
+        $responseEntities = $this->classBeingTested->getPosts(
+            5,
             1,
-            1,
-            $currentUser->getId(),
             $thread->getId()
         );
 
-        $this->assertEquals([], $responseEntities);
+        $this->assertEquals($expectedEntities, $responseEntities);
+
+        // Page 2
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'publishedOn',
+                'desc'
+            ),
+            5,
+            5
+        );
+
+        $responseEntities = $this->classBeingTested->getPosts(
+            5,
+            2,
+            $thread->getId()
+        );
+
+        $this->assertEquals($expectedEntities, $responseEntities);
+    }
+
+    public function test_get_posts_can_see_hidden()
+    {
+        $entities = [];
+
+        $user = $this->fakeUserCloak();
+
+        $thread = new Thread();
+        $thread->randomize();
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->setAuthorId($user->getId());
+        $thread->persist();
+
+        for ($x = 0; $x < 3; $x++) {
+            $user = $this->fakeUserCloak();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($thread->getId());
+            $post->setAuthorId($user->getId());
+            $post->setState(Post::STATE_PUBLISHED);
+            $post->persist();
+
+            $entities[] = $post;
+        }
+
+        for ($x = 0; $x < 12; $x++) {
+            $user = $this->fakeUserCloak();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($thread->getId());
+            $post->setAuthorId($user->getId());
+            $post->setState(Post::STATE_HIDDEN);
+            $post->persist();
+
+            $entities[] = $post;
+        }
+
+        // Page 1
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'publishedOn',
+                'desc'
+            ),
+            0,
+            15
+        );
+
+        $responseEntities = $this->classBeingTested->getPosts(
+            15,
+            1,
+            $thread->getId()
+        );
+
+        $this->assertEquals($expectedEntities, $responseEntities);
     }
 
     public function test_get_post_count()
@@ -314,7 +273,7 @@ class ForumPostServiceTest extends TestCase
 
         $responseCount = $this->classBeingTested->getPostCount($thread->getId());
 
-        $this->assertEquals(9, $responseCount);
+        $this->assertEquals(15, $responseCount);
     }
 
     public function test_get_post_count_one_deleted()
@@ -353,6 +312,84 @@ class ForumPostServiceTest extends TestCase
         $thread->setState(Thread::STATE_PUBLISHED);
         $thread->persist();
 
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($this->currentUserCloak->getId());
+        $post->setState(Post::STATE_PUBLISHED);
+        $post->persist();
+
+        $newContent = $this->faker->sentence();
+
+        $response = $this->classBeingTested->updatePostContent($post->getId(), $newContent);
+
+        $this->assertTrue($response);
+
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'id' => $post->getId(),
+                'content' => $post->getContent(),
+            ]
+        );
+    }
+
+    public function test_set_post_state_published()
+    {
+        $userCloak = $this->fakeUserCloak();
+
+        $thread = new Thread();
+        $thread->randomize();
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setState(Post::STATE_HIDDEN);
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($userCloak->getId());
+        $post->persist();
+
+        $this->classBeingTested->setPostAsPublished($thread->getId());
+
+        $this->assertDatabaseHas(
+            'forum_posts',
+            ['id' => $post->getId(), 'state' => Post::STATE_PUBLISHED]
+        );
+    }
+
+    public function test_set_post_state_hidden()
+    {
+        $userCloak = $this->fakeUserCloak();
+
+        $thread = new Thread();
+        $thread->randomize();
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->persist();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($userCloak->getId());
+        $post->persist();
+
+        $thread->persist();
+
+        $this->classBeingTested->setPostAsHidden($thread->getId());
+
+        $this->assertDatabaseHas(
+            'forum_posts',
+            ['id' => $thread->getId(), 'state' => Thread::STATE_HIDDEN]
+        );
+    }
+
+    public function test_update_post_content_any_author()
+    {
+        $thread = new Thread();
+        $thread->randomize();
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->persist();
+
         $user = $this->fakeUserCloak();
 
         $post = new Post();
@@ -377,7 +414,7 @@ class ForumPostServiceTest extends TestCase
         );
     }
 
-    public function test_create_post()
+    public function test_destroy_any_post()
     {
         Carbon::setTestNow(Carbon::now());
 
@@ -386,27 +423,24 @@ class ForumPostServiceTest extends TestCase
         $thread->setState(Thread::STATE_PUBLISHED);
         $thread->persist();
 
-        $content = $this->faker->paragraph();
-        $promptingPostId = $this->faker->randomNumber();
-        $threadId = $thread->getId();
-        $authorId = $this->faker->randomNumber();
+        $user = $this->fakeUserCloak();
 
-        $post = $this->classBeingTested->createPost(
-            $content,
-            $promptingPostId,
-            $threadId,
-            $authorId
-        );
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($user->getId());
+        $post->setState(Post::STATE_PUBLISHED);
+        $post->persist();
 
-        $this->assertDatabaseHas(
+        $response = $this->classBeingTested->destroyPost($post->getId());
+
+        $this->assertTrue($response);
+
+        $this->assertDatabaseMissing(
             'forum_posts',
             [
-                'content' => $post->getContent(),
-                'prompting_post_id' => $promptingPostId,
-                'thread_id' => $threadId,
-                'author_id' => $authorId,
-                'state' => Thread::STATE_PUBLISHED,
-                'published_on' => Carbon::now(),
+                'id' => $post->getId(),
+                'deleted_at' => Carbon::now()->toDateTimeString(),
             ]
         );
     }
