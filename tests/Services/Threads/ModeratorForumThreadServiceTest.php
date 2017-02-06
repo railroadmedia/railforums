@@ -415,6 +415,8 @@ class ModeratorForumThreadServiceTest extends TestCase
 
     public function test_destroy_thread()
     {
+        Carbon::setTestNow(Carbon::now());
+
         $entity = new Thread();
         $entity->randomize();
         $entity->setState(Thread::STATE_PUBLISHED);
@@ -433,9 +435,12 @@ class ModeratorForumThreadServiceTest extends TestCase
 
         $this->assertTrue($response);
 
-        $this->assertDatabaseMissing(
+        $this->assertDatabaseHas(
             'forum_threads',
-            ['id' => $entity->getId()]
+            [
+                'id' => $post->getId(),
+                'deleted_at' => Carbon::now()->toDateTimeString(),
+            ]
         );
     }
 }

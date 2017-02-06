@@ -436,7 +436,7 @@ class ModeratorForumPostServiceTest extends TestCase
 
         $this->assertTrue($response);
 
-        $this->assertDatabaseMissing(
+        $this->assertDatabaseHas(
             'forum_posts',
             [
                 'id' => $post->getId(),
