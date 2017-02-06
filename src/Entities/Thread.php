@@ -17,6 +17,7 @@ use Railroad\Railmap\Entity\Properties\Versioned;
  * @method setLastPost(Post | null $lastPost)
  * @method UserCloak|null getAuthor()
  * @method setAuthor(UserCloak | null $lastPost)
+ * @method ThreadDataMapper getOwningDataMapper()
  */
 class Thread extends EntityBase
 {

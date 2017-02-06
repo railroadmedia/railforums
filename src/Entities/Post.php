@@ -19,6 +19,7 @@ use Railroad\Railmap\Entity\Properties\Versioned;
  * @method setAuthor(UserCloak|null $lastPost)
  * @method PostLike[] getRecentLikes()
  * @method setRecentLikes(PostLike[] $postLikes)
+ * @method PostDataMapper getOwningDataMapper()
  */
 class Post extends EntityBase
 {
