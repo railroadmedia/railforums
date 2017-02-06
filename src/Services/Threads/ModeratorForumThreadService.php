@@ -1,15 +1,9 @@
 <?php
 
-namespace Railroad\Railforums\Services;
+namespace Railroad\Railforums\Services\Threads;
 
-use Carbon\Carbon;
-use Illuminate\Database\Query\Builder;
-use Railroad\Railforums\DataMappers\ThreadDataMapper;
-use Railroad\Railforums\DataMappers\ThreadReadDataMapper;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
-use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railmap\Helpers\RailmapHelpers;
 
 class ModeratorForumThreadService extends UserForumThreadService
