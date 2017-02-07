@@ -166,6 +166,7 @@ class UserForumThreadService
         $thread->setLocked($locked);
         $thread->setState(Thread::STATE_PUBLISHED);
         $thread->setPublishedOn(Carbon::now()->toDateTimeString());
+        $thread->setPostCount(1);
         $thread->persist();
 
         $post = new Post();
