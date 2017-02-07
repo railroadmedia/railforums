@@ -111,7 +111,7 @@ class ThreadDataMapper extends DataMapperBase
                 )->on(
                     'forum_thread_reads.reader_id',
                     '=',
-                    $this->userCloakDataMapper->getCurrentPermissionLevel()
+                    $query->raw($this->userCloakDataMapper->getCurrentId())
                 );
             }
         );

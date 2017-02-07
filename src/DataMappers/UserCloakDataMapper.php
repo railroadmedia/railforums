@@ -67,7 +67,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
 
         $current = $this->get($this->authManager->id());
 
-        return !empty($current) ? $current->getId() : null;
+        return !empty($current) ? $current->getId() : 0;
     }
 
     /**

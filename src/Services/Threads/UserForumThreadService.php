@@ -38,27 +38,40 @@ class UserForumThreadService
      * @param $amount
      * @param $page
      * @param $categoryId
+     * @param bool $pinned
      * @return Thread|Thread[]
      */
     public function getThreads(
         $amount,
         $page,
-        $categoryId
+        $categoryId,
+        $pinned = false
     ) {
         return $this->threadDataMapper->getWithQuery(
             function (Builder $builder) use (
                 $amount,
                 $page,
-                $categoryId
+                $categoryId,
+                $pinned
             ) {
                 return $builder->limit($amount)
                     ->skip($amount * ($page - 1))
                     ->orderByRaw('last_post_published_on desc, id desc')
                     ->whereIn('forum_threads.state', $this->accessibleStates)
+                    ->where('pinned', $pinned)
                     ->where('category_id', $categoryId)
                     ->get();
             }
         );
+    }
+
+    /**
+     * @param $id
+     * @return Thread
+     */
+    public function getThread($id)
+    {
+        return $this->threadDataMapper->get($id);
     }
 
     /**
@@ -100,7 +113,7 @@ class UserForumThreadService
                 return $builder->whereIn('forum_threads.state', $this->accessibleStates)->where(
                     'category_id',
                     $categoryId
-                );
+                )->where('pinned', false);
             }
         );
     }

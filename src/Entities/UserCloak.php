@@ -78,6 +78,10 @@ class UserCloak extends EntityBase
      */
     public function getAvatarUrl()
     {
+        if (empty($this->avatarUrl)) {
+            return cdn('defaults/avatar.png');
+        }
+
         return $this->avatarUrl;
     }
 

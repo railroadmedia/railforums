@@ -8,6 +8,7 @@ use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railmap\Entity\Links\OneToMany;
+use Railroad\Railmap\Entity\Links\OneToOne;
 
 /**
  * Class PostDataMapper
@@ -19,7 +20,7 @@ use Railroad\Railmap\Entity\Links\OneToMany;
 class PostDataMapper extends DataMapperBase
 {
     public $table = 'forum_posts';
-    public $with = ['likes'];
+    public $with = ['likes', 'author'];
 
     public function mapTo()
     {
@@ -64,7 +65,7 @@ class PostDataMapper extends DataMapperBase
                 $query->on(
                     'current_user_forum_post_like.liker_id',
                     '=',
-                    $this->userCloakDataMapper->getCurrentId()
+                    $query->raw($this->userCloakDataMapper->getCurrentId())
                 )
                     ->on(
                         'forum_posts.id',
@@ -83,7 +84,8 @@ class PostDataMapper extends DataMapperBase
                 function (Builder $query) {
                     return $query->limit(3);
                 }
-            )
+            ),
+            'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
         ];
     }
 
