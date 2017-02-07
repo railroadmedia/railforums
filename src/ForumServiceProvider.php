@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\EventListeners\EntityEventListener;
+use Railroad\Railmap\Events\EntityDestroyed;
 use Railroad\Railmap\Events\EntitySaved;
 
 class ForumServiceProvider extends ServiceProvider
@@ -10,6 +11,9 @@ class ForumServiceProvider extends ServiceProvider
     protected $listen = [
         EntitySaved::class => [
             EntityEventListener::class . '@onSaved',
+        ],
+        EntityDestroyed::class => [
+            EntityEventListener::class . '@onDestroyed',
         ],
     ];
 

@@ -66,7 +66,7 @@ class Post extends EntityBase
     /**
      * @var int
      */
-    protected $likeCount;
+    protected $likeCount = 0;
 
     /**
      * @var bool

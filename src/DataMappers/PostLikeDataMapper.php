@@ -5,9 +5,15 @@ namespace Railroad\Railforums\DataMappers;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\UserCloak;
-use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 use Railroad\Railmap\Entity\Links\OneToOne;
 
+/**
+ * Class PostLikeDataMapper
+ *
+ * @package Railroad\Railforums\DataMappers
+ * @method PostLike|PostLike[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
+ * @method PostLike|PostLike[] get($idOrIds)
+ */
 class PostLikeDataMapper extends DataMapperBase
 {
     public $table = 'forum_post_likes';
