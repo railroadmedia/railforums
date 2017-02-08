@@ -20,7 +20,7 @@ use Railroad\Railmap\Entity\Links\OneToOne;
 class PostDataMapper extends DataMapperBase
 {
     public $table = 'forum_posts';
-    public $with = ['likes', 'author'];
+    public $with = ['likes', 'author', 'promptingPost'];
 
     public function mapTo()
     {
@@ -86,6 +86,7 @@ class PostDataMapper extends DataMapperBase
                 }
             ),
             'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
+            'promptingPost' => new OneToOne(Post::class, 'promptingPostId', 'id', 'promptingPost'),
         ];
     }
 
