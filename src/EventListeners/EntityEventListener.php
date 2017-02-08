@@ -26,21 +26,22 @@ class EntityEventListener
     {
         if ($event->newEntity instanceof Post) {
             $thread = $this->threadDataMapper->get($event->newEntity->getThreadId());
+            $dataMapper = $event->newEntity->getOwningDataMapper();
+
+            $thread->setPostCount(
+                $dataMapper->countPostsInThread($event->newEntity->getThreadId())
+            );
 
             if (empty($thread->getLastPost()) ||
                 Carbon::parse($thread->getLastPost()->getPublishedOn()) <=
                 Carbon::parse($event->newEntity->getPublishedOn()) &&
                 $event->newEntity->getState() == Post::STATE_PUBLISHED
             ) {
-                $dataMapper = $event->newEntity->getOwningDataMapper();
-
                 $thread->setLastPostId($event->newEntity->getId());
                 $thread->setLastPost($event->newEntity);
-                $thread->setPostCount(
-                    $dataMapper->countPostsInThread($event->newEntity->getThreadId())
-                );
-                $thread->persist();
+
             }
+            $thread->persist();
         }
 
         if ($event->newEntity instanceof PostLike) {
