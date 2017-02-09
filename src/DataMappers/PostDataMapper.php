@@ -20,7 +20,7 @@ use Railroad\Railmap\Entity\Links\OneToOne;
 class PostDataMapper extends DataMapperBase
 {
     public $table = 'forum_posts';
-    public $with = ['likes', 'author', 'promptingPost'];
+    public $with = ['author'];
 
     public function mapTo()
     {
@@ -79,12 +79,54 @@ class PostDataMapper extends DataMapperBase
     public function links()
     {
         return [
-            'likes' => new OneToMany(
-                PostLike::class, 'id', 'postId', 'recentLikes', 'liked_on', 'desc',
+            'recentLikes' => new OneToMany(
+                PostLike::class, 'id', 'postId', 'recentLikes', 'forum_post_likes.liked_on', 'desc',
                 function (Builder $query) {
-                    return $query->limit(3);
+                    return $query->selectRaw('forum_post_likes.*')->join(
+                        'forum_post_likes as fpl2',
+                        function (JoinClause $joinClause) {
+                            return $joinClause->on(
+                                'forum_post_likes.post_id',
+                                '=',
+                                'fpl2.post_id'
+                            )->on('forum_post_likes.id', '<', 'fpl2.id');
+                        },
+                        null,
+                        null,
+                        'left outer'
+                    )->groupBy('forum_post_likes.id')
+                        ->having($query->raw('COUNT(*)'), '<', 3)
+                        ->orderBy('forum_post_likes.liked_on');
                 }
             ),
+//            'recentLikes' => new OneToMany(
+//                PostLike::class, 'id', 'postId', 'recentLikes', 'fpl.liked_on', 'desc',
+//                function (Builder $query) {
+//                    return $query->selectRaw('forum_post_likes.*, (SELECT GROUP_CONCAT(fpl2.id) ' .
+//                                             'FROM (SELECT * FROM forum_post_likes as fpl ' .
+//                                             'WHERE fpl.post_id = forum_post_likes.post_id ORDER BY liked_on LIMIT 0, 3) as fpl2) as c_ids')
+//
+//                        ->rightJoin(
+//                        'forum_post_likes as fpl',
+//                        'fpl.post_id',
+//                        '=',
+//                        'forum_post_likes.post_id'
+//                    );
+//                }
+//            ),
+//            'recentLikes' => new OneToMany(
+//                PostLike::class, 'id', 'postId', 'recentLikes', 'fpl.liked_on', 'desc',
+//                function (Builder $query) {
+//                    return $query->rightJoin(
+//                        'forum_post_likes as fpl',
+//                        function (JoinClause $joinClause) {
+//                            $joinClause->on('fpl.post_id', '=', 'forum_post_likes.post_id')->orderBy(
+//                                'fpl.liked_on'
+//                            )->limit(3);
+//                        }
+//                    );
+//                }
+//            ),
             'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
             'promptingPost' => new OneToOne(Post::class, 'promptingPostId', 'id', 'promptingPost'),
         ];

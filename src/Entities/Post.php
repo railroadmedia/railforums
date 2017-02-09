@@ -16,9 +16,9 @@ use Railroad\Railmap\Entity\Properties\Versioned;
  * @method Post|null getPromptingPost()
  * @method setPromptingPost(Post | null $promptingPost)
  * @method UserCloak|null getAuthor()
- * @method setAuthor(UserCloak|null $lastPost)
+ * @method setAuthor(UserCloak | null $lastPost)
  * @method PostLike[] getRecentLikes()
- * @method setRecentLikes(PostLike[] $postLikes)
+ * @method setRecentLikes(PostLike [] $postLikes)
  * @method PostDataMapper getOwningDataMapper()
  */
 class Post extends EntityBase
@@ -27,6 +27,14 @@ class Post extends EntityBase
 
     const STATE_PUBLISHED = 'published';
     const STATE_HIDDEN = 'hidden';
+
+    public $versionedAttributes = [
+        'content',
+        'promptingPostId',
+        'state',
+        'edited_on',
+        'published_on',
+    ];
 
     /**
      * @var int

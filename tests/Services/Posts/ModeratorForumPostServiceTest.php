@@ -9,6 +9,7 @@ use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Services\Posts\ModeratorForumPostService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class ModeratorForumPostServiceTest extends TestCase
 {
@@ -60,7 +61,7 @@ class ModeratorForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             0,
             5
@@ -117,7 +118,7 @@ class ModeratorForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             0,
             5
@@ -136,7 +137,7 @@ class ModeratorForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             5,
             5
@@ -194,7 +195,7 @@ class ModeratorForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             0,
             15
@@ -442,6 +443,59 @@ class ModeratorForumPostServiceTest extends TestCase
                 'id' => $post->getId(),
                 'deleted_at' => Carbon::now()->toDateTimeString(),
             ]
+        );
+    }
+
+    public function test_post_likes_link()
+    {
+        Carbon::setTestNow(Carbon::now());
+
+        $thread = new Thread();
+        $thread->randomize();
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->persist();
+
+        $user = $this->fakeUserCloak();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($user->getId());
+        $post->setState(Post::STATE_PUBLISHED);
+        $post->persist();
+
+        $postLikes = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            $user = $this->fakeUserCloak();
+
+            $postLike = new PostLike();
+            $postLike->setPostId($post->getId());
+            $postLike->setLikerId($user->getId());
+            $postLike->setLikedOn(
+                \Carbon\Carbon::instance($this->faker->dateTime)->toDateTimeString()
+            );
+            $postLike->persist();
+
+            $postLikes[] = $postLike;
+        }
+
+        IdentityMap::empty();
+
+        $responseEntities = $this->classBeingTested->getPosts(1, 1, $thread->getId());
+
+        $this->assertEquals(10, $responseEntities[0]->getLikeCount());
+        $this->assertEquals(
+            array_slice(
+                RailmapHelpers::sortEntitiesByDateAttribute(
+                    $postLikes,
+                    'likedOn',
+                    'desc'
+                ),
+                0,
+                3
+            ),
+            $responseEntities[0]->getRecentLikes()
         );
     }
 }

@@ -26,6 +26,8 @@ class Thread extends EntityBase
     const STATE_PUBLISHED = 'published';
     const STATE_HIDDEN = 'hidden';
 
+    public $versionedAttributes = ['title', 'slug', 'pinned', 'locked', 'categoryId'];
+
     /**
      * @var int
      */

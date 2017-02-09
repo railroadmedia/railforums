@@ -35,6 +35,8 @@ class UserForumPostService
      */
     public function getPosts($amount, $page, $threadId)
     {
+        $this->postDataMapper->with = ['author', 'promptingPost', 'recentLikes'];
+
         return $this->postDataMapper->getWithQuery(
             function (Builder $builder) use (
                 $amount,
