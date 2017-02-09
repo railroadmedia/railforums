@@ -59,8 +59,7 @@ class UserForumThreadService
                     ->orderByRaw('last_post_published_on desc, id desc')
                     ->whereIn('forum_threads.state', $this->accessibleStates)
                     ->where('pinned', $pinned)
-                    ->where('category_id', $categoryId)
-                    ->get();
+                    ->where('category_id', $categoryId);
             }
         );
     }

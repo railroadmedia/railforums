@@ -21,6 +21,7 @@ class PostDataMapper extends DataMapperBase
 {
     public $table = 'forum_posts';
     public $with = ['author'];
+    public $cacheTime = 3600;
 
     public function mapTo()
     {

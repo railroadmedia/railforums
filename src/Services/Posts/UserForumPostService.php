@@ -47,8 +47,7 @@ class UserForumPostService
                     ->skip($amount * ($page - 1))
                     ->orderByRaw('published_on asc')
                     ->where('thread_id', $threadId)
-                    ->whereIn('state', $this->accessibleStates)
-                    ->get();
+                    ->whereIn('state', $this->accessibleStates);
             }
         );
     }

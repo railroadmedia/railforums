@@ -36,8 +36,7 @@ class ForumPostLikeService
         $existingPostLike = $this->postLikeDataMapper->getWithQuery(
             function (Builder $builder) use ($postId, $currentUserId) {
                 return $builder->where('post_id', $postId)
-                    ->where('liker_id', $currentUserId)
-                    ->first();
+                    ->where('liker_id', $currentUserId);
             }
         );
 
@@ -61,8 +60,7 @@ class ForumPostLikeService
         $existingPostLike = $this->postLikeDataMapper->getWithQuery(
             function (Builder $builder) use ($postId, $currentUserId) {
                 return $builder->where('post_id', $postId)
-                    ->where('liker_id', $currentUserId)
-                    ->first();
+                    ->where('liker_id', $currentUserId);
             }
         );
 

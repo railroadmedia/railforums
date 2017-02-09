@@ -27,6 +27,8 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
      */
     private $current;
 
+    public $cacheTime = 3600;
+
     public function __construct()
     {
         parent::__construct();

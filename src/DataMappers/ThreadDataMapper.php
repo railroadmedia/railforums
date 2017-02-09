@@ -19,6 +19,7 @@ class ThreadDataMapper extends DataMapperBase
 {
     public $table = 'forum_threads';
     public $with = ['lastPost', 'author'];
+    public $cacheTime = 3600;
 
     public function mapTo()
     {
