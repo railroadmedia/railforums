@@ -25,7 +25,7 @@ class EntityEventListener
     public function onSaved(EntitySaved $event)
     {
         if ($event->newEntity instanceof Post) {
-            $thread = $this->threadDataMapper->get($event->newEntity->getThreadId());
+            $thread = $this->threadDataMapper->ignoreCache()->get($event->newEntity->getThreadId());
             $dataMapper = $event->newEntity->getOwningDataMapper();
 
             $thread->setPostCount(
@@ -45,7 +45,7 @@ class EntityEventListener
         }
 
         if ($event->newEntity instanceof PostLike) {
-            $post = $this->postDataMapper->get($event->newEntity->getPostId());
+            $post = $this->postDataMapper->ignoreCache()->get($event->newEntity->getPostId());
             $dataMapper = $event->newEntity->getOwningDataMapper();
 
             if (!empty($post)) {
@@ -69,7 +69,7 @@ class EntityEventListener
         }
 
         if ($event->newEntity instanceof ThreadRead) {
-            $thread = $this->threadDataMapper->get($event->newEntity->getThreadId());
+            $thread = $this->threadDataMapper->ignoreCache()->get($event->newEntity->getThreadId());
             $thread->setIsRead($event->newEntity->getReadOn() >= $thread->getLastPost()->getPublishedOn());
             $thread->persist();
         }
@@ -78,7 +78,7 @@ class EntityEventListener
     public function onDestroyed(EntityDestroyed $event)
     {
         if ($event->entity instanceof PostLike) {
-            $post = $this->postDataMapper->get($event->entity->getPostId());
+            $post = $this->postDataMapper->ignoreCache()->get($event->entity->getPostId());
             $dataMapper = $event->entity->getOwningDataMapper();
 
             if (!empty($post)) {

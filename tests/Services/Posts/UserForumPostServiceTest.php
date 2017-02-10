@@ -240,7 +240,7 @@ class UserForumPostServiceTest extends TestCase
             $entities[] = $post;
         }
 
-        $responseCount = $this->classBeingTested->getPostCount($thread->getId());
+        $responseCount = $this->classBeingTested->getThreadPostCount($thread->getId());
 
         $this->assertEquals(13, $responseCount);
     }
@@ -280,7 +280,7 @@ class UserForumPostServiceTest extends TestCase
             $entities[] = $post;
         }
 
-        $responseCount = $this->classBeingTested->getPostCount($thread->getId());
+        $responseCount = $this->classBeingTested->getThreadPostCount($thread->getId());
 
         $this->assertEquals(9, $responseCount);
     }
@@ -309,7 +309,7 @@ class UserForumPostServiceTest extends TestCase
 
         $entities[0]->destroy();
 
-        $responseCount = $this->classBeingTested->getPostCount($thread->getId());
+        $responseCount = $this->classBeingTested->getThreadPostCount($thread->getId());
 
         $this->assertEquals(8, $responseCount);
     }

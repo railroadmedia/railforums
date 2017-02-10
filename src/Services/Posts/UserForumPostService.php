@@ -73,9 +73,9 @@ class UserForumPostService
      * @param $threadId
      * @return int
      */
-    public function getPostCount($threadId)
+    public function getThreadPostCount($threadId)
     {
-        return $this->postDataMapper->count(
+        return $this->postDataMapper->ignoreCache()->count(
             function (Builder $builder) use ($threadId) {
                 return $builder->whereIn('forum_posts.state', $this->accessibleStates)
                     ->where('thread_id', $threadId);

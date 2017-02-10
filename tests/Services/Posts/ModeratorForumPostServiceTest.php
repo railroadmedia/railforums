@@ -232,7 +232,7 @@ class ModeratorForumPostServiceTest extends TestCase
             $entities[] = $post;
         }
 
-        $responseCount = $this->classBeingTested->getPostCount($thread->getId());
+        $responseCount = $this->classBeingTested->getThreadPostCount($thread->getId());
 
         $this->assertEquals(13, $responseCount);
     }
@@ -272,7 +272,7 @@ class ModeratorForumPostServiceTest extends TestCase
             $entities[] = $post;
         }
 
-        $responseCount = $this->classBeingTested->getPostCount($thread->getId());
+        $responseCount = $this->classBeingTested->getThreadPostCount($thread->getId());
 
         $this->assertEquals(15, $responseCount);
     }
@@ -301,7 +301,7 @@ class ModeratorForumPostServiceTest extends TestCase
 
         $entities[0]->destroy();
 
-        $responseCount = $this->classBeingTested->getPostCount($thread->getId());
+        $responseCount = $this->classBeingTested->getThreadPostCount($thread->getId());
 
         $this->assertEquals(8, $responseCount);
     }
