@@ -175,6 +175,8 @@ class UserForumThreadService
         $post->setState(Thread::STATE_PUBLISHED);
         $post->setPublishedOn($thread->getPublishedOn());
         $post->persist();
+        
+        $this->threadDataMapper->flushCache();
 
         return $thread;
     }

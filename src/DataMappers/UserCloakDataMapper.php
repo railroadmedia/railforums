@@ -16,6 +16,7 @@ use Railroad\Railmap\DataMapper\DatabaseDataMapperBase;
 class UserCloakDataMapper extends DatabaseDataMapperBase
 {
     public $table = 'users';
+    public $cacheTime = 3600;
 
     /**
      * @var AuthManager
@@ -26,8 +27,6 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
      * @var UserCloak|null
      */
     private $current;
-
-    public $cacheTime = 3600;
 
     public function __construct()
     {

@@ -18,6 +18,7 @@ class PostLikeDataMapper extends DataMapperBase
 {
     public $table = 'forum_post_likes';
     public $with = ['liker'];
+    public $cacheTime = 3600;
 
     public function mapTo()
     {
