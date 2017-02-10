@@ -143,10 +143,18 @@ class PostDataMapper extends DataMapperBase
 
     public function countPostsInThread($threadId)
     {
-        return $this->count(
+        $cacheTime = $this->cacheTime;
+
+        $this->cacheTime = null;
+
+        $count = $this->count(
             function (Builder $query) use ($threadId) {
                 return $query->where('thread_id', $threadId);
             }
         );
+
+        $this->cacheTime = $cacheTime;
+
+        return $count;
     }
 }
