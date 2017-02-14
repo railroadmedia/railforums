@@ -54,6 +54,15 @@ class UserForumPostService
 
     /**
      * @param $id
+     * @return Post|null
+     */
+    public function getPost($id)
+    {
+        return $this->postDataMapper->get($id);
+    }
+
+    /**
+     * @param $id
      * @return bool
      */
     public function destroyPost($id)
