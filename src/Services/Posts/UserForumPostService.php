@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Services\Posts;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\PostDataMapper;
+use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Services\HTMLPurifierService;
@@ -13,6 +14,7 @@ class UserForumPostService
 {
     protected $htmlPurifierService;
     protected $postDataMapper;
+    protected $threadDataMapper;
     protected $userCloakDataMapper;
 
     protected $accessibleStates = [Post::STATE_PUBLISHED];
@@ -20,10 +22,12 @@ class UserForumPostService
     public function __construct(
         HTMLPurifierService $htmlPurifierService,
         PostDataMapper $postDataMapper,
+        ThreadDataMapper $threadDataMapper,
         UserCloakDataMapper $userCloakDataMapper
     ) {
         $this->htmlPurifierService = $htmlPurifierService;
         $this->postDataMapper = $postDataMapper;
+        $this->threadDataMapper = $threadDataMapper;
         $this->userCloakDataMapper = $userCloakDataMapper;
     }
 
@@ -95,8 +99,7 @@ class UserForumPostService
     /**
      * @param $id
      * @param $content
-     * @return bool
-     * @internal param string $title
+     * @return Post|null
      */
     public function updatePostContent($id, $content)
     {
@@ -107,10 +110,12 @@ class UserForumPostService
             $post->setEditedOn(Carbon::now()->toDateTimeString());
             $post->persist();
 
-            return true;
+            $this->postDataMapper->flushCache();
+
+            return $post;
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -134,6 +139,9 @@ class UserForumPostService
         $post->setState(Post::STATE_PUBLISHED);
         $post->setPublishedOn(Carbon::now()->toDateTimeString());
         $post->persist();
+
+        $this->postDataMapper->flushCache();
+        $this->threadDataMapper->flushCache();
 
         return $post;
     }

@@ -22,6 +22,8 @@ class ModeratorForumThreadService extends UserForumThreadService
             $thread->setState(Thread::STATE_PUBLISHED);
             $thread->persist();
 
+            $this->threadDataMapper->flushCache();
+
             return true;
         }
 
@@ -39,6 +41,8 @@ class ModeratorForumThreadService extends UserForumThreadService
         if (!empty($thread)) {
             $thread->setState(Thread::STATE_HIDDEN);
             $thread->persist();
+
+            $this->threadDataMapper->flushCache();
 
             return true;
         }
@@ -59,6 +63,8 @@ class ModeratorForumThreadService extends UserForumThreadService
             $thread->setLocked($state);
             $thread->persist();
 
+            $this->threadDataMapper->flushCache();
+
             return true;
         }
 
@@ -78,6 +84,8 @@ class ModeratorForumThreadService extends UserForumThreadService
             $thread->setPinned($state);
             $thread->persist();
 
+            $this->threadDataMapper->flushCache();
+
             return true;
         }
 
@@ -94,6 +102,8 @@ class ModeratorForumThreadService extends UserForumThreadService
 
         if (!empty($thread)) {
             $thread->destroy();
+
+            $this->threadDataMapper->flushCache();
 
             return true;
         }
@@ -114,6 +124,8 @@ class ModeratorForumThreadService extends UserForumThreadService
             $thread->setTitle($title);
             $thread->setSlug(RailmapHelpers::sanitizeForSlug($title));
             $thread->persist();
+
+            $this->threadDataMapper->flushCache();
 
             return true;
         }

@@ -120,7 +120,7 @@ class UserForumThreadService
     /**
      * @param $id
      * @param string $title
-     * @return bool
+     * @return Thread|null
      */
     public function updateThreadTitle($id, $title)
     {
@@ -131,10 +131,12 @@ class UserForumThreadService
             $thread->setSlug(RailmapHelpers::sanitizeForSlug($title));
             $thread->persist();
 
-            return true;
+            $this->threadDataMapper->flushCache();
+
+            return $thread;
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -175,7 +177,7 @@ class UserForumThreadService
         $post->setState(Thread::STATE_PUBLISHED);
         $post->setPublishedOn($thread->getPublishedOn());
         $post->persist();
-        
+
         $this->threadDataMapper->flushCache();
 
         return $thread;

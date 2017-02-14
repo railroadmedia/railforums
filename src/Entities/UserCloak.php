@@ -109,6 +109,58 @@ class UserCloak extends EntityBase
         $this->permissionLevel = $permissionLevel;
     }
 
+    /**
+     * @return bool
+     */
+    public function canViewHiddenTopics()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
+            $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
+    /**
+     * @return bool
+     */
+    public function canEditAnyThreads()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
+            $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
+    /**
+     * @return bool
+     */
+    public function canDestroyAnyThreads()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
+            $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
+    /**
+     * @return bool
+     */
+    public function canPinThreads()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
+            $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
+    /**
+     * @return bool
+     */
+    public function canLockThreads()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
+    /**
+     * @return bool
+     */
+    public function canViewHiddenPosts()
+    {
+        return $this->canViewHiddenTopics();
+    }
+
     public function randomize()
     {
         $faker = app(Generator::class);

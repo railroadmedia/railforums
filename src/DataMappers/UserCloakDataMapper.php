@@ -41,7 +41,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
             'id' => 'id',
             'displayName' => 'display_name',
             'avatarUrl' => 'avatar_url',
-            'permissionLevel' => 'access_type',
+            'permissionLevel' => 'permission_level',
         ];
     }
 
