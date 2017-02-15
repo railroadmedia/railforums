@@ -33,7 +33,7 @@ class ForumPostLikeService
     {
         $currentUserId = $this->userCloakDataMapper->getCurrentId();
 
-        $existingPostLike = $this->postLikeDataMapper->getWithQuery(
+        $existingPostLike = $this->postLikeDataMapper->ignoreCache()->getWithQuery(
             function (Builder $builder) use ($postId, $currentUserId) {
                 return $builder->where('post_id', $postId)
                     ->where('liker_id', $currentUserId);
@@ -47,6 +47,8 @@ class ForumPostLikeService
             $postLike->setLikedOn(Carbon::now()->toDateTimeString());
             $postLike->persist();
 
+            $this->postDataMapper->flushCache();
+
             return $postLike;
         }
 
@@ -57,15 +59,19 @@ class ForumPostLikeService
     {
         $currentUserId = $this->userCloakDataMapper->getCurrentId();
 
-        $existingPostLike = $this->postLikeDataMapper->getWithQuery(
+        $existingPostLikes = $this->postLikeDataMapper->ignoreCache()->getWithQuery(
             function (Builder $builder) use ($postId, $currentUserId) {
                 return $builder->where('post_id', $postId)
                     ->where('liker_id', $currentUserId);
             }
         );
 
-        if (!empty($existingPostLike)) {
-            $existingPostLike->destroy();
+        if (!empty($existingPostLikes)) {
+            $this->postDataMapper->flushCache();
+
+            foreach ($existingPostLikes as $existingPostLike) {
+                $existingPostLike->destroy();
+            }
         }
     }
 }

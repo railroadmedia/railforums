@@ -90,7 +90,11 @@ class PostDataMapper extends DataMapperBase
                                 'forum_post_likes.post_id',
                                 '=',
                                 'fpl2.post_id'
-                            )->on('forum_post_likes.id', '<', 'fpl2.id');
+                            )->on('forum_post_likes.id', '<', 'fpl2.id')->on(
+                                'fpl2.liker_id',
+                                '!=',
+                                $joinClause->raw($this->userCloakDataMapper->getCurrentId())
+                            );
                         },
                         null,
                         null,
