@@ -73,8 +73,11 @@ class UserForumPostService
     {
         $post = $this->postDataMapper->get($id);
 
-        if ($post->getAuthorId() == $this->userCloakDataMapper->getCurrentId() && !empty($post)) {
+        if (!empty($post)) {
             $post->destroy();
+
+            $this->postDataMapper->flushCache();
+            $this->threadDataMapper->flushCache();
 
             return true;
         }
@@ -105,8 +108,30 @@ class UserForumPostService
     {
         $post = $this->postDataMapper->get($id);
 
-        if ($post->getAuthorId() == $this->userCloakDataMapper->getCurrentId() && !empty($post)) {
+        if (!empty($post)) {
             $post->setContent($this->htmlPurifierService->clean($content));
+            $post->setEditedOn(Carbon::now()->toDateTimeString());
+            $post->persist();
+
+            $this->postDataMapper->flushCache();
+
+            return $post;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $id
+     * @param $promptingPostId|null
+     * @return Post|null
+     */
+    public function updatePostPromptingPostId($id, $promptingPostId)
+    {
+        $post = $this->postDataMapper->get($id);
+
+        if (!empty($post)) {
+            $post->setPromptingPostId($promptingPostId);
             $post->setEditedOn(Carbon::now()->toDateTimeString());
             $post->persist();
 

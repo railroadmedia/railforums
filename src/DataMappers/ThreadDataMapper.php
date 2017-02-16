@@ -57,19 +57,6 @@ class ThreadDataMapper extends DataMapperBase
         );
     }
 
-    public function filter($query)
-    {
-        $permissionLevel = $this->userCloakDataMapper->getCurrentPermissionLevel();
-
-        if ($permissionLevel == UserCloak::PERMISSION_LEVEL_ADMINISTRATOR ||
-            $permissionLevel == UserCloak::PERMISSION_LEVEL_MODERATOR
-        ) {
-            return $query->whereIn($this->table . '.state', [Thread::STATE_PUBLISHED, Thread::STATE_HIDDEN]);
-        }
-
-        return $query->whereIn($this->table . '.state', [Thread::STATE_PUBLISHED]);
-    }
-
     public function gettingQuery()
     {
         return parent::gettingQuery()->selectRaw(

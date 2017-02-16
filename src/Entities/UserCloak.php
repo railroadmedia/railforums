@@ -153,6 +153,19 @@ class UserCloak extends EntityBase
         return $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
     }
 
+    public function canDestroyAnyPosts()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
+            $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
+
+    public function canEditAnyPosts()
+    {
+        return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
+            $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
+    }
+
     /**
      * @return bool
      */

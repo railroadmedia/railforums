@@ -21,6 +21,8 @@ class ModeratorForumPostService extends UserForumPostService
             $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
+            $this->postDataMapper->flushCache();
+
             return true;
         }
 
@@ -39,6 +41,8 @@ class ModeratorForumPostService extends UserForumPostService
             $post->setState(Post::STATE_HIDDEN);
             $post->persist();
 
+            $this->postDataMapper->flushCache();
+
             return true;
         }
 
@@ -55,6 +59,8 @@ class ModeratorForumPostService extends UserForumPostService
 
         if (!empty($post)) {
             $post->destroy();
+
+            $this->postDataMapper->flushCache();
 
             return true;
         }
