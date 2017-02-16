@@ -21,6 +21,10 @@ class CreateForumTableThreadReads extends Migration
             $table->dateTime('read_on');
 
             $table->timestamps();
+
+            $table->index(['thread_id']);
+            $table->index(['reader_id']);
+            $table->index(['read_on']);
         });
     }
 
@@ -31,6 +35,6 @@ class CreateForumTableThreadReads extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('forum_threads_read');
+        Schema::dropIfExists('forum_thread_reads');
     }
 }

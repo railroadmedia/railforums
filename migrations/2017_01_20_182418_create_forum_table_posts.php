@@ -29,6 +29,12 @@ class CreateForumTablePosts extends Migration
 
             $table->integer('version_master_id')->nullable();
             $table->timestamp('version_saved_at')->nullable();
+
+            $table->index(['thread_id']);
+            $table->index(['author_id']);
+            $table->index(['prompting_post_id']);
+            $table->index(['state']);
+            $table->index(['published_on']);
         });
     }
 

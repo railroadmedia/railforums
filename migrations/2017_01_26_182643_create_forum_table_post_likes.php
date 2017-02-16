@@ -21,6 +21,10 @@ class CreateForumTablePostLikes extends Migration
             $table->dateTime('liked_on');
 
             $table->timestamps();
+
+            $table->index(['post_id']);
+            $table->index(['liker_id']);
+            $table->index(['liked_on']);
         });
     }
 
