@@ -57,6 +57,7 @@ class ThreadDataMapper extends DataMapperBase
         );
     }
 
+
     public function gettingQuery()
     {
         return parent::gettingQuery()->selectRaw(
@@ -102,7 +103,7 @@ class ThreadDataMapper extends DataMapperBase
                     $query->raw($this->userCloakDataMapper->getCurrentId())
                 );
             }
-        );
+        )->groupBy('forum_threads.id');
     }
 
     /**
