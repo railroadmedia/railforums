@@ -3,7 +3,9 @@
 namespace Railroad\Railforums\Services\Posts;
 
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railmap\Helpers\RailmapHelpers;
 
 class ModeratorForumPostService extends UserForumPostService
 {
@@ -87,5 +89,19 @@ class ModeratorForumPostService extends UserForumPostService
         }
 
         return false;
+    }
+
+    /**
+     * @param $threadId
+     * @return array
+     */
+    public function getAllPostIdsInThread($threadId)
+    {
+        return $this->postDataMapper->list(
+            function (Builder $builder) use ($threadId) {
+                return $builder->where('forum_posts.thread_id', $threadId)->orderBy('published_on');
+            },
+            'id'
+        );
     }
 }
