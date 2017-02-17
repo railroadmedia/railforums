@@ -28,6 +28,11 @@ class UserCloak extends EntityBase
      */
     protected $permissionLevel;
 
+    /**
+     * @var string
+     */
+    protected $label;
+
     const PERMISSION_LEVEL_VIEWER = 'viewer';
     const PERMISSION_LEVEL_USER = 'user';
     const PERMISSION_LEVEL_MODERATOR = 'moderator';
@@ -110,6 +115,22 @@ class UserCloak extends EntityBase
     }
 
     /**
+     * @return string
+     */
+    public function getLabel(): string
+    {
+        return $this->label;
+    }
+
+    /**
+     * @param string $label
+     */
+    public function setLabel(string $label)
+    {
+        $this->label = $label;
+    }
+
+    /**
      * @return bool
      */
     public function canViewHiddenTopics()
@@ -158,7 +179,6 @@ class UserCloak extends EntityBase
         return $this->permissionLevel == self::PERMISSION_LEVEL_MODERATOR ||
             $this->permissionLevel == self::PERMISSION_LEVEL_ADMINISTRATOR;
     }
-
 
     public function canEditAnyPosts()
     {
