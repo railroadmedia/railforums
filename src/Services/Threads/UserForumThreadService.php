@@ -107,13 +107,14 @@ class UserForumThreadService
      */
     public function getThreadCount($categoryId)
     {
-        return $this->threadDataMapper->count(
+        return $this->threadDataMapper->ignoreCache()->count(
             function (Builder $builder) use ($categoryId) {
                 return $builder->whereIn('forum_threads.state', $this->accessibleStates)->where(
                     'category_id',
                     $categoryId
                 )->where('pinned', false);
-            }
+            },
+            $this->threadDataMapper->databaseManager()->connection()->raw('distinct(forum_threads.id)')
         );
     }
 
