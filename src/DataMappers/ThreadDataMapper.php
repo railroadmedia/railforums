@@ -103,7 +103,7 @@ class ThreadDataMapper extends DataMapperBase
                     $query->raw($this->userCloakDataMapper->getCurrentId())
                 );
             }
-        )->groupBy('forum_threads.id');
+        );
     }
 
     /**
