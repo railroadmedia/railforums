@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\DataMappers;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
@@ -57,6 +58,32 @@ class ThreadDataMapper extends DataMapperBase
         );
     }
 
+    /**
+     * We need to override the count query because it doesn't work with the join group by.
+     *
+     * @param callable|null $queryCallback
+     * @param string $column
+     * @return int
+     */
+    public function count(callable $queryCallback = null, $column = '*')
+    {
+        $query = $this->gettingQuery();
+
+        if (is_callable($queryCallback)) {
+            $query = $queryCallback($query);
+        }
+
+        return $this->executeQueryOrGetCached(
+            $query,
+            function (Builder $query) use ($column) {
+                $parentQuery = $query->newQuery();
+
+                return $parentQuery->from($query->raw('(' . $query->toSql() . ') as counted_table'))
+                    ->mergeBindings($query)
+                    ->count();
+            }
+        );
+    }
 
     public function gettingQuery()
     {
@@ -103,7 +130,7 @@ class ThreadDataMapper extends DataMapperBase
                     $query->raw($this->userCloakDataMapper->getCurrentId())
                 );
             }
-        );
+        )->groupBy('forum_threads.id');
     }
 
     /**
