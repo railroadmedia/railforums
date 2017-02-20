@@ -161,4 +161,18 @@ class PostDataMapper extends DataMapperBase
 
         return $count;
     }
+
+    /**
+     * @param $threadId
+     * @return null|Post
+     */
+    public function getLatestPost($threadId)
+    {
+        return $this->getWithQuery(
+            function (Builder $query) use ($threadId) {
+                return $query->where('thread_id', $threadId)->orderBy('published_on', 'desc')
+                    ->limit(1);
+            }
+        )[0] ?? null;
+    }
 }

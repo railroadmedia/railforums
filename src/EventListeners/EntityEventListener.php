@@ -88,5 +88,21 @@ class EntityEventListener
                 $post->persist();
             }
         }
+
+        if ($event->entity instanceof Post) {
+            $thread = $this->threadDataMapper->ignoreCache()->get($event->entity->getThreadId());
+            $dataMapper = $event->entity->getOwningDataMapper();
+
+            $thread->setPostCount(
+                $dataMapper->countPostsInThread($event->entity->getThreadId())
+            );
+
+            $latestPost = $dataMapper->getLatestPost($thread->getId());
+
+            $thread->setLastPostId($latestPost->getId());
+            $thread->setLastPost($latestPost);
+
+            $thread->persist();
+        }
     }
 }
