@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Carbon\Carbon;
 use Faker\Generator;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
@@ -38,6 +39,8 @@ class TestCase extends BaseTestCase
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
         $this->userCloakDataMapper = $this->app->make(UserCloakDataMapper::class);
+
+        Carbon::setTestNow(Carbon::now());
     }
 
     /**
