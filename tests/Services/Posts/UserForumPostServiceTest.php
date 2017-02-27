@@ -60,7 +60,7 @@ class UserForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             0,
             5
@@ -117,7 +117,7 @@ class UserForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             0,
             5
@@ -136,7 +136,7 @@ class UserForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             5,
             5
@@ -192,7 +192,7 @@ class UserForumPostServiceTest extends TestCase
             RailmapHelpers::sortEntitiesByDateAttribute(
                 $entities,
                 'publishedOn',
-                'desc'
+                'asc'
             ),
             0,
             5
@@ -332,8 +332,6 @@ class UserForumPostServiceTest extends TestCase
 
         $response = $this->classBeingTested->updatePostContent($post->getId(), $newContent);
 
-        $this->assertTrue($response);
-
         $this->assertDatabaseHas(
             'forum_posts',
             [
@@ -362,8 +360,6 @@ class UserForumPostServiceTest extends TestCase
         $newContent = $this->faker->sentence();
 
         $response = $this->classBeingTested->updatePostContent($post->getId(), $newContent);
-
-        $this->assertFalse($response);
 
         $this->assertDatabaseMissing(
             'forum_posts',

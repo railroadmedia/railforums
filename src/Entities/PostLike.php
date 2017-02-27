@@ -13,6 +13,8 @@ use Railroad\Railmap\Entity\Properties\Timestamps;
  *
  * @package Railroad\Railforums\Entities
  * @method PostLikeDataMapper getOwningDataMapper()
+ * @method UserCloak|null getLiker()
+ * @method setLiker(UserCloak | null $lastPost)
  */
 class PostLike extends EntityBase
 {

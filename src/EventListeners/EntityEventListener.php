@@ -83,7 +83,7 @@ class EntityEventListener
 
             if (!empty($post)) {
                 $post->setLikeCount(
-                    $dataMapper->countPostLikes($event->entity->getPostId())
+                    $dataMapper->ignoreCache()->countPostLikes($event->entity->getPostId())
                 );
                 $post->persist();
             }
@@ -94,10 +94,10 @@ class EntityEventListener
             $dataMapper = $event->entity->getOwningDataMapper();
 
             $thread->setPostCount(
-                $dataMapper->countPostsInThread($event->entity->getThreadId())
+                $dataMapper->ignoreCache()->countPostsInThread($event->entity->getThreadId())
             );
 
-            $latestPost = $dataMapper->getLatestPost($thread->getId());
+            $latestPost = $dataMapper->ignoreCache()->getLatestPost($thread->getId());
 
             $thread->setLastPostId($latestPost->getId());
             $thread->setLastPost($latestPost);

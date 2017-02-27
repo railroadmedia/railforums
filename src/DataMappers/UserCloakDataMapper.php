@@ -96,6 +96,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
 
         $userCloak = $this->entity();
         $userCloak->setDisplayName($faker->userName . $faker->randomNumber());
+        $userCloak->setLabel($faker->word);
         $userCloak->setAvatarUrl('http://lorempixel.com/200/200/');
         $userCloak->setPermissionLevel(
             $permissionLevel

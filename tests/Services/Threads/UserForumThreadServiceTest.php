@@ -44,6 +44,7 @@ class UserForumThreadServiceTest extends TestCase
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setAuthorId($user->getId());
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -120,6 +121,7 @@ class UserForumThreadServiceTest extends TestCase
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
             $entity->setAuthorId($user->getId());
+            $entity->setPinned(false);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -234,6 +236,7 @@ class UserForumThreadServiceTest extends TestCase
         $entity = new Thread();
         $entity->randomize();
         $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->setPinned(false);
         $entity->persist();
 
         $post = new Post();
@@ -257,6 +260,7 @@ class UserForumThreadServiceTest extends TestCase
         $entity = new Thread();
         $entity->randomize();
         $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->setPinned(false);
         $entity->persist();
 
         $post = new Post();
@@ -339,6 +343,7 @@ class UserForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $user = $this->fakeUserCloak();
@@ -368,6 +373,7 @@ class UserForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $user = $this->fakeUserCloak();
@@ -406,6 +412,7 @@ class UserForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $user = $this->fakeUserCloak();
@@ -444,8 +451,6 @@ class UserForumThreadServiceTest extends TestCase
 
         $response = $this->classBeingTested->updateThreadTitle($entity->getId(), $newTitle);
 
-        $this->assertTrue($response);
-
         $this->assertDatabaseHas(
             'forum_threads',
             [
@@ -472,8 +477,6 @@ class UserForumThreadServiceTest extends TestCase
         $newTitle = $this->faker->sentence();
 
         $response = $this->classBeingTested->updateThreadTitle($entity->getId(), $newTitle);
-
-        $this->assertFalse($response);
 
         $this->assertDatabaseMissing(
             'forum_threads',

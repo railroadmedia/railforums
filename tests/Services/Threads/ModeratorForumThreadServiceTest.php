@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
@@ -44,6 +45,7 @@ class ModeratorForumThreadServiceTest extends TestCase
             $entity->setState(Thread::STATE_HIDDEN);
             $entity->setAuthorId($user->getId());
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $postCount = rand(1, 6);
@@ -54,6 +56,7 @@ class ModeratorForumThreadServiceTest extends TestCase
 
                 $post = new Post();
                 $post->randomize();
+                $post->setState(Post::STATE_PUBLISHED);
                 $post->setThreadId($entity->getId());
                 $post->setAuthorId($user->getId());
                 $post->persist();
@@ -117,6 +120,7 @@ class ModeratorForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $user = $this->fakeUserCloak();
@@ -125,6 +129,7 @@ class ModeratorForumThreadServiceTest extends TestCase
             $post->randomize();
             $post->setThreadId($entity->getId());
             $post->setAuthorId($user->getId());
+            $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
             $entities[] = $entity;
@@ -146,6 +151,7 @@ class ModeratorForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $user = $this->fakeUserCloak();
@@ -154,6 +160,7 @@ class ModeratorForumThreadServiceTest extends TestCase
             $post->randomize();
             $post->setThreadId($entity->getId());
             $post->setAuthorId($user->getId());
+            $post->setState(Post::STATE_PUBLISHED);
             $post->persist();
 
             $entities[] = $entity;
@@ -164,10 +171,21 @@ class ModeratorForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_HIDDEN);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
+
+            $user = $this->fakeUserCloak();
+
+            $post = new Post();
+            $post->randomize();
+            $post->setThreadId($entity->getId());
+            $post->setAuthorId($user->getId());
+            $post->setState(Post::STATE_PUBLISHED);
+            $post->persist();
 
             $entities[] = $entity;
         }
+
         $responseCount = $this->classBeingTested->getThreadCount($categoryId);
 
         $this->assertEquals(15, $responseCount);
@@ -184,6 +202,7 @@ class ModeratorForumThreadServiceTest extends TestCase
             $entity->randomize();
             $entity->setState(Thread::STATE_PUBLISHED);
             $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
             $entity->persist();
 
             $user = $this->fakeUserCloak();

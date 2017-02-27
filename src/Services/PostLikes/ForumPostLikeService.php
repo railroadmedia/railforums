@@ -38,7 +38,7 @@ class ForumPostLikeService
                 return $builder->where('post_id', $postId)
                     ->where('liker_id', $currentUserId);
             }
-        );
+        )[0] ?? null;
 
         if (empty($existingPostLike)) {
             $postLike = new PostLike();

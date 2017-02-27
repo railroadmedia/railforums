@@ -5,7 +5,7 @@ namespace Railroad\Railforums\Services\Posts;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Entities\Post;
-use Railroad\Railmap\Helpers\RailmapHelpers;
+use Railroad\Railforums\Exceptions\CannotDeleteFirstPostInThread;
 
 class ModeratorForumPostService extends UserForumPostService
 {
@@ -54,10 +54,15 @@ class ModeratorForumPostService extends UserForumPostService
     /**
      * @param $id
      * @return bool
+     * @throws CannotDeleteFirstPostInThread
      */
     public function destroyPost($id)
     {
         $post = $this->postDataMapper->get($id);
+
+        if ($this->postFirstInThread($id)) {
+            throw new CannotDeleteFirstPostInThread($id);
+        }
 
         if (!empty($post)) {
             $post->destroy();
@@ -103,5 +108,24 @@ class ModeratorForumPostService extends UserForumPostService
             },
             'id'
         );
+    }
+
+    public function postFirstInThread($postId)
+    {
+        $post = $this->getPost($postId);
+
+        $firstPost = $this->postDataMapper->getWithQuery(
+                function (Builder $builder) use ($post) {
+                    return $builder->orderByRaw('published_on asc')
+                        ->where('thread_id', $post->getThreadId())
+                        ->whereIn('state', $this->accessibleStates)->limit(1);
+                }
+            )[0] ?? null;
+
+        if ($post->getId() == $firstPost->getId()) {
+            return true;
+        }
+
+        return false;
     }
 }

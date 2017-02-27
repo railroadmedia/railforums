@@ -33,6 +33,7 @@ class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->artisan('migrate', []);
+        $this->artisan('cache:clear', []);
 
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
@@ -97,8 +98,9 @@ class TestCase extends BaseTestCase
             function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('display_name');
+                $table->string('label');
+                $table->string('permission_level');
                 $table->string('avatar_url')->nullable();
-                $table->string('access_type');
             }
         );
 

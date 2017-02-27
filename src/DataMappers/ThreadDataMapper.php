@@ -49,9 +49,6 @@ class ThreadDataMapper extends DataMapperBase
         return array_merge(
             $this->mapTo(),
             [
-                'lastPostPublishedOn' => 'last_post_published_on',
-                'lastPostUserDisplayName' => 'last_post_user_display_name',
-                'lastPostUserId' => 'last_post_user_id',
                 'postCount' => 'post_count',
                 'isRead' => 'is_read',
             ]

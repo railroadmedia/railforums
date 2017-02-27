@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\Thread;
@@ -10,6 +11,7 @@ use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Services\Posts\ModeratorForumPostService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
 use Railroad\Railmap\IdentityMap\IdentityMap;
+use Railroad\Railforums\Exceptions\CannotDeleteFirstPostInThread;
 
 class ModeratorForumPostServiceTest extends TestCase
 {
@@ -426,8 +428,17 @@ class ModeratorForumPostServiceTest extends TestCase
 
         $user = $this->fakeUserCloak();
 
+        $firstThreadPost = new Post();
+        $firstThreadPost->randomize();
+        $firstThreadPost->setPublishedOn(Carbon::now()->subDay()->toDateTimeString());
+        $firstThreadPost->setThreadId($thread->getId());
+        $firstThreadPost->setAuthorId($user->getId());
+        $firstThreadPost->setState(Post::STATE_PUBLISHED);
+        $firstThreadPost->persist();
+
         $post = new Post();
         $post->randomize();
+        $post->setPublishedOn(Carbon::now()->toDateTimeString());
         $post->setThreadId($thread->getId());
         $post->setAuthorId($user->getId());
         $post->setState(Post::STATE_PUBLISHED);
@@ -446,8 +457,43 @@ class ModeratorForumPostServiceTest extends TestCase
         );
     }
 
+    public function test_destroy_last_post()
+    {
+        Carbon::setTestNow(Carbon::now());
+
+        $thread = new Thread();
+        $thread->randomize();
+        $thread->setState(Thread::STATE_PUBLISHED);
+        $thread->persist();
+
+        $user = $this->fakeUserCloak();
+
+        $post = new Post();
+        $post->randomize();
+        $post->setThreadId($thread->getId());
+        $post->setAuthorId($user->getId());
+        $post->setState(Post::STATE_PUBLISHED);
+        $post->persist();
+
+        $this->expectException(CannotDeleteFirstPostInThread::class);
+
+        $response = $this->classBeingTested->destroyPost($post->getId());
+
+        $this->assertTrue($response);
+
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'id' => $post->getId(),
+                'deleted_at' => Carbon::now()->toDateTimeString(),
+            ]
+        );
+    }
+
     public function test_post_likes_link()
     {
+//        $this->markTestSkipped();
+
         Carbon::setTestNow(Carbon::now());
 
         $thread = new Thread();
@@ -471,7 +517,7 @@ class ModeratorForumPostServiceTest extends TestCase
 
             $postLike = new PostLike();
             $postLike->setPostId($post->getId());
-            $postLike->setLikerId($user->getId());
+            $postLike->setLiker($user);
             $postLike->setLikedOn(
                 \Carbon\Carbon::instance($this->faker->dateTime)->toDateTimeString()
             );
