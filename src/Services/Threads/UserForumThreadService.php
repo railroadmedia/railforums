@@ -39,27 +39,36 @@ class UserForumThreadService
      * @param $page
      * @param $categoryId
      * @param bool $pinned
+     * @param bool $followed
      * @return Thread|Thread[]
      */
     public function getThreads(
         $amount,
         $page,
         $categoryId,
-        $pinned = false
+        $pinned = false,
+        $followed = null
     ) {
         return $this->threadDataMapper->getWithQuery(
             function (Builder $builder) use (
                 $amount,
                 $page,
                 $categoryId,
-                $pinned
+                $pinned,
+                $followed
             ) {
+                if ($followed !== null) {
+                    $builder->where('is_followed', $followed);
+                }
+
                 return $builder->limit($amount)
                     ->skip($amount * ($page - 1))
                     ->orderByRaw('last_post_published_on desc, id desc')
                     ->whereIn('forum_threads.state', $this->accessibleStates)
                     ->where('pinned', $pinned)
+                    ->where('is_followed', $followed)
                     ->where('category_id', $categoryId);
+
             }
         );
     }
@@ -103,12 +112,17 @@ class UserForumThreadService
 
     /**
      * @param $categoryId
+     * @param null $followed
      * @return int
      */
-    public function getThreadCount($categoryId)
+    public function getThreadCount($categoryId, $followed = null)
     {
         return $this->threadDataMapper->ignoreCache()->count(
-            function (Builder $builder) use ($categoryId) {
+            function (Builder $builder) use ($categoryId, $followed) {
+                if ($followed !== null) {
+                    $builder->where('is_followed', $followed);
+                }
+
                 return $builder->whereIn('forum_threads.state', $this->accessibleStates)->where(
                     'category_id',
                     $categoryId

@@ -84,6 +84,11 @@ class Thread extends EntityBase
     protected $isRead = false;
 
     /**
+     * @var bool
+     */
+    protected $isFollowed = false;
+
+    /**
      * Category constructor.
      */
     public function __construct()
@@ -267,6 +272,22 @@ class Thread extends EntityBase
         $this->isRead = $isRead;
     }
 
+    /**
+     * @return bool
+     */
+    public function getIsFollowed(): bool
+    {
+        return $this->isFollowed;
+    }
+
+    /**
+     * @param bool $isFollowed
+     */
+    public function setIsFollowed(bool $isFollowed)
+    {
+        $this->isFollowed = $isFollowed;
+    }
+
     public function randomize()
     {
         /** @var Generator $faker */
@@ -283,6 +304,8 @@ class Thread extends EntityBase
                 [self::STATE_PUBLISHED, self::STATE_HIDDEN]
             )
         );
+        $this->setPinned($faker->boolean());
+        $this->setIsFollowed($faker->boolean());
         $this->setPostCount($faker->randomNumber());
         $this->setPublishedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
     }

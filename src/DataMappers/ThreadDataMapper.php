@@ -51,6 +51,7 @@ class ThreadDataMapper extends DataMapperBase
             [
                 'postCount' => 'post_count',
                 'isRead' => 'is_read',
+                'isFollowed' => 'is_followed',
             ]
         );
     }
@@ -92,7 +93,8 @@ class ThreadDataMapper extends DataMapperBase
             '.' .
             config('railforums.author_table_display_name_column_name') .
             ' as last_post_user_display_name, ' .
-            'forum_thread_reads.id IS NOT NULL AND forum_thread_reads.read_on >= forum_posts.published_on as is_read'
+            'forum_thread_reads.id IS NOT NULL AND forum_thread_reads.read_on >= forum_posts.published_on as is_read, ' .
+            'forum_thread_follows.id IS NOT NULL as is_followed'
         )->leftJoin(
             'forum_posts',
             function (JoinClause $query) {
@@ -123,6 +125,19 @@ class ThreadDataMapper extends DataMapperBase
                     'forum_threads.id'
                 )->on(
                     'forum_thread_reads.reader_id',
+                    '=',
+                    $query->raw($this->userCloakDataMapper->getCurrentId())
+                );
+            }
+        )->leftJoin(
+            'forum_thread_follows',
+            function (JoinClause $query) {
+                $query->on(
+                    'forum_thread_follows.thread_id',
+                    '=',
+                    'forum_threads.id'
+                )->on(
+                    'forum_thread_follows.follower_id',
                     '=',
                     $query->raw($this->userCloakDataMapper->getCurrentId())
                 );

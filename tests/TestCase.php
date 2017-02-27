@@ -10,6 +10,7 @@ use Orchestra\Testbench\TestCase as BaseTestCase;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\ForumServiceProvider;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
 
 class TestCase extends BaseTestCase
@@ -39,6 +40,8 @@ class TestCase extends BaseTestCase
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
         $this->userCloakDataMapper = $this->app->make(UserCloakDataMapper::class);
+
+        IdentityMap::empty();
 
         Carbon::setTestNow(Carbon::now());
     }
