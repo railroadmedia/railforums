@@ -5,6 +5,7 @@ namespace Tests;
 use Carbon\Carbon;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
+use Railroad\Railforums\Entities\ThreadFollow;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Services\Threads\UserForumThreadService;
@@ -82,6 +83,14 @@ class UserForumThreadServiceTest extends TestCase
                 $entity->setIsRead(false);
             }
 
+            if ($this->faker->boolean()) {
+                $threadFollow = new ThreadFollow();
+                $threadFollow->randomize();
+                $threadFollow->setFollowerId($this->currentUserCloak->getId());
+                $threadFollow->setThreadId($entity->getId());
+                $threadFollow->persist();
+            }
+
             $threadRead->persist();
             $entity->persist();
 
@@ -102,6 +111,95 @@ class UserForumThreadServiceTest extends TestCase
             5,
             1,
             $categoryId
+        );
+
+        $this->assertEquals($expectedEntities, $responseEntities);
+    }
+
+    public function test_get_threads_1_page_followed_only()
+    {
+        $categoryId = rand();
+
+        $entities = [];
+
+        for ($i = 0; $i < 5; $i++) {
+            $user = $this->fakeUserCloak();
+
+            $entity = new Thread();
+            $entity->randomize();
+            $entity->setState(Thread::STATE_PUBLISHED);
+            $entity->setAuthorId($user->getId());
+            $entity->setCategoryId($categoryId);
+            $entity->setPinned(false);
+            $entity->persist();
+
+            $postCount = rand(1, 6);
+            $mostRecentPost = null;
+
+            for ($x = 0; $x < $postCount; $x++) {
+                $user = $this->fakeUserCloak();
+
+                $post = new Post();
+                $post->randomize();
+                $post->setThreadId($entity->getId());
+                $post->setAuthorId($user->getId());
+                $post->persist();
+
+                if (is_null($mostRecentPost) ||
+                    Carbon::parse($post->getPublishedOn()) > $mostRecentPost->getPublishedOn()
+                ) {
+                    $mostRecentPost = $post;
+                }
+            }
+
+            $threadRead = new ThreadRead();
+            $threadRead->setThreadId($entity->getId());
+            $threadRead->setReaderId($this->currentUserCloak->getId());
+
+            if ($this->faker->boolean()) {
+                $threadRead->setReadOn($mostRecentPost->getPublishedOn());
+
+                $entity->setIsRead(true);
+            } else {
+                $threadRead->setReadOn(
+                    Carbon::parse($mostRecentPost->getPublishedOn())->subDay()->toDateTimeString()
+                );
+
+                $entity->setIsRead(false);
+            }
+
+            if ($i > 2) {
+                $threadFollow = new ThreadFollow();
+                $threadFollow->randomize();
+                $threadFollow->setFollowerId($this->currentUserCloak->getId());
+                $threadFollow->setThreadId($entity->getId());
+                $threadFollow->persist();
+            }
+
+            $threadRead->persist();
+            $entity->persist();
+
+            if ($i > 2) {
+                $entities[] = $entity;
+            }
+        }
+
+        $expectedEntities = array_slice(
+            RailmapHelpers::sortEntitiesByDateAttribute(
+                $entities,
+                'lastPostPublishedOn',
+                'desc'
+            ),
+            0,
+            5
+        );
+
+        $responseEntities = $this->classBeingTested->getThreads(
+            5,
+            1,
+            $categoryId,
+            false,
+            true
         );
 
         $this->assertEquals($expectedEntities, $responseEntities);
@@ -155,6 +253,14 @@ class UserForumThreadServiceTest extends TestCase
                 $threadRead->persist();
 
                 $entity->setIsRead(false);
+            }
+
+            if ($this->faker->boolean()) {
+                $threadFollow = new ThreadFollow();
+                $threadFollow->randomize();
+                $threadFollow->setFollowerId($this->currentUserCloak->getId());
+                $threadFollow->setThreadId($entity->getId());
+                $threadFollow->persist();
             }
 
             $entity->persist();

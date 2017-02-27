@@ -297,15 +297,14 @@ class Thread extends EntityBase
         $this->setAuthorId($faker->randomNumber());
         $this->setTitle($faker->sentence(4));
         $this->setSlug(strtolower(implode('-', $faker->words(4))));
-        $this->setPinned($faker->boolean());
         $this->setLocked($faker->boolean());
         $this->setState(
             $faker->randomElement(
                 [self::STATE_PUBLISHED, self::STATE_HIDDEN]
             )
         );
-        $this->setPinned($faker->boolean());
-        $this->setIsFollowed($faker->boolean());
+        $this->setPinned(false);
+        $this->setIsFollowed(false);
         $this->setPostCount($faker->randomNumber());
         $this->setPublishedOn(Carbon::instance($faker->dateTime)->toDateTimeString());
     }

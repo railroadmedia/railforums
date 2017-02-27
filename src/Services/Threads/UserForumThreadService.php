@@ -57,8 +57,10 @@ class UserForumThreadService
                 $pinned,
                 $followed
             ) {
-                if ($followed !== null) {
-                    $builder->where('is_followed', $followed);
+                if ($followed === true) {
+                    $builder->whereNotNull('forum_thread_follows.id');
+                } elseif ($followed === true) {
+                    $builder->whereNull('forum_thread_follows.id');
                 }
 
                 return $builder->limit($amount)
@@ -66,7 +68,6 @@ class UserForumThreadService
                     ->orderByRaw('last_post_published_on desc, id desc')
                     ->whereIn('forum_threads.state', $this->accessibleStates)
                     ->where('pinned', $pinned)
-                    ->where('is_followed', $followed)
                     ->where('category_id', $categoryId);
 
             }

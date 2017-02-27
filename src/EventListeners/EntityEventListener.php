@@ -7,6 +7,7 @@ use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\PostLike;
+use Railroad\Railforums\Entities\ThreadFollow;
 use Railroad\Railforums\Entities\ThreadRead;
 use Railroad\Railmap\Events\EntityDestroyed;
 use Railroad\Railmap\Events\EntitySaved;
@@ -73,6 +74,12 @@ class EntityEventListener
             $thread->setIsRead($event->newEntity->getReadOn() >= $thread->getLastPost()->getPublishedOn());
             $thread->persist();
         }
+
+        if ($event->newEntity instanceof ThreadFollow) {
+            $thread = $this->threadDataMapper->ignoreCache()->get($event->newEntity->getThreadId());
+            $thread->setIsFollowed(true);
+            $thread->persist();
+        }
     }
 
     public function onDestroyed(EntityDestroyed $event)
@@ -102,6 +109,12 @@ class EntityEventListener
             $thread->setLastPostId($latestPost->getId());
             $thread->setLastPost($latestPost);
 
+            $thread->persist();
+        }
+
+        if ($event->entity instanceof ThreadFollow) {
+            $thread = $this->threadDataMapper->ignoreCache()->get($event->entity->getThreadId());
+            $thread->setIsFollowed(false);
             $thread->persist();
         }
     }

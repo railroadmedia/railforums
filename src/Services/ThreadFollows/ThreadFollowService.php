@@ -4,16 +4,21 @@ namespace Railroad\Railforums\Services\ThreadFollows;
 
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
+use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\ThreadFollowDataMapper;
 use Railroad\Railforums\Entities\ThreadFollow;
 
 class ThreadFollowService
 {
     private $threadFollowDataMapper;
+    private $threadDataMapper;
 
-    public function __construct(ThreadFollowDataMapper $threadFollowDataMapper)
-    {
+    public function __construct(
+        ThreadFollowDataMapper $threadFollowDataMapper,
+        ThreadDataMapper $threadDataMapper
+    ) {
         $this->threadFollowDataMapper = $threadFollowDataMapper;
+        $this->threadDataMapper = $threadDataMapper;
     }
 
     /**
@@ -38,6 +43,8 @@ class ThreadFollowService
         $threadFollow->setFollowedOn(Carbon::now()->toDateTimeString());
         $threadFollow->persist();
 
+        $this->threadDataMapper->flushCache();
+
         return true;
     }
 
@@ -57,6 +64,8 @@ class ThreadFollowService
         foreach ($existingFollows as $existingFollow) {
             $existingFollow->destroy();
         }
+
+        $this->threadDataMapper->flushCache();
 
         return true;
     }
