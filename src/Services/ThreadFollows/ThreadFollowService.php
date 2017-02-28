@@ -69,4 +69,18 @@ class ThreadFollowService
 
         return true;
     }
+
+    /**
+     * @param $threadId
+     * @return array
+     */
+    public function getThreadFollowerIds($threadId)
+    {
+        return $this->threadFollowDataMapper->list(
+            function (Builder $query) use ($threadId) {
+                return $query->where('thread_id', $threadId);
+            },
+            'follower_id'
+        );
+    }
 }

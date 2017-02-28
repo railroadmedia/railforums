@@ -13,6 +13,7 @@ use Railroad\Railmap\Entity\Links\OneToOne;
  * @package Railroad\Railforums\DataMappers
  * @method ThreadFollow|ThreadFollow[] getWithQuery(callable $queryCallback, $forceArrayReturn = false)
  * @method ThreadFollow|ThreadFollow[] get($idOrIds)
+ * @method array list(callable $queryCallback = null, $column = 'id')
  */
 class ThreadFollowDataMapper extends DataMapperBase
 {
