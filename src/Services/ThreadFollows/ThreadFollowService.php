@@ -76,7 +76,7 @@ class ThreadFollowService
      */
     public function getThreadFollowerIds($threadId)
     {
-        return $this->threadFollowDataMapper->list(
+        return $this->threadFollowDataMapper->ignoreCache()->list(
             function (Builder $query) use ($threadId) {
                 return $query->where('thread_id', $threadId);
             },
