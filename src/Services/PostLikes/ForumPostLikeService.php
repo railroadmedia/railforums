@@ -8,6 +8,8 @@ use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railforums\DataMappers\PostLikeDataMapper;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\PostLike;
+use Railroad\Railforums\Events\PostLiked;
+use Railroad\Railforums\Events\PostUnLiked;
 
 class ForumPostLikeService
 {
@@ -33,14 +35,14 @@ class ForumPostLikeService
     {
         $currentUserId = $this->userCloakDataMapper->getCurrentId();
 
-        $existingPostLike = $this->postLikeDataMapper->ignoreCache()->getWithQuery(
-            function (Builder $builder) use ($postId, $currentUserId) {
-                return $builder->where('post_id', $postId)
-                    ->where('liker_id', $currentUserId);
-            }
-        )[0] ?? null;
+        $postLike = $this->postLikeDataMapper->ignoreCache()->getWithQuery(
+                function (Builder $builder) use ($postId, $currentUserId) {
+                    return $builder->where('post_id', $postId)
+                        ->where('liker_id', $currentUserId);
+                }
+            )[0] ?? null;
 
-        if (empty($existingPostLike)) {
+        if (empty($postLike)) {
             $postLike = new PostLike();
             $postLike->setPostId($postId);
             $postLike->setLikerId($currentUserId);
@@ -48,11 +50,11 @@ class ForumPostLikeService
             $postLike->persist();
 
             $this->postDataMapper->flushCache();
-
-            return $postLike;
         }
 
-        return $existingPostLike;
+        event(new PostLiked($postId, $currentUserId));
+
+        return $postLike;
     }
 
     public function unLikePost($postId)
@@ -71,6 +73,8 @@ class ForumPostLikeService
 
             foreach ($existingPostLikes as $existingPostLike) {
                 $existingPostLike->destroy();
+
+                event(new PostUnLiked($postId, $currentUserId));
             }
         }
     }

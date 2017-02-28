@@ -5,6 +5,8 @@ namespace Railroad\Railforums\Services\Posts;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Events\PostDeleted;
+use Railroad\Railforums\Events\PostUpdated;
 use Railroad\Railforums\Exceptions\CannotDeleteFirstPostInThread;
 
 class ModeratorForumPostService extends UserForumPostService
@@ -69,6 +71,8 @@ class ModeratorForumPostService extends UserForumPostService
 
             $this->postDataMapper->flushCache();
 
+            event(new PostDeleted($id));
+
             return true;
         }
 
@@ -90,6 +94,8 @@ class ModeratorForumPostService extends UserForumPostService
             $post->setEditedOn(Carbon::now()->toDateTimeString());
             $post->persist();
 
+            event(new PostUpdated($id));
+
             return true;
         }
 
@@ -108,24 +114,5 @@ class ModeratorForumPostService extends UserForumPostService
             },
             'id'
         );
-    }
-
-    public function postFirstInThread($postId)
-    {
-        $post = $this->getPost($postId);
-
-        $firstPost = $this->postDataMapper->getWithQuery(
-                function (Builder $builder) use ($post) {
-                    return $builder->orderByRaw('published_on asc')
-                        ->where('thread_id', $post->getThreadId())
-                        ->whereIn('state', $this->accessibleStates)->limit(1);
-                }
-            )[0] ?? null;
-
-        if ($post->getId() == $firstPost->getId()) {
-            return true;
-        }
-
-        return false;
     }
 }

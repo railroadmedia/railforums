@@ -10,6 +10,8 @@ use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\ThreadRead;
+use Railroad\Railforums\Events\ThreadCreated;
+use Railroad\Railforums\Events\ThreadUpdated;
 use Railroad\Railforums\Services\HTMLPurifierService;
 use Railroad\Railmap\Helpers\RailmapHelpers;
 
@@ -149,6 +151,8 @@ class UserForumThreadService
 
             $this->threadDataMapper->flushCache();
 
+            event(new ThreadUpdated($id));
+
             return $thread;
         }
 
@@ -195,6 +199,8 @@ class UserForumThreadService
         $post->persist();
 
         $this->threadDataMapper->flushCache();
+
+        event(new ThreadCreated($thread->getId()));
 
         return $thread;
     }

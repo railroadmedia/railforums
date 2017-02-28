@@ -8,6 +8,9 @@ use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Events\PostCreated;
+use Railroad\Railforums\Events\PostDeleted;
+use Railroad\Railforums\Events\PostUpdated;
 use Railroad\Railforums\Services\HTMLPurifierService;
 
 class UserForumPostService
@@ -79,6 +82,8 @@ class UserForumPostService
             $this->postDataMapper->flushCache();
             $this->threadDataMapper->flushCache();
 
+            event(new PostDeleted($id));
+
             return true;
         }
 
@@ -115,6 +120,8 @@ class UserForumPostService
 
             $this->postDataMapper->flushCache();
 
+            event(new PostUpdated($id));
+
             return $post;
         }
 
@@ -123,7 +130,7 @@ class UserForumPostService
 
     /**
      * @param $id
-     * @param $promptingPostId|null
+     * @param $promptingPostId |null
      * @return Post|null
      */
     public function updatePostPromptingPostId($id, $promptingPostId)
@@ -136,6 +143,8 @@ class UserForumPostService
             $post->persist();
 
             $this->postDataMapper->flushCache();
+
+            event(new PostUpdated($id));
 
             return $post;
         }
@@ -168,6 +177,31 @@ class UserForumPostService
         $this->postDataMapper->flushCache();
         $this->threadDataMapper->flushCache();
 
+        event(new PostCreated($post->getId()));
+
         return $post;
+    }
+
+    /**
+     * @param $postId
+     * @return bool
+     */
+    public function postFirstInThread($postId)
+    {
+        $post = $this->getPost($postId);
+
+        $firstPost = $this->postDataMapper->getWithQuery(
+                function (Builder $builder) use ($post) {
+                    return $builder->orderByRaw('published_on asc')
+                        ->where('thread_id', $post->getThreadId())
+                        ->whereIn('state', $this->accessibleStates)->limit(1);
+                }
+            )[0] ?? null;
+
+        if ($post->getId() == $firstPost->getId()) {
+            return true;
+        }
+
+        return false;
     }
 }
