@@ -57,6 +57,9 @@ class ForumPostLikeService
         return $postLike;
     }
 
+    /**
+     * @param $postId
+     */
     public function unLikePost($postId)
     {
         $currentUserId = $this->userCloakDataMapper->getCurrentId();
@@ -77,5 +80,18 @@ class ForumPostLikeService
                 event(new PostUnLiked($postId, $currentUserId));
             }
         }
+    }
+
+    /**
+     * @param $postId
+     * @return int
+     */
+    public function countPostLikes($postId)
+    {
+        return $this->postLikeDataMapper->ignoreCache()->count(
+            function (Builder $builder) use ($postId) {
+                return $builder->where('post_id', $postId);
+            }
+        );
     }
 }
