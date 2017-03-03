@@ -122,8 +122,10 @@ class UserForumThreadService
     {
         return $this->threadDataMapper->ignoreCache()->count(
             function (Builder $builder) use ($categoryId, $followed) {
-                if ($followed !== null) {
-                    $builder->where('is_followed', $followed);
+                if ($followed === true) {
+                    $builder->whereNotNull('forum_thread_follows.id');
+                } elseif ($followed === true) {
+                    $builder->whereNull('forum_thread_follows.id');
                 }
 
                 return $builder->whereIn('forum_threads.state', $this->accessibleStates)->where(
