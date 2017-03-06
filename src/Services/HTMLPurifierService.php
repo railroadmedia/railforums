@@ -11,15 +11,20 @@ class HTMLPurifierService
 
     public function __construct()
     {
-        $this->purifier = new HTMLPurifier(HTMLPurifier_Config::createDefault());
-
-        $this->purifier->config->set('Core.Encoding', config('railforums.html_purifier_settings.encoding'));
+        $config = HTMLPurifier_Config::createDefault();
+        $config->set('HTML.SafeIframe', true);
+        $config->set('URI.SafeIframeRegexp', '%^(https?:)?(\/\/www\.youtube(?:-nocookie)?\.com\/embed\/|\/\/player\.vimeo\.com\/)%');
+        $config->set('Core.Encoding', config('railforums.html_purifier_settings.encoding'));
 
         if (!config('railforums.html_purifier_settings.finalize')) {
-            $this->purifier->config->autoFinalize = false;
+            $config->autoFinalize = false;
         }
 
-        $this->purifier->config->loadArray(config('railforums.html_purifier_settings.settings.default'));
+        foreach (config('railforums.html_purifier_settings.settings.default') as $key => $value) {
+            $config->set($key, $value);
+        }
+
+        $this->purifier = new HTMLPurifier($config);
     }
 
     public function clean($string)

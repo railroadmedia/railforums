@@ -80,4 +80,14 @@ Nam ista vestra: Si gravis, brevis;
 ";
         $this->classBeingTested->clean($html);
     }
+
+    public function test_youtube_embed()
+    {
+        $html = '
+<p><iframe src="//www.youtube.com/embed/l5-gja10qkw" width="undefined" height="undefined" allowfullscreen="allowfullscreen"></iframe></p>
+';
+        $cleanHtml = $this->classBeingTested->clean($html);
+
+        $this->assertGreaterThan(1, strpos($cleanHtml, 'youtube'));
+    }
 }
