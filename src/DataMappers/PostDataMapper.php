@@ -94,17 +94,18 @@ class PostDataMapper extends DataMapperBase
                                 'forum_post_likes.post_id',
                                 '=',
                                 'fpl2.post_id'
-                            )->on('forum_post_likes.liked_on', '<=', 'fpl2.liked_on')->on(
-                                'fpl2.liker_id',
-                                '!=',
-                                $joinClause->raw($this->userCloakDataMapper->getCurrentId())
-                            );
+                            )->on('forum_post_likes.liked_on', '<=', 'fpl2.liked_on');
                         },
                         null,
                         null,
                         'left outer'
                     )->groupBy('forum_post_likes.id')
                         ->having($query->raw('COUNT(*)'), '<', 4)
+                        ->where(
+                            'forum_post_likes.liker_id',
+                            '!=',
+                            $query->raw($this->userCloakDataMapper->getCurrentId())
+                        )
                         ->orderBy('fpl2.liked_on', 'desc');
                 }
             ),
