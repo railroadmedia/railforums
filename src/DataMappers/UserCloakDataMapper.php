@@ -55,7 +55,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
             return $this->current;
         }
 
-        return $this->get($this->authManager->id());
+        return $this->ignoreCache()->get($this->authManager->id());
     }
 
     /**
@@ -67,7 +67,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
             return $this->current->getId();
         }
 
-        $current = $this->get($this->authManager->id());
+        $current = $this->ignoreCache()->get($this->authManager->id());
 
         return !empty($current) ? $current->getId() : 0;
     }
@@ -81,7 +81,7 @@ class UserCloakDataMapper extends DatabaseDataMapperBase
             return $this->current->getPermissionLevel();
         }
 
-        $current = $this->get($this->authManager->id());
+        $current = $this->ignoreCache()->get($this->authManager->id());
 
         return !empty($current) ? $current->getPermissionLevel() : UserCloak::PERMISSION_LEVEL_VIEWER;
     }
