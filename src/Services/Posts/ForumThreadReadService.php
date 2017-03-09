@@ -3,6 +3,7 @@
 namespace Railroad\Railforums\Services\Posts;
 
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\ThreadReadDataMapper;
 use Railroad\Railforums\Entities\ThreadRead;
@@ -20,7 +21,14 @@ class ForumThreadReadService
 
     public function markThreadRead($threadId, $userCloakId)
     {
-        $threadRead = new ThreadRead();
+        $threadRead = $this->threadReadDataMapper->getWithQuery(function(Builder $query) use ($threadId, $userCloakId) {
+            return $query->where('thread_id', $threadId)->where('reader_id', $userCloakId);
+        })[0] ?? null;
+
+        if (empty($threadRead)) {
+            $threadRead = new ThreadRead();
+        }
+
         $threadRead->setThreadId($threadId);
         $threadRead->setReaderId($userCloakId);
         $threadRead->setReadOn(Carbon::now()->toDateTimeString());
