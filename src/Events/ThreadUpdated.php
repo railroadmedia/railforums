@@ -2,12 +2,14 @@
 
 namespace Railroad\Railforums\Events;
 
-class ThreadUpdated
+class ThreadUpdated extends EventBase
 {
     private $threadId;
 
-    public function __construct($threadId)
+    public function __construct($threadId, $userId)
     {
+        parent::__construct($userId);
+
         $this->threadId = $threadId;
     }
 

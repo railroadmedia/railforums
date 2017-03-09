@@ -2,15 +2,17 @@
 
 namespace Railroad\Railforums\Events;
 
-class PostUnLiked
+class PostUnLiked extends EventBase
 {
     private $postId;
     private $likerId;
 
-    public function __construct($postId, $likerId)
+    public function __construct($postId, $userId)
     {
+        parent::__construct($userId);
+
         $this->postId = $postId;
-        $this->likerId = $likerId;
+        $this->likerId = $userId;
     }
 
     /**

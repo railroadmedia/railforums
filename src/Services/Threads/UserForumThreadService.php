@@ -153,7 +153,7 @@ class UserForumThreadService
 
             $this->threadDataMapper->flushCache();
 
-            event(new ThreadUpdated($id));
+            event(new ThreadUpdated($id, $this->userCloakDataMapper->getCurrentId()));
 
             return $thread;
         }
@@ -202,7 +202,7 @@ class UserForumThreadService
 
         $this->threadDataMapper->flushCache();
 
-        event(new ThreadCreated($thread->getId()));
+        event(new ThreadCreated($thread->getId(), $this->userCloakDataMapper->getCurrentId()));
 
         return $thread;
     }

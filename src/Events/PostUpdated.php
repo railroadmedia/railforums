@@ -2,12 +2,14 @@
 
 namespace Railroad\Railforums\Events;
 
-class PostUpdated
+class PostUpdated extends EventBase
 {
     private $postId;
 
-    public function __construct($postId)
+    public function __construct($postId, $userId)
     {
+        parent::__construct($userId);
+
         $this->postId = $postId;
     }
 

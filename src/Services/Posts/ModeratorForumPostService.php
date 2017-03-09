@@ -71,7 +71,7 @@ class ModeratorForumPostService extends UserForumPostService
 
             $this->postDataMapper->flushCache();
 
-            event(new PostDeleted($id));
+            event(new PostDeleted($id, $this->userCloakDataMapper->getCurrentId()));
 
             return true;
         }
@@ -94,7 +94,7 @@ class ModeratorForumPostService extends UserForumPostService
             $post->setEditedOn(Carbon::now()->toDateTimeString());
             $post->persist();
 
-            event(new PostUpdated($id));
+            event(new PostUpdated($id, $this->userCloakDataMapper->getCurrentId()));
 
             return true;
         }

@@ -82,7 +82,7 @@ class UserForumPostService
             $this->postDataMapper->flushCache();
             $this->threadDataMapper->flushCache();
 
-            event(new PostDeleted($id));
+            event(new PostDeleted($id, $this->userCloakDataMapper->getCurrentId()));
 
             return true;
         }
@@ -120,7 +120,7 @@ class UserForumPostService
 
             $this->postDataMapper->flushCache();
 
-            event(new PostUpdated($id));
+            event(new PostUpdated($id, $this->userCloakDataMapper->getCurrentId()));
 
             return $post;
         }
@@ -144,7 +144,7 @@ class UserForumPostService
 
             $this->postDataMapper->flushCache();
 
-            event(new PostUpdated($id));
+            event(new PostUpdated($id, $this->userCloakDataMapper->getCurrentId()));
 
             return $post;
         }
@@ -177,7 +177,7 @@ class UserForumPostService
         $this->postDataMapper->flushCache();
         $this->threadDataMapper->flushCache();
 
-        event(new PostCreated($post->getId()));
+        event(new PostCreated($post->getId(), $this->userCloakDataMapper->getCurrentId()));
 
         return $post;
     }
