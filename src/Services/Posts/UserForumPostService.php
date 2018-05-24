@@ -113,7 +113,10 @@ class UserForumPostService
     {
         $post = $this->postDataMapper->get($id);
 
-        if (!empty($post)) {
+        if (
+            !empty($post)
+            && $post->getAuthorId() == $this->userCloakDataMapper->getCurrentId()
+        ) {
             $post->setContent($this->htmlPurifierService->clean($content));
             $post->setEditedOn(Carbon::now()->toDateTimeString());
             $post->persist();

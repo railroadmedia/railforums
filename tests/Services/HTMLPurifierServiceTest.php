@@ -20,12 +20,12 @@ class HTMLPurifierServiceTest extends TestCase
 
     public function test_get_threads_sorted_paginated()
     {
-        $html = "
+        $html = '
 <h1>In qua quid est boni praeter summam voluptatem, et eam sempiternam?</h1>
 
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beatum, inquit. Quis negat? <i>Nos commodius agimus.</i> <mark>Si longus, levis;</mark> At multis se probavit. <b>Duo Reges: constructio interrete.</b> <a href='http://loripsum.net/' target='_blank'>Memini me adesse P.</a> </p>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Beatum, inquit. Quis negat? <i>Nos commodius agimus.</i> <mark>Si longus, levis;</mark> At multis se probavit. <b>Duo Reges: constructio interrete.</b> <a href="http://loripsum.net/" target="_blank">Memini me adesse P.</a> </p>
 
-<blockquote cite='http://loripsum.net'>
+<blockquote cite="http://loripsum.net">
 	Neque enim in aliqua parte, sed in perpetuitate temporis vita beata dici solet, nec appellatur omnino vita, nisi confecta atque absoluta, nec potest quisquam alias beatus esse, alias miser;
 </blockquote>
 
@@ -75,10 +75,15 @@ Nam ista vestra: Si gravis, brevis;
 
 <p>Non igitur bene. At enim hic etiam dolore. Nos cum te, M. Nam ante Aristippus, et ille melius. Sin aliud quid voles, postea. Ecce aliud simile dissimile. Bestiarum vero nullum iudicium puto. </p>
 
-<p>Pollicetur certe. Videsne quam sit magna dissensio? Inde igitur, inquit, ordiendum est. Istic sum, inquit. Paria sunt igitur. Maximus dolor, inquit, brevis est. Primum Theophrasti, Strato, physicum se voluit; <a href='http://loripsum.net/' target='_blank'>Negat esse eam, inquit, propter se expetendam.</a> Pugnant Stoici cum Peripateticis. </p>
+<p>Pollicetur certe. Videsne quam sit magna dissensio? Inde igitur, inquit, ordiendum est. Istic sum, inquit. Paria sunt igitur. Maximus dolor, inquit, brevis est. Primum Theophrasti, Strato, physicum se voluit; <a href="http://loripsum.net/" target="_blank">Negat esse eam, inquit, propter se expetendam.</a> Pugnant Stoici cum Peripateticis. </p>
 
-";
-        $this->classBeingTested->clean($html);
+';
+        $cleanHtml = $this->classBeingTested->clean($html);
+
+        $filteredHtml = str_replace(' target="_blank"', '', $html); // strip out the target attribute of anchor tags
+        $filteredHtml = preg_replace('/<mark>(.*?)<\/mark>/', '$1', $filteredHtml); // strip out <mark></mark> tags
+
+        $this->assertEquals($filteredHtml, $cleanHtml);
     }
 
     public function test_youtube_embed()

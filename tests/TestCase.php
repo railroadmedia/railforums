@@ -36,7 +36,8 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->artisan('migrate', []);
+        $this->artisan('migrate:refresh', []);
+        $this->createUsersTable();
         $this->artisan('cache:clear', []);
 
         $this->faker = $this->app->make(Generator::class);
@@ -46,6 +47,20 @@ class TestCase extends BaseTestCase
         IdentityMap::empty();
 
         Carbon::setTestNow(Carbon::now());
+    }
+
+    protected function createUsersTable()
+    {
+        $this->app['db']->connection()->getSchemaBuilder()->create(
+            'users',
+            function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('display_name');
+                $table->string('label');
+                $table->string('permission_level');
+                $table->string('avatar_url')->nullable();
+            }
+        );
     }
 
     /**
@@ -94,17 +109,6 @@ class TestCase extends BaseTestCase
         $app['config']->set(
             'railforums.user_data_mapper_class',
             \Railroad\Railforums\DataMappers\UserCloakDataMapper::class
-        );
-
-        $app['db']->connection()->getSchemaBuilder()->create(
-            'users',
-            function (Blueprint $table) {
-                $table->increments('id');
-                $table->string('display_name');
-                $table->string('label');
-                $table->string('permission_level');
-                $table->string('avatar_url')->nullable();
-            }
         );
 
         $app->register(RailmapServiceProvider::class);
