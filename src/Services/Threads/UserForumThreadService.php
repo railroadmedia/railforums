@@ -146,7 +146,7 @@ class UserForumThreadService
     {
         $thread = $this->threadDataMapper->get($id);
 
-        if ($thread->getAuthorId() == $this->userCloakDataMapper->getCurrentId() && !empty($thread)) {
+        if (!empty($thread) && $thread->getAuthorId() == $this->userCloakDataMapper->getCurrentId()) {
             $thread->setTitle($title);
             $thread->setSlug(RailmapHelpers::sanitizeForSlug($title));
             $thread->persist();

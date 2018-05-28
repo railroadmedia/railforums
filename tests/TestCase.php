@@ -11,6 +11,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\UserCloak;
+use Railroad\Railforums\Entities\Category;
+use Railroad\Railforums\Entities\Thread;
+use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\ForumServiceProvider;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
@@ -36,7 +39,7 @@ class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->artisan('migrate:refresh', []);
+        $this->artisan('migrate:fresh', []);
         $this->createUsersTable();
         $this->artisan('cache:clear', []);
 
@@ -108,11 +111,52 @@ class TestCase extends BaseTestCase
 
         $app['config']->set(
             'railforums.user_data_mapper_class',
-            \Railroad\Railforums\DataMappers\UserCloakDataMapper::class
+            UserCloakDataMapper::class
         );
 
         $app->register(RailmapServiceProvider::class);
         $app->register(ForumServiceProvider::class);
+    }
+
+    protected function fakeCategory()
+    {
+        $entity = new Category();
+        $entity->randomize();
+        $entity->persist();
+
+        return $entity;
+    }
+
+    protected function fakeThread($categoryId = null, $authorId = null)
+    {
+        $entity = new Thread();
+        $entity->randomize();
+        if ($categoryId) {
+            $entity->setCategoryId($categoryId);
+        }
+        if ($authorId) {
+            $entity->setAuthorId($authorId);
+        }
+        $entity->setState(Thread::STATE_PUBLISHED);
+        $entity->persist();
+
+        return $entity;
+    }
+
+    protected function fakePost($threadId = null, $authorId = null)
+    {
+        $entity = new Post();
+        $entity->randomize();
+        if ($threadId) {
+            $entity->setThreadId($threadId);
+        }
+        if ($authorId) {
+            $entity->setAuthorId($authorId);
+        }
+        $entity->setState(Post::STATE_PUBLISHED);
+        $entity->persist();
+
+        return $entity;
     }
 
     /**

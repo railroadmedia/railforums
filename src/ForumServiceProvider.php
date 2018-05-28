@@ -33,6 +33,8 @@ class ForumServiceProvider extends ServiceProvider
                 __DIR__ . '/../config/railforums.php' => config_path('railforums.php'),
             ]
         );
+
+        $this->loadRoutesFrom(__DIR__ . '/../routes/routes.php');
     }
 
     /**

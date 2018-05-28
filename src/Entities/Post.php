@@ -222,7 +222,7 @@ class Post extends EntityBase
      */
     public function getIsLikedByCurrentUser(): bool
     {
-        return $this->isLikedByCurrentUser;
+        return (boolean) $this->isLikedByCurrentUser;
     }
 
     /**

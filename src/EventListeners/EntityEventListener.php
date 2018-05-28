@@ -100,16 +100,23 @@ class EntityEventListener
             $thread = $this->threadDataMapper->ignoreCache()->get($event->entity->getThreadId());
             $dataMapper = $event->entity->getOwningDataMapper();
 
-            $thread->setPostCount(
-                $dataMapper->ignoreCache()->countPostsInThread($event->entity->getThreadId())
-            );
+            $postCount = $dataMapper->ignoreCache()->countPostsInThread($event->entity->getThreadId());
 
-            $latestPost = $dataMapper->ignoreCache()->getLatestPost($thread->getId());
+            if ($postCount) {
+                $thread->setPostCount($postCount);
 
-            $thread->setLastPostId($latestPost->getId());
-            $thread->setLastPost($latestPost);
+                $latestPost = $dataMapper->ignoreCache()->getLatestPost($thread->getId());
 
-            $thread->persist();
+                $thread->setLastPostId($latestPost->getId());
+                $thread->setLastPost($latestPost);
+
+                $thread->persist();
+
+            } else {
+                // if last and only post of this thread is deleted, thread data becomes inconsistent
+                $thread->destroy();
+                $this->threadDataMapper->flushCache();
+            }
         }
 
         if ($event->entity instanceof ThreadFollow) {
