@@ -2,6 +2,9 @@
 
 namespace Tests;
 
+use Carbon\Carbon;
+use Railroad\Railforums\Entities\PostLike;
+
 class UserForumPostJsonControllerTest extends TestCase
 {
     const API_PREFIX = '/forums';
@@ -9,6 +12,101 @@ class UserForumPostJsonControllerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
+    }
+
+    public function test_post_like()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $post = $this->fakePost($thread->getId(), $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/like/' . $post->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // assert response data
+        $response->assertJsonFragment([
+            'likerId' => $user->getId(),
+            'postId' => $post->getId()
+        ]);
+
+        // assert the post like data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_post_likes',
+            [
+                'post_id' => $post->getId(),
+                'liker_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_post_like_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+        $postId = rand(0, 32767);
+
+        $response = $this->call(
+            'PUT',
+            '/post/like/' . $postId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_post_likes',
+            [
+                'post_id' => $postId,
+                'liker_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_post_unlike()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $post = $this->fakePost($thread->getId(), $user->getId());
+
+        $postLike = new PostLike();
+        $postLike->setPostId($post->getId());
+        $postLike->setLikerId($user->getId());
+        $postLike->setLikedOn(Carbon::now()->toDateTimeString());
+        $postLike->persist();
+
+        $this->assertDatabaseHas(
+            'forum_post_likes',
+            [
+                'post_id' => $post->getId(),
+                'liker_id' => $user->getId()
+            ]
+        );
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/post/unlike/' . $post->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the data was removed from the db
+        $this->assertDatabaseMissing(
+            'forum_post_likes',
+            [
+                'post_id' => $post->getId(),
+                'liker_id' => $user->getId()
+            ]
+        );
     }
 
     public function test_post_index()
@@ -116,7 +214,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        // assert the thread data was saved in the db
+        // assert the post data was saved in the db
         $this->assertDatabaseHas(
             'forum_posts',
             [
@@ -132,7 +230,7 @@ class UserForumPostJsonControllerTest extends TestCase
         ]);
     }
 
-    public function test_thread_store_validation_fail()
+    public function test_post_store_validation_fail()
     {
         $response = $this->call(
             'PUT',
@@ -175,7 +273,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        // assert the thread data was saved in the db
+        // assert the post data was saved in the db
         $this->assertDatabaseHas(
             'forum_posts',
             [
@@ -252,7 +350,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(204, $response->getStatusCode());
 
-        // assert the thread data was marked as soft deleted
+        // assert the post data was marked as soft deleted
         $this->assertSoftDeleted(
             'forum_posts',
             [

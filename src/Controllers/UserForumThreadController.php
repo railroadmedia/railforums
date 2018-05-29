@@ -3,19 +3,38 @@
 namespace Railroad\Railforums\Controllers;
 
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Requests\ThreadCreateRequest;
 use Railroad\Railforums\Requests\ThreadUpdateRequest;
+use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
 use Railroad\Railforums\Services\Threads\UserForumThreadService;
+use Railroad\Railforums\Services\Posts\ForumThreadReadService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadController extends Controller
 {
     /**
+     * @var ForumThreadReadService
+     */
+    protected $threadReadService;
+
+    /**
+     * @var ThreadFollowService
+     */
+    protected $threadFollowService;
+
+    /**
      * @var UserForumThreadService
      */
-    protected $service;
+    protected $threadService;
+
+    /**
+     * @var ThreadDataMapper
+     */
+    protected $threadDataMapper;
 
     /**
      * @var UserCloakDataMapper
@@ -25,15 +44,96 @@ class UserForumThreadController extends Controller
     /**
      * UserForumThreadController constructor.
      *
-     * @param UserForumThreadService $service
+     * @param ForumThreadReadService $threadReadService
+     * @param ThreadFollowService $threadFollowService
+     * @param UserForumThreadService $threadService
+     * @param ThreadDataMapper $threadDataMapper
      * @param UserCloakDataMapper $userCloakDataMapper
      */
     public function __construct(
-        UserForumThreadService $service,
+        ForumThreadReadService $threadReadService,
+        ThreadFollowService $threadFollowService,
+        UserForumThreadService $threadService,
+        ThreadDataMapper $threadDataMapper,
         UserCloakDataMapper $userCloakDataMapper
     ) {
-        $this->service = $service;
+        $this->threadReadService = $threadReadService;
+        $this->threadFollowService = $threadFollowService;
+        $this->threadService = $threadService;
+        $this->threadDataMapper = $threadDataMapper;
         $this->userCloakDataMapper = $userCloakDataMapper;
+    }
+
+    /**
+     * @param Request $request
+     * @param integer $id
+     *
+     * @return RedirectResponse
+     */
+    public function read(Request $request, $id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!$thread) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->threadReadService->markThreadRead(
+            $thread->getId(),
+            $this->userCloakDataMapper->getCurrentId()
+        );
+
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()->away($request->get('redirect'))->with($message) :
+            redirect()->back()->with($message);
+    }
+
+    /**
+     * @param Request $request
+     * @param integer $id
+     *
+     * @return RedirectResponse
+     */
+    public function follow(Request $request, $id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!$thread) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->threadFollowService->follow(
+            $thread->getId(),
+            $this->userCloakDataMapper->getCurrentId()
+        );
+
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()->away($request->get('redirect'))->with($message) :
+            redirect()->back()->with($message);
+    }
+
+    /**
+     * @param Request $request
+     * @param integer $id
+     *
+     * @return RedirectResponse
+     */
+    public function unfollow(Request $request, $id)
+    {
+        $this->threadFollowService->unFollow(
+            $id,
+            $this->userCloakDataMapper->getCurrentId()
+        );
+
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()->away($request->get('redirect'))->with($message) :
+            redirect()->back()->with($message);
     }
 
     /**
@@ -48,7 +148,7 @@ class UserForumThreadController extends Controller
         $categoryId = $request->get('category_id');
         $authorId = $this->userCloakDataMapper->getCurrentId();
 
-        $this->service
+        $this->threadService
             ->createThread($title, $firstPostContent, $categoryId, $authorId);
 
         $message = ['success' => true];
@@ -68,7 +168,7 @@ class UserForumThreadController extends Controller
     {
         $title = $request->get('title');
 
-        $result = $this->service
+        $result = $this->threadService
                 ->updateThreadTitle($id, $title);
 
         if (!$result) {

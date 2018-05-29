@@ -2,11 +2,103 @@
 
 namespace Tests;
 
+use Carbon\Carbon;
+use Railroad\Railforums\Entities\PostLike;
+
 class UserForumPostControllerTest extends TestCase
 {
     protected function setUp()
     {
         parent::setUp();
+    }
+
+    public function test_post_like()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $post = $this->fakePost($thread->getId(), $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            '/post/like/' . $post->getId()
+        );
+
+        // assert the session has the success message
+        $response->assertSessionHas('success', true);
+
+        // assert the post like data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_post_likes',
+            [
+                'post_id' => $post->getId(),
+                'liker_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_post_like_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+        $postId = rand(0, 32767);
+
+        $response = $this->call(
+            'PUT',
+            '/post/like/' . $postId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_post_likes',
+            [
+                'post_id' => $postId,
+                'liker_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_post_unlike()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $post = $this->fakePost($thread->getId(), $user->getId());
+
+        $postLike = new PostLike();
+        $postLike->setPostId($post->getId());
+        $postLike->setLikerId($user->getId());
+        $postLike->setLikedOn(Carbon::now()->toDateTimeString());
+        $postLike->persist();
+
+        $this->assertDatabaseHas(
+            'forum_post_likes',
+            [
+                'post_id' => $post->getId(),
+                'liker_id' => $user->getId()
+            ]
+        );
+
+        $response = $this->call(
+            'DELETE',
+            '/post/unlike/' . $post->getId()
+        );
+
+        // assert the session has the success message
+        $response->assertSessionHas('success', true);
+
+        // assert the data was removed from the db
+        $this->assertDatabaseMissing(
+            'forum_post_likes',
+            [
+                'post_id' => $post->getId(),
+                'liker_id' => $user->getId()
+            ]
+        );
     }
 
     public function test_post_store()
@@ -28,7 +120,7 @@ class UserForumPostControllerTest extends TestCase
             $postData
         );
 
-        // assert the thread data was saved in the db
+        // assert the post data was saved in the db
         $this->assertDatabaseHas(
             'forum_posts',
             [
@@ -41,7 +133,7 @@ class UserForumPostControllerTest extends TestCase
         $response->assertSessionHas('success', true);
     }
 
-    public function test_thread_store_validation_fail()
+    public function test_post_store_validation_fail()
     {
         $response = $this->call(
             'PUT',
@@ -55,7 +147,7 @@ class UserForumPostControllerTest extends TestCase
         );
     }
 
-    public function test_thread_update()
+    public function test_post_update()
     {
         $user = $this->fakeCurrentUserCloak();
 
@@ -71,7 +163,7 @@ class UserForumPostControllerTest extends TestCase
             ['content' => $newContent]
         );
 
-        // assert the thread data was saved in the db
+        // assert the post data was saved in the db
         $this->assertDatabaseHas(
             'forum_posts',
             [
@@ -84,7 +176,7 @@ class UserForumPostControllerTest extends TestCase
         $response->assertSessionHas('success', true);
     }
 
-    public function test_thread_update_validation_fail()
+    public function test_post_update_validation_fail()
     {
         $user = $this->fakeCurrentUserCloak();
         $thread = $this->fakeThread(null, $user->getId());
@@ -113,7 +205,7 @@ class UserForumPostControllerTest extends TestCase
         );
     }
 
-    public function test_thread_update_not_found()
+    public function test_post_update_not_found()
     {
         $response = $this->call(
             'PATCH',

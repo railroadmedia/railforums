@@ -2,6 +2,9 @@
 
 namespace Tests;
 
+use Carbon\Carbon;
+use Railroad\Railforums\Entities\ThreadFollow;
+
 class UserForumThreadJsonControllerTest extends TestCase
 {
     const API_PREFIX = '/forums';
@@ -9,6 +12,148 @@ class UserForumThreadJsonControllerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
+    }
+
+    public function test_thread_read()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        // at least one post is required for a thread to be marked as read
+        $this->fakePost($thread->getId(), $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/read/' . $thread->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // assert response data
+        $response->assertJsonFragment([
+            'threadId' => $thread->getId(),
+            'readerId' => $user->getId()
+        ]);
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_thread_reads',
+            [
+                'thread_id' => $thread->getId(),
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_read_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $threadId = rand(0, 32767);
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/read/' . $threadId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_thread_reads',
+            [
+                'thread_id' => $threadId,
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_follow()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/follow/' . $thread->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_thread_follows',
+            [
+                'thread_id' => $thread->getId(),
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_follow_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+        $threadId = rand(0, 32767);
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/follow/' . $threadId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_thread_follows',
+            [
+                'thread_id' => $threadId,
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_unfollow()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $threadFollow = new ThreadFollow();
+        $threadFollow->setThreadId($thread->getId());
+        $threadFollow->setFollowerId($user->getId());
+        $threadFollow->setFollowedOn(Carbon::now()->toDateTimeString());
+        $threadFollow->persist();
+
+        $this->assertDatabaseHas(
+            'forum_thread_follows',
+            [
+                'thread_id' => $thread->getId(),
+                'follower_id' => $user->getId()
+            ]
+        );
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/unfollow/' . $thread->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the data was removed from the db
+        $this->assertDatabaseMissing(
+            'forum_thread_follows',
+            [
+                'thread_id' => $thread->getId(),
+                'follower_id' => $user->getId()
+            ]
+        );
     }
 
     public function test_thread_index()

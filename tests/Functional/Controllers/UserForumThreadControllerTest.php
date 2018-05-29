@@ -2,11 +2,150 @@
 
 namespace Tests;
 
+use Carbon\Carbon;
+use Railroad\Railforums\Entities\ThreadFollow;
+
 class UserForumThreadControllerTest extends TestCase
 {
     protected function setUp()
     {
         parent::setUp();
+    }
+
+    public function test_thread_read()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        // at least one post is required for a thread to be marked as read
+        $this->fakePost($thread->getId(), $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            '/thread/read/' . $thread->getId()
+        );
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_thread_reads',
+            [
+                'thread_id' => $thread->getId(),
+                'reader_id' => $user->getId()
+            ]
+        );
+
+        // assert the session has the success message
+        $response->assertSessionHas('success', true);
+    }
+
+    public function test_thread_read_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $threadId = rand(0, 32767);
+
+        $response = $this->call(
+            'PUT',
+            '/thread/read/' . $threadId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_thread_reads',
+            [
+                'thread_id' => $threadId,
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_follow()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            '/thread/follow/' . $thread->getId()
+        );
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_thread_follows',
+            [
+                'thread_id' => $thread->getId(),
+                'follower_id' => $user->getId()
+            ]
+        );
+
+        // assert the session has the success message
+        $response->assertSessionHas('success', true);
+    }
+
+    public function test_thread_follow_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+        $threadId = rand(0, 32767);
+
+        $response = $this->call(
+            'PUT',
+            '/thread/follow/' . $threadId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_thread_follows',
+            [
+                'thread_id' => $threadId,
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_unfollow()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $threadFollow = new ThreadFollow();
+        $threadFollow->setThreadId($thread->getId());
+        $threadFollow->setFollowerId($user->getId());
+        $threadFollow->setFollowedOn(Carbon::now()->toDateTimeString());
+        $threadFollow->persist();
+
+        $this->assertDatabaseHas(
+            'forum_thread_follows',
+            [
+                'thread_id' => $thread->getId(),
+                'follower_id' => $user->getId()
+            ]
+        );
+
+        $response = $this->call(
+            'DELETE',
+            '/thread/unfollow/' . $thread->getId()
+        );
+
+        // assert the session has the success message
+        $response->assertSessionHas('success', true);
+
+        // assert the data was removed from the db
+        $this->assertDatabaseMissing(
+            'forum_thread_follows',
+            [
+                'thread_id' => $thread->getId(),
+                'follower_id' => $user->getId()
+            ]
+        );
     }
 
     public function test_thread_store()

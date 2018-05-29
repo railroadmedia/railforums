@@ -4,11 +4,11 @@ namespace Railroad\Railforums\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railforums\Requests\PostJsonIndexRequest;
 use Railroad\Railforums\Requests\PostJsonCreateRequest;
 use Railroad\Railforums\Requests\PostJsonUpdateRequest;
+use Railroad\Railforums\Services\PostLikes\ForumPostLikeService;
 use Railroad\Railforums\Services\Posts\UserForumPostService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,14 +18,14 @@ class UserForumPostJsonController extends Controller
     const PAGE = 1;
 
     /**
-     * @var UserForumPostService
+     * @var ForumPostLikeService
      */
-    protected $service;
+    protected $postLikeService;
 
     /**
-     * @var UserCloakDataMapper
+     * @var UserForumPostService
      */
-    protected $userCloakDataMapper;
+    protected $postService;
 
     /**
      * @var PostDataMapper
@@ -35,18 +35,48 @@ class UserForumPostJsonController extends Controller
     /**
      * ThreadController constructor.
      *
-     * @param UserForumPostService $service
-     * @param UserCloakDataMapper $userCloakDataMapper
+     * @param ForumPostLikeService $postLikeService
+     * @param UserForumPostService $postService
      * @param PostDataMapper $postDataMapper
      */
     public function __construct(
-        UserForumPostService $service,
-        UserCloakDataMapper $userCloakDataMapper,
+        ForumPostLikeService $postLikeService,
+        UserForumPostService $postService,
         PostDataMapper $postDataMapper
     ) {
-        $this->service = $service;
-        $this->userCloakDataMapper = $userCloakDataMapper;
+        $this->postLikeService = $postLikeService;
+        $this->postService = $postService;
         $this->postDataMapper = $postDataMapper;
+    }
+
+    /**
+     * @param integer $id
+     *
+     * @return JsonResponse
+     */
+    public function like($id)
+    {
+        $post = $this->postDataMapper->get($id);
+
+        if (!$post) {
+            throw new NotFoundHttpException();
+        }
+
+        $postLike = $this->postLikeService->likePost($id);
+
+        return response()->json($postLike->flatten());
+    }
+
+    /**
+     * @param integer $id
+     *
+     * @return JsonResponse
+     */
+    public function unlike($id)
+    {
+        $this->postLikeService->unLikePost($id);
+
+        return new JsonResponse(null, 204);
     }
 
     /**
@@ -62,7 +92,7 @@ class UserForumPostJsonController extends Controller
                     (int) $request->get('page') : self::PAGE;
         $threadId = (int) $request->get('thread_id');
 
-        $posts = $this->service
+        $posts = $this->postService
             ->getPosts($amount, $page, $threadId);
 
         $response = [];
@@ -101,7 +131,7 @@ class UserForumPostJsonController extends Controller
         $promptingPostId = $request->get('prompting_post_id');
         $threadId = $request->get('thread_id');
 
-        $post = $this->service
+        $post = $this->postService
             ->createPost($content, $promptingPostId, $threadId);
 
         return response()->json($post->flatten());
@@ -117,7 +147,7 @@ class UserForumPostJsonController extends Controller
     {
         $content = $request->get('content');
 
-        $post = $this->service
+        $post = $this->postService
                 ->updatePostContent($id, $content);
 
         if (!$post) {

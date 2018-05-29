@@ -9,7 +9,9 @@ use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\Requests\ThreadJsonIndexRequest;
 use Railroad\Railforums\Requests\ThreadJsonCreateRequest;
 use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
+use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
 use Railroad\Railforums\Services\Threads\UserForumThreadService;
+use Railroad\Railforums\Services\Posts\ForumThreadReadService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadJsonController extends Controller
@@ -18,9 +20,19 @@ class UserForumThreadJsonController extends Controller
     const PAGE = 1;
 
     /**
+     * @var ForumThreadReadService
+     */
+    protected $threadReadService;
+
+    /**
+     * @var ThreadFollowService
+     */
+    protected $threadFollowService;
+
+    /**
      * @var UserForumThreadService
      */
-    protected $service;
+    protected $threadService;
 
     /**
      * @var UserCloakDataMapper
@@ -35,18 +47,81 @@ class UserForumThreadJsonController extends Controller
     /**
      * ThreadController constructor.
      *
-     * @param UserForumThreadService $service
+     * @param ForumThreadReadService $threadReadService
+     * @param ThreadFollowService $threadFollowService
+     * @param UserForumThreadService $threadService
      * @param UserCloakDataMapper $userCloakDataMapper
      * @param ThreadDataMapper $threadDataMapper
      */
     public function __construct(
-        UserForumThreadService $service,
+        ForumThreadReadService $threadReadService,
+        ThreadFollowService $threadFollowService,
+        UserForumThreadService $threadService,
         UserCloakDataMapper $userCloakDataMapper,
         ThreadDataMapper $threadDataMapper
     ) {
-        $this->service = $service;
+        $this->threadReadService = $threadReadService;
+        $this->threadFollowService = $threadFollowService;
+        $this->threadService = $threadService;
         $this->userCloakDataMapper = $userCloakDataMapper;
         $this->threadDataMapper = $threadDataMapper;
+    }
+
+    /**
+     * @param integer $id
+     *
+     * @return JsonResponse
+     */
+    public function read($id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!$thread) {
+            throw new NotFoundHttpException();
+        }
+
+        $threadRead = $this->threadReadService->markThreadRead(
+            $thread->getId(),
+            $this->userCloakDataMapper->getCurrentId()
+        );
+
+        return response()->json($threadRead->flatten());
+    }
+
+    /**
+     * @param integer $id
+     *
+     * @return JsonResponse
+     */
+    public function follow($id)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!$thread) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->threadFollowService->follow(
+            $thread->getId(),
+            $this->userCloakDataMapper->getCurrentId()
+        );
+
+        return new JsonResponse(null, 204);
+    }
+
+    /**
+     * @param integer $id
+     *
+     * @return JsonResponse
+     */
+    public function unfollow($id)
+    {
+        $this->threadFollowService->unFollow(
+            $id,
+            $this->userCloakDataMapper->getCurrentId()
+        );
+
+        return new JsonResponse(null, 204);
     }
 
     /**
@@ -65,7 +140,7 @@ class UserForumThreadJsonController extends Controller
         $followed = $request->has('followed') ?
             (boolean) $request->get('followed') : null;
 
-        $threads = $this->service
+        $threads = $this->threadService
             ->getThreads($amount, $page, $categoryId, $pinned, $followed);
 
         $response = [];
@@ -105,7 +180,7 @@ class UserForumThreadJsonController extends Controller
         $categoryId = $request->get('category_id');
         $authorId = $this->userCloakDataMapper->getCurrentId();
 
-        $thread = $this->service
+        $thread = $this->threadService
             ->createThread($title, $firstPostContent, $categoryId, $authorId);
 
         return response()->json($thread->flatten());
@@ -121,7 +196,7 @@ class UserForumThreadJsonController extends Controller
     {
         $title = $request->get('title');
 
-        $thread = $this->service
+        $thread = $this->threadService
                 ->updateThreadTitle($id, $title);
 
         if (!$thread) {

@@ -10,6 +10,24 @@ Route::patch(
     \Railroad\Railforums\Controllers\UserForumThreadController::class . '@update'
 )->name('railforums.thread.update');
 
+// threads follow
+Route::put(
+    'thread/follow/{id}',
+    \Railroad\Railforums\Controllers\UserForumThreadController::class . '@follow'
+)->name('railforums.thread.follow');
+
+Route::delete(
+    'thread/unfollow/{id}',
+    \Railroad\Railforums\Controllers\UserForumThreadController::class . '@unfollow'
+)->name('railforums.thread.unfollow');
+
+// threads read
+Route::put(
+    'thread/read/{id}',
+    \Railroad\Railforums\Controllers\UserForumThreadController::class . '@read'
+)->name('railforums.thread.read');
+
+
 // posts
 Route::put(
     'post/store',
@@ -20,6 +38,17 @@ Route::patch(
     'post/update/{id}',
     \Railroad\Railforums\Controllers\UserForumPostController::class . '@update'
 )->name('railforums.post.update');
+
+// post likes
+Route::put(
+    'post/like/{id}',
+    \Railroad\Railforums\Controllers\UserForumPostController::class . '@like'
+)->name('railforums.post.like');
+
+Route::delete(
+    'post/unlike/{id}',
+    \Railroad\Railforums\Controllers\UserForumPostController::class . '@unlike'
+)->name('railforums.post.unlike');
 
 // -----------------------
 Route::group(
@@ -53,6 +82,21 @@ Route::group(
             \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@delete'
         )->name('railforums.api.thread.delete');
 
+        Route::put(
+            'thread/follow/{id}',
+            \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@follow'
+        )->name('railforums.thread.follow');
+
+        Route::delete(
+            'thread/unfollow/{id}',
+            \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@unfollow'
+        )->name('railforums.thread.unfollow');
+
+        Route::put(
+            'thread/read/{id}',
+            \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@read'
+        )->name('railforums.thread.read');
+
         // post api
         Route::get(
             'post/index',
@@ -78,4 +122,15 @@ Route::group(
             'post/delete/{id}',
             \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@delete'
         )->name('railforums.api.post.delete');
+
+        // post likes
+        Route::put(
+            'post/like/{id}',
+            \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@like'
+        )->name('railforums.api.post.like');
+
+        Route::delete(
+            'post/unlike/{id}',
+            \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@unlike'
+        )->name('railforums.api.post.unlike');
     });
