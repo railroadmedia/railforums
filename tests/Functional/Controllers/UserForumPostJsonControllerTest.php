@@ -4,6 +4,8 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Entities\PostLike;
+use Railroad\Railforums\DataMappers\PostDataMapper;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class UserForumPostJsonControllerTest extends TestCase
 {
@@ -151,10 +153,13 @@ class UserForumPostJsonControllerTest extends TestCase
         $results = $response->decodeResponseJson();
 
         // assert reponse entities count is the requested amount
-        $this->assertEquals(count($results), $payload['amount']);
+        $this->assertEquals(count($results['posts']), $payload['amount']);
+
+        // assert reponse has threads count for pagination
+        $this->assertArrayHasKey('count', $results);
 
         // assert reponse entities have the requested category
-        foreach ($results as $post) {
+        foreach ($results['posts'] as $post) {
             $this->assertEquals($post['threadId'], $payload['thread_id']);
         }
     }
@@ -179,6 +184,70 @@ class UserForumPostJsonControllerTest extends TestCase
         $response->assertJsonFragment([
             'content' => $post->getContent()
         ]);
+    }
+
+    public function test_post_show_recent_likes()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $post = $this->fakePost($thread->getId(), $user->getId());
+
+        $postLike = new PostLike();
+        $postLike->setPostId($post->getId());
+        $postLike->setLikerId($user->getId());
+        $postLike->setLikedOn(Carbon::now()->toDateTimeString());
+        $postLike->persist();
+
+        $otherUserOne = $this->fakeUserCloak();
+
+        $postLike = new PostLike();
+        $postLike->setPostId($post->getId());
+        $postLike->setLikerId($otherUserOne->getId());
+        $postLike->setLikedOn(Carbon::parse("-5 minutes")->toDateTimeString()); // 2nd most recent liker
+        $postLike->persist();
+
+        $otherUserTwo = $this->fakeUserCloak();
+
+        $postLike = new PostLike();
+        $postLike->setPostId($post->getId());
+        $postLike->setLikerId($otherUserTwo->getId());
+        $postLike->setLikedOn(Carbon::parse("-1 minutes")->toDateTimeString()); // 1st most recent liker
+        $postLike->persist();
+
+        $otherUserThree = $this->fakeUserCloak();
+
+        $postLike = new PostLike();
+        $postLike->setPostId($post->getId());
+        $postLike->setLikerId($otherUserThree->getId());
+        $postLike->setLikedOn(Carbon::parse("-10 minutes")->toDateTimeString());  // 3rd most recent liker
+        $postLike->persist();
+
+        // cache and identity map flush
+        $im = $this->app->make(IdentityMap::class);
+        $im->empty();
+        $postDataMapper = $this->app->make(PostDataMapper::class);
+        $postDataMapper->flushCache();
+
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/post/show/' . $post->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $postResponse = $response->decodeResponseJson();
+
+        // assert reponse has recentLikes
+        $this->assertArrayHasKey('recentLikes', $postResponse);
+
+        // assert 1st recent liker id
+        $this->assertEquals($postResponse['recentLikes'][0]['likerId'], $otherUserTwo->getId());
+
+        // assert 2nd recent liker id
+        $this->assertEquals($postResponse['recentLikes'][1]['likerId'], $otherUserOne->getId());
     }
 
     public function test_post_show_not_exists()

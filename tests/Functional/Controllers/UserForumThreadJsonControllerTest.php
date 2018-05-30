@@ -196,10 +196,13 @@ class UserForumThreadJsonControllerTest extends TestCase
         $results = $response->decodeResponseJson();
 
         // assert reponse entities count is the requested amount
-        $this->assertEquals(count($results), $payload['amount']);
+        $this->assertEquals(count($results['threads']), $payload['amount']);
+
+        // assert reponse has threads count for pagination
+        $this->assertArrayHasKey('count', $results);
 
         // assert reponse entities have the requested category
-        foreach ($results as $thread) {
+        foreach ($results['threads'] as $thread) {
             $this->assertEquals($thread['categoryId'], $payload['category_id']);
         }
     }

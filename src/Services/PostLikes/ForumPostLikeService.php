@@ -10,9 +10,12 @@ use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Events\PostLiked;
 use Railroad\Railforums\Events\PostUnLiked;
+use Illuminate\Database\Query\JoinClause;
 
 class ForumPostLikeService
 {
+    const RECENT_LIKES_COUNT = 2;
+
     private $postDataMapper;
     private $postLikeDataMapper;
     private $userCloakDataMapper;
@@ -25,6 +28,27 @@ class ForumPostLikeService
         $this->postDataMapper = $postDataMapper;
         $this->postLikeDataMapper = $postLikeDataMapper;
         $this->userCloakDataMapper = $userCloakDataMapper;
+    }
+
+    /**
+     * @param $postId
+     * @return array
+     */
+    public function getRecentLikes($postId)
+    {
+        $currentUserId = $this->userCloakDataMapper->getCurrentId();
+
+        $postLikes = $this->postLikeDataMapper->getWithQuery(
+                function (Builder $builder) use ($postId, $currentUserId) {
+                    return $builder
+                        ->where('post_id', $postId)
+                        ->where('liker_id', '<>', $currentUserId)
+                        ->orderBy('liked_on', 'DESC')
+                        ->limit(self::RECENT_LIKES_COUNT);
+                }
+            ) ?? null;
+
+        return $postLikes;
     }
 
     /**

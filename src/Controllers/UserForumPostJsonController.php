@@ -95,10 +95,15 @@ class UserForumPostJsonController extends Controller
         $posts = $this->postService
             ->getPosts($amount, $page, $threadId);
 
-        $response = [];
+        $postsCount = $this->postService->getThreadPostCount($threadId);
+
+        $response = [
+            'posts' => [],
+            'count' => $postsCount
+        ];
 
         foreach ($posts as $post) {
-            $response[] = $post->flatten();
+            $response['posts'][] = $post->flatten();
         }
 
         return response()->json($response);
@@ -117,7 +122,19 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        return response()->json($post->flatten());
+        $result = $post->flatten();
+
+        if ($post->getIsLikedByCurrentUser()) {
+
+            $recentLikes = $this->postLikeService->getRecentLikes($id);
+
+            foreach ($recentLikes as $postLike) {
+                /** @var \Railroad\Railforums\Entities\PostLike $postLike */
+                $result['recentLikes'][] = $postLike->flatten();
+            }
+        }
+
+        return response()->json($result);
     }
 
     /**

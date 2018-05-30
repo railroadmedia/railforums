@@ -143,10 +143,16 @@ class UserForumThreadJsonController extends Controller
         $threads = $this->threadService
             ->getThreads($amount, $page, $categoryId, $pinned, $followed);
 
-        $response = [];
+        $threadsCount = $this->threadService
+            ->getThreadCount($categoryId, $followed);
+
+        $response = [
+            'threads' => [],
+            'count' => $threadsCount
+        ];
 
         foreach ($threads as $thread) {
-            $response[] = $thread->flatten();
+            $response['threads'][] = $thread->flatten();
         }
 
         return response()->json($response);
