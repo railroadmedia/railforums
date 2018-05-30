@@ -15,7 +15,7 @@
     "laravel/framework": "5.6.*",
     "guzzlehttp/guzzle": "~6.0",
     "doctrine/dbal": "^2.5",
-    "ezyang/htmlpurifier": "dev-master",
+    "ezyang/htmlpurifier": "^4.10",
     "railroad/railmap": "dev-master",
     "railroad/railnotifications": "dev-master",
     "railroad/railsettings": "dev-master"
