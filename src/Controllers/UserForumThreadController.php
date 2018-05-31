@@ -9,9 +9,9 @@ use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Requests\ThreadCreateRequest;
 use Railroad\Railforums\Requests\ThreadUpdateRequest;
+use Railroad\Railforums\Services\Posts\ForumThreadReadService;
 use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
 use Railroad\Railforums\Services\Threads\UserForumThreadService;
-use Railroad\Railforums\Services\Posts\ForumThreadReadService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadController extends Controller
@@ -62,6 +62,8 @@ class UserForumThreadController extends Controller
         $this->threadService = $threadService;
         $this->threadDataMapper = $threadDataMapper;
         $this->userCloakDataMapper = $userCloakDataMapper;
+
+        $this->middleware(config('railforums.controller_middleware'));
     }
 
     /**
@@ -148,14 +150,17 @@ class UserForumThreadController extends Controller
         $categoryId = $request->get('category_id');
         $authorId = $this->userCloakDataMapper->getCurrentId();
 
-        $this->threadService
+        $thread = $this->threadService
             ->createThread($title, $firstPostContent, $categoryId, $authorId);
 
         $message = ['success' => true];
 
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        // todo: temporary
+        return redirect()->to('/members/forums/thread/' . $thread->getId())->with($message);
+
+        //        return $request->has('redirect') ?
+        //            redirect()->away($request->get('redirect'))->with($message) :
+        //            redirect()->back()->with($message);
     }
 
     /**
@@ -169,7 +174,7 @@ class UserForumThreadController extends Controller
         $title = $request->get('title');
 
         $result = $this->threadService
-                ->updateThreadTitle($id, $title);
+            ->updateThreadTitle($id, $title);
 
         if (!$result) {
             throw new NotFoundHttpException();

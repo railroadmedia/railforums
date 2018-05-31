@@ -44,6 +44,8 @@ class UserForumPostController extends Controller
         $this->postLikeService = $postLikeService;
         $this->postService = $postService;
         $this->postDataMapper = $postDataMapper;
+
+        $this->middleware(config('railforums.controller_middleware'));
     }
 
     /**

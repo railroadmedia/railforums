@@ -82,6 +82,36 @@ class Post extends EntityBase
     protected $isLikedByCurrentUser;
 
     /**
+     * @var int
+     */
+    protected $liker1Id;
+
+    /**
+     * @var string
+     */
+    protected $liker1DisplayName;
+
+    /**
+     * @var int
+     */
+    protected $liker2Id;
+
+    /**
+     * @var string
+     */
+    protected $liker2DisplayName;
+
+    /**
+     * @var int
+     */
+    protected $liker3Id;
+
+    /**
+     * @var string
+     */
+    protected $liker3DisplayName;
+
+    /**
      * Category constructor.
      */
     public function __construct()
@@ -231,6 +261,102 @@ class Post extends EntityBase
     public function setIsLikedByCurrentUser(bool $isLikedByCurrentUser)
     {
         $this->isLikedByCurrentUser = $isLikedByCurrentUser;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLiker1Id(): int
+    {
+        return $this->liker1Id;
+    }
+
+    /**
+     * @param int $liker1Id
+     */
+    public function setLiker1Id(int $liker1Id): void
+    {
+        $this->liker1Id = $liker1Id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLiker1DisplayName(): string
+    {
+        return $this->liker1DisplayName;
+    }
+
+    /**
+     * @param string $liker1DisplayName
+     */
+    public function setLiker1DisplayName(string $liker1DisplayName): void
+    {
+        $this->liker1DisplayName = $liker1DisplayName;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLiker2Id(): int
+    {
+        return $this->liker2Id;
+    }
+
+    /**
+     * @param int $liker2Id
+     */
+    public function setLiker2Id(int $liker2Id): void
+    {
+        $this->liker2Id = $liker2Id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLiker2DisplayName(): string
+    {
+        return $this->liker2DisplayName;
+    }
+
+    /**
+     * @param string $liker2DisplayName
+     */
+    public function setLiker2DisplayName(string $liker2DisplayName): void
+    {
+        $this->liker2DisplayName = $liker2DisplayName;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLiker3Id(): int
+    {
+        return $this->liker3Id;
+    }
+
+    /**
+     * @param int $liker3Id
+     */
+    public function setLiker3Id(int $liker3Id): void
+    {
+        $this->liker3Id = $liker3Id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLiker3DisplayName(): string
+    {
+        return $this->liker3DisplayName;
+    }
+
+    /**
+     * @param string $liker3DisplayName
+     */
+    public function setLiker3DisplayName(string $liker3DisplayName): void
+    {
+        $this->liker3DisplayName = $liker3DisplayName;
     }
 
     public function randomize()

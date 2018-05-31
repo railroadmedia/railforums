@@ -3,11 +3,8 @@
 namespace Railroad\Railforums\DataMappers;
 
 use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Post;
-use Railroad\Railforums\Entities\PostLike;
 use Railroad\Railforums\Entities\UserCloak;
-use Railroad\Railmap\Entity\Links\OneToMany;
 use Railroad\Railmap\Entity\Links\OneToOne;
 
 /**
@@ -38,7 +35,7 @@ class PostDataMapper extends DataMapperBase
             'updatedAt' => 'updated_at',
             'deletedAt' => 'deleted_at',
             'versionMasterId' => 'version_master_id',
-            'versionSavedAt' => 'version_saved_at'
+            'versionSavedAt' => 'version_saved_at',
         ];
     }
 
@@ -49,32 +46,98 @@ class PostDataMapper extends DataMapperBase
             [
                 'likeCount' => 'like_count',
                 'isLikedByCurrentUser' => 'is_liked_by_viewer',
+                'liker1Id' => 'liker_1_id',
+                'liker1DisplayName' => 'liker_1_display_name',
+                'liker2Id' => 'liker_2_id',
+                'liker2DisplayName' => 'liker_2_display_name',
+                'liker3Id' => 'liker_3_id',
+                'liker4DisplayName' => 'liker_3_display_name',
             ]
         );
     }
 
     public function gettingQuery()
     {
-        return parent::gettingQuery()->selectRaw(
-            'forum_posts.*, ' .
-            '(SELECT COUNT(id) FROM forum_post_likes WHERE forum_post_likes.post_id = forum_posts.id)' .
-            ' AS like_count, ' .
-            'CASE WHEN current_user_forum_post_like.id IS NULL THEN 0 ELSE 1 END AS is_liked_by_viewer'
-        )->leftJoin(
-            'forum_post_likes as current_user_forum_post_like',
-            function (JoinClause $query) {
-                $query->on(
-                    'current_user_forum_post_like.liker_id',
-                    '=',
-                    $query->raw($this->userCloakDataMapper->getCurrentId())
-                )
-                    ->on(
-                        'forum_posts.id',
-                        '=',
-                        'current_user_forum_post_like.post_id'
-                    );
-            }
-        );
+        return parent::gettingQuery()
+            ->select(['forum_posts.*'])
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->selectRaw('COUNT(*)')
+                        ->from('forum_post_likes')
+                        ->limit(1)
+                        ->whereRaw('forum_post_likes.post_id = forum_posts.id');
+                },
+                'like_count'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->selectRaw('COUNT(*) > 0')
+                        ->from('forum_post_likes')
+                        ->limit(1)
+                        ->whereRaw('forum_post_likes.post_id = forum_posts.id')
+                        ->whereRaw('forum_post_likes.liker_id = ' . $this->userCloakDataMapper->getCurrentId());
+                },
+                'is_liked_by_viewer'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->selectRaw('liker_id')
+                        ->from('forum_post_likes')
+                        ->limit(1)
+                        ->whereRaw('forum_post_likes.post_id = forum_posts.id')
+                        ->orderBy('liked_on', 'desc');
+                },
+                'liker_1_id'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select([config('railforums.author_table_display_name_column_name')])
+                        ->from(config('railforums.author_table_name'))
+                        ->limit(1)
+                        ->whereRaw(config('railforums.author_table_name') . '.id = liker_1_id');
+                },
+                'liker_1_display_name'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->selectRaw('liker_id')
+                        ->from('forum_post_likes')
+                        ->limit(1)
+                        ->skip(1)
+                        ->whereRaw('forum_post_likes.post_id = forum_posts.id')
+                        ->orderBy('liked_on', 'desc');
+                },
+                'liker_2_id'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select([config('railforums.author_table_display_name_column_name')])
+                        ->from(config('railforums.author_table_name'))
+                        ->limit(1)
+                        ->whereRaw(config('railforums.author_table_name') . '.id = liker_2_id');
+                },
+                'liker_2_display_name'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->selectRaw('liker_id')
+                        ->from('forum_post_likes')
+                        ->limit(1)
+                        ->skip(2)
+                        ->whereRaw('forum_post_likes.post_id = forum_posts.id')
+                        ->orderBy('liked_on', 'desc');
+                },
+                'liker_3_id'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select([config('railforums.author_table_display_name_column_name')])
+                        ->from(config('railforums.author_table_name'))
+                        ->limit(1)
+                        ->whereRaw(config('railforums.author_table_name') . '.id = liker_3_id');
+                },
+                'liker_3_display_name'
+            );
     }
 
     public function links()
@@ -84,31 +147,51 @@ class PostDataMapper extends DataMapperBase
         // 'greatest-n-per-group' solutions.
 
         return [
-            'recentLikes' => new OneToMany(
-                PostLike::class, 'id', 'postId', 'recentLikes', 'forum_post_likes.liked_on', 'desc',
-                function (Builder $query) {
-                    return $query->selectRaw('forum_post_likes.*')->join(
-                        'forum_post_likes as fpl2',
-                        function (JoinClause $joinClause) {
-                            return $joinClause->on(
-                                'forum_post_likes.post_id',
-                                '=',
-                                'fpl2.post_id'
-                            )->on('forum_post_likes.liked_on', '<=', 'fpl2.liked_on');
-                        },
-                        null,
-                        null,
-                        'left outer'
-                    )->groupBy('forum_post_likes.id')
-                        ->having($query->raw('COUNT(*)'), '<', 4)
-                        ->where(
-                            'forum_post_likes.liker_id',
-                            '!=',
-                            $query->raw($this->userCloakDataMapper->getCurrentId())
-                        )
-                        ->orderBy('fpl2.liked_on', 'desc');
-                }
-            ),
+            //            'recentLikes' => new OneToMany(
+            //                PostLike::class, 'id', 'postId', 'recentLikes', 'forum_post_likes.liked_on', 'desc',
+            //                function (Builder $query) {
+            //                    return parent::gettingQuery()->selectSub(
+            //                        function (Builder $builder) {
+            //                            return $builder->selectRaw('liker_id')
+            //                                ->from('forum_post_likes')
+            //                                ->limit(1)
+            //                                ->whereRaw('forum_post_likes.post_id = forum_posts.id')
+            //                                ->orderBy('liked_on', 'desc');
+            //                        },
+            //                        '1_liker'
+            //                    )->selectSub(
+            //                        function (Builder $builder) {
+            //                            return $builder->selectRaw('liker_id')
+            //                                ->from('forum_post_likes')
+            //                                ->limit(1)
+            //                                ->skip(1)
+            //                                ->whereRaw('forum_post_likes.post_id = forum_posts.id')
+            //                                ->orderBy('liked_on', 'desc');
+            //                        },
+            //                        '2_liker'
+            //                    );
+            //
+            ////                    return parent::gettingQuery()->selectRaw(
+            ////                        'forum_posts.*, ' .
+            ////                        '(SELECT COUNT(id) FROM forum_post_likes WHERE forum_post_likes.post_id = forum_posts.id)' .
+            ////                        ' AS like_count, ' .
+            ////                        'CASE WHEN current_user_forum_post_like.id IS NULL THEN 0 ELSE 1 END AS is_liked_by_viewer'
+            ////                    )->leftJoin(
+            ////                        'forum_post_likes as current_user_forum_post_like',
+            ////                        function (JoinClause $query) {
+            ////                            $query->on(
+            ////                                'current_user_forum_post_like.liker_id',
+            ////                                '=',
+            ////                                $query->raw($this->userCloakDataMapper->getCurrentId())
+            ////                            )
+            ////                                ->on(
+            ////                                    'forum_posts.id',
+            ////                                    '=',
+            ////                                    'current_user_forum_post_like.post_id'
+            ////                                );
+            ////                        }
+            //                }
+            //            ),
             'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
             'promptingPost' => new OneToOne(Post::class, 'promptingPostId', 'id', 'promptingPost'),
         ];
@@ -146,10 +229,10 @@ class PostDataMapper extends DataMapperBase
     public function getLatestPost($threadId)
     {
         return $this->getWithQuery(
-            function (Builder $query) use ($threadId) {
-                return $query->where('thread_id', $threadId)->orderBy('published_on', 'desc')
-                    ->limit(1);
-            }
-        )[0] ?? null;
+                function (Builder $query) use ($threadId) {
+                    return $query->where('thread_id', $threadId)->orderBy('published_on', 'desc')
+                        ->limit(1);
+                }
+            )[0] ?? null;
     }
 }

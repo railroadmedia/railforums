@@ -24,9 +24,11 @@ class ThreadCreateRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' =>'required|string|max:255',
+            'title' => 'required|string|max:255',
             'first_post_content' => 'required|string',
-            'category_id' => 'required|numeric|exists:forum_categories,id'
+            'category_id' => 'required|numeric|exists:' .
+                config('railforums.database_connection_name') .
+                '.forum_categories,id',
         ];
     }
 }
