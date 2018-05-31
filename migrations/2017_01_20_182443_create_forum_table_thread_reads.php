@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateForumTableThreadReads extends Migration
 {
@@ -13,19 +13,22 @@ class CreateForumTableThreadReads extends Migration
      */
     public function up()
     {
-        Schema::create('forum_thread_reads', function (Blueprint $table)
-        {
-            $table->increments('id');
-            $table->integer('thread_id')->unsigned();
-            $table->integer('reader_id')->unsigned();
-            $table->dateTime('read_on');
+        Schema::connection(config('railforums.database_connection_name'))
+            ->create(
+                'forum_thread_reads',
+                function (Blueprint $table) {
+                    $table->increments('id');
+                    $table->integer('thread_id')->unsigned();
+                    $table->integer('reader_id')->unsigned();
+                    $table->dateTime('read_on');
 
-            $table->timestamps();
+                    $table->timestamps();
 
-            $table->index(['thread_id']);
-            $table->index(['reader_id']);
-            $table->index(['read_on']);
-        });
+                    $table->index(['thread_id']);
+                    $table->index(['reader_id']);
+                    $table->index(['read_on']);
+                }
+            );
     }
 
     /**

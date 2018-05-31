@@ -39,7 +39,7 @@ class UserForumThreadService
     /**
      * @param $amount
      * @param $page
-     * @param $categoryId
+     * @param array|null $categoryIds
      * @param bool $pinned
      * @param bool $followed
      * @return Thread|Thread[]
@@ -47,7 +47,7 @@ class UserForumThreadService
     public function getThreads(
         $amount,
         $page,
-        $categoryId,
+        $categoryIds,
         $pinned = false,
         $followed = null
     ) {
@@ -55,22 +55,33 @@ class UserForumThreadService
             function (Builder $builder) use (
                 $amount,
                 $page,
-                $categoryId,
+                $categoryIds,
                 $pinned,
                 $followed
             ) {
                 if ($followed === true) {
-                    $builder->whereNotNull('forum_thread_follows.id');
-                } elseif ($followed === true) {
-                    $builder->whereNull('forum_thread_follows.id');
+                    $builder->whereExists(
+                        function (Builder $builder) {
+                            return $builder
+                                ->selectRaw('*')
+                                ->from('forum_thread_follows')
+                                ->limit(1)
+                                ->where('follower_id', $this->userCloakDataMapper->getCurrentId())
+                                ->whereRaw('forum_thread_follows.thread_id = forum_threads.id');
+                        }
+                    );
+                }
+
+                if (!empty($categoryIds)) {
+                    $builder->whereIn('category_id', $categoryIds);
+
                 }
 
                 return $builder->limit($amount)
                     ->skip($amount * ($page - 1))
                     ->orderByRaw('last_post_published_on desc, id desc')
                     ->whereIn('forum_threads.state', $this->accessibleStates)
-                    ->where('pinned', $pinned)
-                    ->where('category_id', $categoryId);
+                    ->where('pinned', $pinned);
 
             }
         );
@@ -114,24 +125,25 @@ class UserForumThreadService
     }
 
     /**
-     * @param $categoryId
+     * @param $categoryIds
      * @param null $followed
      * @return int
      */
-    public function getThreadCount($categoryId, $followed = null)
+    public function getThreadCount($categoryIds, $followed = null)
     {
         return $this->threadDataMapper->ignoreCache()->count(
-            function (Builder $builder) use ($categoryId, $followed) {
+            function (Builder $builder) use ($categoryIds, $followed) {
                 if ($followed === true) {
                     $builder->whereNotNull('forum_thread_follows.id');
                 } elseif ($followed === true) {
                     $builder->whereNull('forum_thread_follows.id');
                 }
 
-                return $builder->whereIn('forum_threads.state', $this->accessibleStates)->where(
-                    'category_id',
-                    $categoryId
-                )->where('pinned', false);
+                if (!empty($categoryIds)) {
+                    $builder->whereIn('category_id', $categoryIds);
+                }
+
+                return $builder->whereIn('forum_threads.state', $this->accessibleStates)->where('pinned', false);
             },
             $this->threadDataMapper->databaseManager()->connection()->raw('distinct(forum_threads.id)')
         );

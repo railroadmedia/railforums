@@ -3,7 +3,6 @@
 namespace Railroad\Railforums\DataMappers;
 
 use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\JoinClause;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\UserCloak;
@@ -34,13 +33,12 @@ class ThreadDataMapper extends DataMapperBase
             'locked' => 'locked',
             'state' => 'state',
             'postCount' => 'post_count',
-            'lastPostId' => 'last_post_id',
             'publishedOn' => 'published_on',
             'createdAt' => 'created_at',
             'updatedAt' => 'updated_at',
             'deletedAt' => 'deleted_at',
             'versionMasterId' => 'version_master_id',
-            'versionSavedAt' => 'version_saved_at'
+            'versionSavedAt' => 'version_saved_at',
         ];
     }
 
@@ -52,6 +50,7 @@ class ThreadDataMapper extends DataMapperBase
                 'postCount' => 'post_count',
                 'isRead' => 'is_read',
                 'isFollowed' => 'is_followed',
+                'lastPostId' => 'last_post_id',
             ]
         );
     }
@@ -65,84 +64,91 @@ class ThreadDataMapper extends DataMapperBase
      */
     public function count(callable $queryCallback = null, $column = '*')
     {
-        $query = $this->gettingQuery();
-
-        if (is_callable($queryCallback)) {
-            $query = $queryCallback($query);
-        }
-
-        return $this->executeQueryOrGetCached(
-            $query,
-            function (Builder $query) use ($column) {
-                $parentQuery = $query->newQuery();
-
-                return $parentQuery->from($query->raw('(' . $query->toSql() . ') as counted_table'))
-                    ->mergeBindings($query)
-                    ->count();
-            }
-        );
+        return $this->gettingQuery()->count();
     }
 
     public function gettingQuery()
     {
-        return parent::gettingQuery()->selectRaw(
-            'forum_threads.*, ' .
-            'forum_posts.published_on as last_post_published_on, ' .
-            'forum_posts.author_id as last_post_user_id, ' .
-            config('railforums.author_table_name') .
-            '.' .
-            config('railforums.author_table_display_name_column_name') .
-            ' as last_post_user_display_name, ' .
-            'forum_thread_reads.id IS NOT NULL AND forum_thread_reads.read_on >= forum_posts.published_on as is_read, ' .
-            'forum_thread_follows.id IS NOT NULL as is_followed'
-        )->leftJoin(
-            'forum_posts',
-            function (JoinClause $query) {
-                $query->on('forum_posts.thread_id', '=', 'forum_threads.id')
-                    ->on(
-                        'forum_posts.id',
-                        '=',
-                        'forum_threads.last_post_id'
-                    );
-            }
-        )->leftJoin(
-            config('railforums.author_table_name'),
-            function (JoinClause $query) {
-                $query->on(
-                    'forum_posts.author_id',
-                    '=',
-                    config('railforums.author_table_name') .
-                    '.' .
-                    config('railforums.author_table_id_column_name')
-                );
-            }
-        )->leftJoin(
-            'forum_thread_reads',
-            function (JoinClause $query) {
-                $query->on(
-                    'forum_thread_reads.thread_id',
-                    '=',
-                    'forum_threads.id'
-                )->on(
-                    'forum_thread_reads.reader_id',
-                    '=',
-                    $query->raw($this->userCloakDataMapper->getCurrentId())
-                );
-            }
-        )->leftJoin(
-            'forum_thread_follows',
-            function (JoinClause $query) {
-                $query->on(
-                    'forum_thread_follows.thread_id',
-                    '=',
-                    'forum_threads.id'
-                )->on(
-                    'forum_thread_follows.follower_id',
-                    '=',
-                    $query->raw($this->userCloakDataMapper->getCurrentId())
-                );
-            }
-        )->groupBy('forum_threads.id');
+        return parent::gettingQuery()
+            ->select('forum_threads.*')
+            ->selectSub(
+                function (Builder $builder) {
+
+                    return $builder->selectRaw('COUNT(*)')
+                        ->from('forum_posts')
+                        ->limit(1)
+                        ->whereRaw('forum_posts.thread_id = forum_threads.id');
+                },
+                'post_count'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+
+                    return $builder->select(['published_on'])
+                        ->from('forum_posts')
+                        ->whereNull($this->table . '.deleted_at')
+                        ->whereNull($this->table . '.version_master_id')
+                        ->limit(1)
+                        ->whereRaw('forum_posts.thread_id = forum_threads.id')
+                        ->orderBy('published_on', 'desc');
+                },
+                'last_post_published_on'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select(['id'])
+                        ->from('forum_posts')
+                        ->whereNull($this->table . '.deleted_at')
+                        ->whereNull($this->table . '.version_master_id')
+                        ->limit(1)
+                        ->whereRaw('forum_posts.thread_id = forum_threads.id')
+                        ->orderBy('published_on', 'desc');
+                },
+                'last_post_id'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select(['author_id'])
+                        ->from('forum_posts')
+                        ->whereNull($this->table . '.deleted_at')
+                        ->whereNull($this->table . '.version_master_id')
+                        ->limit(1)
+                        ->whereRaw('forum_posts.thread_id = forum_threads.id')
+                        ->orderBy('published_on', 'desc');
+                },
+                'last_post_user_id'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select([config('railforums.author_table_display_name_column_name')])
+                        ->from(config('railforums.author_table_name'))
+                        ->limit(1)
+                        ->whereRaw(config('railforums.author_table_name') . '.id = last_post_user_id');
+                },
+                'last_post_user_display_name'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder
+                        ->selectRaw('COUNT(*) > 0')
+                        ->from('forum_thread_reads')
+                        ->limit(1)
+                        ->where('reader_id', $this->userCloakDataMapper->getCurrentId())
+                        ->whereRaw('forum_thread_reads.thread_id = forum_threads.id');
+                },
+                'is_read'
+            )
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder
+                        ->selectRaw('COUNT(*) > 0')
+                        ->from('forum_thread_follows')
+                        ->limit(1)
+                        ->where('follower_id', $this->userCloakDataMapper->getCurrentId())
+                        ->whereRaw('forum_thread_follows.thread_id = forum_threads.id');
+                },
+                'is_followed'
+            );
     }
 
     /**

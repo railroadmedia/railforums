@@ -24,7 +24,6 @@ class ThreadJsonIndexRequest extends FormRequest
         return [
             'amount' =>'nullable|numeric',
             'page' => 'nullable|numeric|min:1',
-            'category_id' => 'required|numeric|exists:forum_categories,id',
             'pinned' => 'nullable|boolean',
             'followed' => 'nullable|boolean'
         ];

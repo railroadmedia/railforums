@@ -13,20 +13,21 @@ class CreateForumThreadFollows extends Migration
      */
     public function up()
     {
-        Schema::create(
-            'forum_thread_follows',
-            function (Blueprint $table) {
-                $table->increments('id');
-                $table->integer('thread_id')->unsigned();
-                $table->integer('follower_id')->unsigned();
-                $table->dateTime('followed_on');
+        Schema::connection(config('railforums.database_connection_name'))
+            ->create(
+                'forum_thread_follows',
+                function (Blueprint $table) {
+                    $table->increments('id');
+                    $table->integer('thread_id')->unsigned();
+                    $table->integer('follower_id')->unsigned();
+                    $table->dateTime('followed_on');
 
-                $table->timestamps();
+                    $table->timestamps();
 
-                $table->index(['thread_id']);
-                $table->index(['follower_id']);
-            }
-        );
+                    $table->index(['thread_id']);
+                    $table->index(['follower_id']);
+                }
+            );
     }
 
     /**

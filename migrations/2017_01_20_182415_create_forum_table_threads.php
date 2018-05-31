@@ -13,28 +13,28 @@ class CreateForumTableThreads extends Migration
      */
     public function up()
     {
-        Schema::create(
-            'forum_threads',
-            function (Blueprint $table) {
-                $table->increments('id');
-                $table->integer('category_id')->unsigned();
-                $table->integer('author_id')->unsigned();
-                $table->string('title');
-                $table->string('slug');
-                $table->boolean('pinned')->default(false);
-                $table->boolean('locked')->default(false);
-                $table->string('state');
-                $table->integer('post_count')->default(0);;
-                $table->integer('last_post_id');
-                $table->dateTime('published_on')->nullable();
+        Schema::connection(config('railforums.database_connection_name'))
+            ->create(
+                'forum_threads',
+                function (Blueprint $table) {
+                    $table->increments('id');
+                    $table->integer('category_id')->unsigned();
+                    $table->integer('author_id')->unsigned();
+                    $table->string('title');
+                    $table->string('slug');
+                    $table->boolean('pinned')->default(false);
+                    $table->boolean('locked')->default(false);
+                    $table->string('state');
+                    $table->integer('post_count')->default(0);;
+                    $table->dateTime('published_on')->nullable();
 
-                $table->timestamps();
-                $table->softDeletes();
+                    $table->timestamps();
+                    $table->softDeletes();
 
-                $table->integer('version_master_id')->nullable();
-                $table->timestamp('version_saved_at')->nullable();
-            }
-        );
+                    $table->integer('version_master_id')->nullable();
+                    $table->timestamp('version_saved_at')->nullable();
+                }
+            );
     }
 
     /**

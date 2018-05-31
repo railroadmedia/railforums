@@ -84,7 +84,7 @@ class UserCloak extends EntityBase
     public function getAvatarUrl()
     {
         if (empty($this->avatarUrl)) {
-            return cdn('defaults/avatar.png');
+            return 'https://dmmior4id2ysr.cloudfront.net/assets/images/avatar.svg';
         }
 
         return $this->avatarUrl;
@@ -101,7 +101,7 @@ class UserCloak extends EntityBase
     /**
      * @return string
      */
-    public function getPermissionLevel(): string
+    public function getPermissionLevel()
     {
         return $this->permissionLevel;
     }
@@ -109,7 +109,7 @@ class UserCloak extends EntityBase
     /**
      * @param string $permissionLevel
      */
-    public function setPermissionLevel(string $permissionLevel)
+    public function setPermissionLevel( $permissionLevel)
     {
         $this->permissionLevel = $permissionLevel;
     }
@@ -117,7 +117,7 @@ class UserCloak extends EntityBase
     /**
      * @return string
      */
-    public function getLabel(): string
+    public function getLabel()
     {
         return $this->label;
     }
@@ -125,7 +125,7 @@ class UserCloak extends EntityBase
     /**
      * @param string $label
      */
-    public function setLabel(string $label)
+    public function setLabel($label)
     {
         $this->label = $label;
     }

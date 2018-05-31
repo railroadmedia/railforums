@@ -5,6 +5,26 @@
  */
 
 return array(
+
+    // database
+    'database_connection_name' => 'mysql',
+
+    // host does the db migrations, clients do not
+    'data_mode' => 'host', // 'host' or 'client'
+
+    // cache
+    'cache_driver' => 'array',
+    'cache_key_prefix' => 'railforums_cache_',
+    'cache_minutes' => 60,
+
+    // middleware
+    'controller_middleware' => [
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+    ],
+
     'author_table_name' => 'users',
     'author_table_id_column_name' => 'id',
     'author_table_display_name_column_name' => 'display_name',

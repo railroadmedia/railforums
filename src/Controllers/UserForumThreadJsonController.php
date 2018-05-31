@@ -65,6 +65,8 @@ class UserForumThreadJsonController extends Controller
         $this->threadService = $threadService;
         $this->userCloakDataMapper = $userCloakDataMapper;
         $this->threadDataMapper = $threadDataMapper;
+
+        $this->middleware(config('railforums.controller_middleware'));
     }
 
     /**
@@ -135,16 +137,16 @@ class UserForumThreadJsonController extends Controller
                     (int) $request->get('amount') : self::AMOUNT;
         $page = $request->get('page') ?
                     (int) $request->get('page') : self::PAGE;
-        $categoryId = (int) $request->get('category_id');
+        $categoryIds = $request->get('category_ids', null);
         $pinned = (boolean) $request->get('pinned');
         $followed = $request->has('followed') ?
             (boolean) $request->get('followed') : null;
 
         $threads = $this->threadService
-            ->getThreads($amount, $page, $categoryId, $pinned, $followed);
+            ->getThreads($amount, $page, $categoryIds, $pinned, $followed);
 
         $threadsCount = $this->threadService
-            ->getThreadCount($categoryId, $followed);
+            ->getThreadCount($categoryIds, $followed);
 
         $response = [
             'threads' => [],
