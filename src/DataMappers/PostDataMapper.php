@@ -4,8 +4,10 @@ namespace Railroad\Railforums\DataMappers;
 
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Entities\PostReply;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railmap\Entity\Links\OneToOne;
+use Railroad\Railmap\Entity\Links\OneToMany;
 
 /**
  * Class PostDataMapper
@@ -192,6 +194,7 @@ class PostDataMapper extends DataMapperBase
             ////                        }
             //                }
             //            ),
+            'replyParents' => new OneToMany(PostReply::class, 'id', 'childPostId', 'replyParents'),
             'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
             'promptingPost' => new OneToOne(Post::class, 'promptingPostId', 'id', 'promptingPost'),
         ];

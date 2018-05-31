@@ -266,7 +266,7 @@ class Post extends EntityBase
     /**
      * @return int
      */
-    public function getLiker1Id(): int
+    public function getLiker1Id()
     {
         return $this->liker1Id;
     }
@@ -282,7 +282,7 @@ class Post extends EntityBase
     /**
      * @return string
      */
-    public function getLiker1DisplayName(): string
+    public function getLiker1DisplayName()
     {
         return $this->liker1DisplayName;
     }
@@ -298,7 +298,7 @@ class Post extends EntityBase
     /**
      * @return int
      */
-    public function getLiker2Id(): int
+    public function getLiker2Id()
     {
         return $this->liker2Id;
     }
@@ -314,7 +314,7 @@ class Post extends EntityBase
     /**
      * @return string
      */
-    public function getLiker2DisplayName(): string
+    public function getLiker2DisplayName()
     {
         return $this->liker2DisplayName;
     }
@@ -330,7 +330,7 @@ class Post extends EntityBase
     /**
      * @return int
      */
-    public function getLiker3Id(): int
+    public function getLiker3Id()
     {
         return $this->liker3Id;
     }
@@ -346,7 +346,7 @@ class Post extends EntityBase
     /**
      * @return string
      */
-    public function getLiker3DisplayName(): string
+    public function getLiker3DisplayName()
     {
         return $this->liker3DisplayName;
     }

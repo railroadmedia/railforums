@@ -5,17 +5,24 @@ namespace Railroad\Railforums\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Railroad\Railforums\DataMappers\PostDataMapper;
+use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Requests\PostJsonIndexRequest;
 use Railroad\Railforums\Requests\PostJsonCreateRequest;
 use Railroad\Railforums\Requests\PostJsonUpdateRequest;
 use Railroad\Railforums\Services\PostLikes\ForumPostLikeService;
 use Railroad\Railforums\Services\Posts\UserForumPostService;
+use Railroad\Railforums\Services\PostReplies\PostReplyService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumPostJsonController extends Controller
 {
     const AMOUNT = 10;
     const PAGE = 1;
+
+    /**
+     * @var PostReplyService
+     */
+    protected $postReplyService;
 
     /**
      * @var ForumPostLikeService
@@ -40,10 +47,12 @@ class UserForumPostJsonController extends Controller
      * @param PostDataMapper $postDataMapper
      */
     public function __construct(
+        PostReplyService $postReplyService,
         ForumPostLikeService $postLikeService,
         UserForumPostService $postService,
         PostDataMapper $postDataMapper
     ) {
+        $this->postReplyService = $postReplyService;
         $this->postLikeService = $postLikeService;
         $this->postService = $postService;
         $this->postDataMapper = $postDataMapper;
@@ -134,6 +143,31 @@ class UserForumPostJsonController extends Controller
                 /** @var \Railroad\Railforums\Entities\PostLike $postLike */
                 $result['recentLikes'][] = $postLike->flatten();
             }
+        }
+
+        $postReplies = $this->postReplyService->getReplies($post->getId());
+
+        $result['postReplies'] = [];
+
+        foreach ($postReplies as $postReply) {
+
+            /** @var \Railroad\Railforums\Entities\PostReply $postReply */
+            $flatPostReply = $postReply->flatten();
+
+            $links = $postReply->getLoadedLinkedEntities();
+            if (
+                is_array($links) &&
+                isset($links['parent']) &&
+                $links['parent'] instanceof Post
+            ) {
+
+                /** @var \Railroad\Railforums\Entities\Post $parentPost */
+                $parentPost = $links['parent'];
+
+                $flatPostReply['parent'] = $parentPost->flatten();
+            }
+
+            $result['postReplies'][] = $flatPostReply;
         }
 
         return response()->json($result);

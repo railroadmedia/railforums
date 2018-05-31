@@ -4,6 +4,7 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Entities\PostLike;
+use Railroad\Railforums\Entities\PostReply;
 use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 
@@ -184,6 +185,82 @@ class UserForumPostJsonControllerTest extends TestCase
         $response->assertJsonFragment([
             'content' => $post->getContent()
         ]);
+    }
+
+    public function test_post_show_with_replies()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $postsMap = [];
+
+        $postOne = $this->fakePost($thread->getId(), $user->getId());
+        $postsMap[$postOne->getId()] = $postOne;
+
+        $postTwo = $this->fakePost($thread->getId(), $user->getId());
+        $postsMap[$postTwo->getId()] = $postTwo;
+
+        $postThree = $this->fakePost($thread->getId(), $user->getId());
+        $postsMap[$postThree->getId()] = $postThree;
+
+        $postFour = $this->fakePost($thread->getId(), $user->getId());
+        $postsMap[$postFour->getId()] = $postFour;
+
+        $repliesMap = [];
+
+        $postReplyOneFour = new PostReply();
+        $postReplyOneFour->setParentPostId($postOne->getId());
+        $postReplyOneFour->setChildPostId($postFour->getId());
+        $postReplyOneFour->persist();
+
+        $repliesMap[$postReplyOneFour->getId()] = $postReplyOneFour;
+
+        $postReplyTwoFour = new PostReply();
+        $postReplyTwoFour->setParentPostId($postTwo->getId());
+        $postReplyTwoFour->setChildPostId($postFour->getId());
+        $postReplyTwoFour->persist();
+
+        $repliesMap[$postReplyTwoFour->getId()] = $postReplyTwoFour;
+
+        $postReplyThreeFour = new PostReply();
+        $postReplyThreeFour->setParentPostId($postThree->getId());
+        $postReplyThreeFour->setChildPostId($postFour->getId());
+        $postReplyThreeFour->persist();
+
+        // ^^ postFour is set to quote/reply to postOne, postTwo, postThree
+
+        $repliesMap[$postReplyThreeFour->getId()] = $postReplyThreeFour;
+
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/post/show/' . $postFour->getId()
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert reponse has postReplies data
+        $this->assertArrayHasKey('postReplies', $results);
+        $this->assertEquals(count($results['postReplies']), count($repliesMap));
+
+        foreach ($results['postReplies'] as $postReply) {
+
+            // assert postReply id is set in repliesMap array
+            $postReplyId = $postReply['id'];
+
+            $this->assertArrayHasKey($postReplyId, $repliesMap);
+
+            // assert parent post id
+            $parentPostId = $postReply['parentPostId'];
+
+            $this->assertEquals($parentPostId, $repliesMap[$postReplyId]->getParentPostId());
+
+            // assert parent post content
+            $this->assertEquals($postReply['parent']['content'], $postsMap[$parentPostId]->getContent());
+        }
     }
 
     public function test_post_show_recent_likes()

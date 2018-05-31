@@ -181,7 +181,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         $payload = [
             'amount' => 10,
             'page' => 1,
-            'category_id' => $categoryOne->getId()
+            'category_ids' => [$categoryOne->getId()]
         ];
 
         $response = $this->call(
@@ -203,7 +203,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         // assert reponse entities have the requested category
         foreach ($results['threads'] as $thread) {
-            $this->assertEquals($thread['categoryId'], $payload['category_id']);
+            $this->assertEquals($thread['categoryId'], $categoryOne->getId());
         }
     }
 
