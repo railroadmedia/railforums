@@ -183,9 +183,10 @@ class UserForumPostJsonController extends Controller
         $content = $request->get('content');
         $promptingPostId = $request->get('prompting_post_id');
         $threadId = $request->get('thread_id');
+        $parentIds = $request->get('parent_ids', []);
 
         $post = $this->postService
-            ->createPost($content, $promptingPostId, $threadId);
+            ->createPost($content, $promptingPostId, $threadId, $parentIds);
 
         return response()->json($post->flatten());
     }

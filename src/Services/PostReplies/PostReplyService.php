@@ -24,13 +24,8 @@ class PostReplyService
      */
     public function getReplies($childPostId)
     {
-        // $this->postReplyDataMapper->with = ['parent'];
-
-        // echo "\n\n $$$ getReplies\n\n";
-
         return $this->postReplyDataMapper->getWithQuery(
             function (Builder $builder) use ($childPostId) {
-                // echo "\n\n $$$ getReplies builder\n\n";
                 return $builder
                     ->where('child_post_id', $childPostId);
             }

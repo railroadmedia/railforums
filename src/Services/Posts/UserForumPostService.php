@@ -6,8 +6,10 @@ use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
+use Railroad\Railforums\DataMappers\PostReplyDataMapper;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Entities\PostReply;
 use Railroad\Railforums\Events\PostCreated;
 use Railroad\Railforums\Events\PostDeleted;
 use Railroad\Railforums\Events\PostUpdated;
@@ -18,6 +20,12 @@ class UserForumPostService
     protected $htmlPurifierService;
     protected $postDataMapper;
     protected $threadDataMapper;
+
+    /**
+     * @var PostReplyDataMapper
+     */
+    protected $postReplyDataMapper;
+
     protected $userCloakDataMapper;
 
     protected $accessibleStates = [Post::STATE_PUBLISHED];
@@ -26,11 +34,13 @@ class UserForumPostService
         HTMLPurifierService $htmlPurifierService,
         PostDataMapper $postDataMapper,
         ThreadDataMapper $threadDataMapper,
+        PostReplyDataMapper $postReplyDataMapper,
         UserCloakDataMapper $userCloakDataMapper
     ) {
         $this->htmlPurifierService = $htmlPurifierService;
         $this->postDataMapper = $postDataMapper;
         $this->threadDataMapper = $threadDataMapper;
+        $this->postReplyDataMapper = $postReplyDataMapper;
         $this->userCloakDataMapper = $userCloakDataMapper;
     }
 
@@ -159,12 +169,14 @@ class UserForumPostService
      * @param string $content
      * @param int $promptingPostId
      * @param int $threadId
+     * @param array $parentIds
      * @return Post
      */
     public function createPost(
         $content,
         $promptingPostId,
-        $threadId
+        $threadId,
+        $parentIds = []
     ) {
         $content = $this->htmlPurifierService->clean($content);
 
@@ -177,8 +189,16 @@ class UserForumPostService
         $post->setPublishedOn(Carbon::now()->toDateTimeString());
         $post->persist();
 
+        foreach ($parentIds as $parentId) {
+            $postReply = new PostReply();
+            $postReply->setParentPostId($parentId);
+            $postReply->setChildPostId($post->getId());
+            $postReply->persist();
+        }
+
         $this->postDataMapper->flushCache();
         $this->threadDataMapper->flushCache();
+        $this->postReplyDataMapper->flushCache();
 
         event(new PostCreated($post->getId(), $this->userCloakDataMapper->getCurrentId()));
 

@@ -376,6 +376,82 @@ class UserForumPostJsonControllerTest extends TestCase
         ]);
     }
 
+    public function test_post_store_with_replies()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $category = $this->fakeCategory();
+
+        $thread = $this->fakeThread($category->getId(), $user->getId());
+
+        $postOne = $this->fakePost($thread->getId(), $user->getId());
+        $postTwo = $this->fakePost($thread->getId(), $user->getId());
+        $postThree = $this->fakePost($thread->getId(), $user->getId());
+
+        $postData = [
+            'content' => $this->faker->sentence(),
+            'thread_id' => $thread->getId(),
+            'parent_ids' => [
+                $postOne->getId(),
+                $postTwo->getId(),
+                $postThree->getId()
+            ]
+        ];
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/store',
+            $postData
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // assert the post data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'content' => $postData['content'],
+                'thread_id' => $postData['thread_id']
+            ]
+        );
+
+        // assert response data
+        $response->assertJsonFragment([
+            'content' => $postData['content'],
+            'threadId' => $postData['thread_id']
+        ]);
+
+        $postResponse = $response->decodeResponseJson();
+
+        // assert postOne is marked as parent in db
+        $this->assertDatabaseHas(
+            'forum_post_replies',
+            [
+                'parent_post_id' => $postOne->getId(),
+                'child_post_id' => $postResponse['id']
+            ]
+        );
+
+        // assert postTwo is marked as parent in db
+        $this->assertDatabaseHas(
+            'forum_post_replies',
+            [
+                'parent_post_id' => $postTwo->getId(),
+                'child_post_id' => $postResponse['id']
+            ]
+        );
+
+        // assert postThree is marked as parent in db
+        $this->assertDatabaseHas(
+            'forum_post_replies',
+            [
+                'parent_post_id' => $postThree->getId(),
+                'child_post_id' => $postResponse['id']
+            ]
+        );
+    }
+
     public function test_post_store_validation_fail()
     {
         $response = $this->call(
