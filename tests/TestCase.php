@@ -74,8 +74,15 @@ class TestCase extends BaseTestCase
      */
     protected function getEnvironmentSetUp($app)
     {
+        $defaultConfig = require(__DIR__ . '/../config/railforums.php');
+
+        foreach ($defaultConfig as $key => $value) {
+            $app['config']->set('railforums.' . $key, $value);
+        }
+
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
+        $app['config']->set('railforums.database_connection_name', 'testbench');
         $app['config']->set(
             'database.connections.testbench',
             [
@@ -113,7 +120,7 @@ class TestCase extends BaseTestCase
             'railforums.user_data_mapper_class',
             UserCloakDataMapper::class
         );
-
+        $app['config']->set('railforums.controller_middleware', []);
         $app->register(RailmapServiceProvider::class);
         $app->register(ForumServiceProvider::class);
     }
