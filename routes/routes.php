@@ -133,4 +133,10 @@ Route::group(
             'post/unlike/{id}',
             \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@unlike'
         )->name('railforums.api.post.unlike');
+
+        // search
+        Route::get(
+            'search',
+            \Railroad\Railforums\Controllers\UserForumSearchJsonController::class . '@index'
+        )->name('railforums.api.search.index');
     });

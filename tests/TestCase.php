@@ -35,9 +35,18 @@ class TestCase extends BaseTestCase
      */
     protected $userCloakDataMapper;
 
+    /**
+     * @var string
+     */
+    protected $defaultConnection;
+
     protected function setUp()
     {
         parent::setUp();
+
+        if (!$this->getDefaultConnection()) {
+            $this->setDefaultConnection('testbench');
+        }
 
         $this->artisan('migrate:fresh', []);
         $this->createUsersTable();
@@ -80,15 +89,31 @@ class TestCase extends BaseTestCase
             $app['config']->set('railforums.' . $key, $value);
         }
 
-        // Setup default database to use sqlite :memory:
-        $app['config']->set('database.default', 'testbench');
-        $app['config']->set('railforums.database_connection_name', 'testbench');
+        $app['config']->set('database.default', $this->getDefaultConnection());
+        $app['config']->set('railforums.database_connection_name', $this->getDefaultConnection());
         $app['config']->set(
             'database.connections.testbench',
             [
                 'driver' => 'sqlite',
                 'database' => ':memory:',
                 'prefix' => '',
+            ]
+        );
+        $app['config']->set(
+            'database.connections.mysql',
+            [
+                'driver' => 'mysql',
+                'host' => 'mysql',
+                'port' => env('MYSQL_PORT', '3306'),
+                'database' => env('MYSQL_DB','railformus_tests'),
+                'username' => 'root',
+                'password' => 'root',
+                'charset' => 'utf8',
+                'collation' => 'utf8_general_ci',
+                'prefix' => '',
+                'options' => [
+                    \PDO::ATTR_PERSISTENT => true,
+                ]
             ]
         );
         $app['config']->set(
@@ -236,6 +261,29 @@ class TestCase extends BaseTestCase
                 }
             }
         );
+
+        return $this;
+    }
+
+    /**
+     * Get database default connection name
+     *
+     * @return string
+     */
+    public function getDefaultConnection()
+    {
+        return $this->defaultConnection;
+    }
+
+    /**
+     * Set database default connection name
+     *
+     * @param  string $name
+     * @return TestCase
+     */
+    public function setDefaultConnection($name)
+    {
+        $this->defaultConnection = $name;
 
         return $this;
     }
