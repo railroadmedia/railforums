@@ -174,6 +174,30 @@ class UserForumThreadService
     }
 
     /**
+     * @param $id
+     * @param array $attributes
+     * @return Thread|null
+     */
+    public function updateThread($id, array $attributes)
+    {
+        $thread = $this->threadDataMapper->get($id);
+
+        if (!empty($thread) && $this->userCloakDataMapper->getCurrent()->canEditAnyThreads()) {
+            $thread->fill($attributes);
+            $thread->setSlug(RailmapHelpers::sanitizeForSlug($thread->getTitle()));
+            $thread->persist();
+
+            $this->threadDataMapper->flushCache();
+
+            event(new ThreadUpdated($id, $this->userCloakDataMapper->getCurrentId()));
+
+            return $thread;
+        }
+
+        return null;
+    }
+
+    /**
      * @param string $title
      * @param string $firstPostContent
      * @param int $categoryId

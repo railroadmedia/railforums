@@ -174,7 +174,22 @@ class UserForumThreadController extends Controller
         $title = $request->get('title');
 
         $result = $this->threadService
-            ->updateThreadTitle($id, $title);
+            ->updateThread(
+                $id,
+                $request->only(
+                    [
+                        'category_id',
+                        'author_id',
+                        'title',
+                        'slug',
+                        'pinned',
+                        'locked',
+                        'state',
+                        'post_count',
+                        'published_on',
+                    ]
+                )
+            );
 
         if (!$result) {
             throw new NotFoundHttpException();

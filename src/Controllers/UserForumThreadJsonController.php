@@ -204,14 +204,29 @@ class UserForumThreadJsonController extends Controller
     {
         $title = $request->get('title');
 
-        $thread = $this->threadService
-                ->updateThreadTitle($id, $title);
+        $result = $this->threadService
+            ->updateThread(
+                $id,
+                $request->only(
+                    [
+                        'category_id',
+                        'author_id',
+                        'title',
+                        'slug',
+                        'pinned',
+                        'locked',
+                        'state',
+                        'post_count',
+                        'published_on',
+                    ]
+                )
+            );
 
-        if (!$thread) {
+        if (!$result) {
             throw new NotFoundHttpException();
         }
 
-        return response()->json($thread->flatten());
+        return response()->json($result->flatten());
     }
 
     /**

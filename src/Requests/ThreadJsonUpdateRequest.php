@@ -22,7 +22,7 @@ class ThreadJsonUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' =>'required|string|max:255'
+            'title' =>'min:1|string|max:255'
         ];
     }
 }
