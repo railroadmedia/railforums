@@ -2,8 +2,11 @@
 
 namespace Railroad\Railforums\DataMappers;
 
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Railroad\Railforums\Entities\Post;
+use Railroad\Railforums\Entities\SearchIndex;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railmap\Entity\Links\OneToOne;
@@ -166,4 +169,50 @@ class ThreadDataMapper extends DataMapperBase
             'author' => new OneToOne(UserCloak::class, 'authorId', 'id', 'author'),
         ];
     }
+
+    /**
+     * Create search index rows that represent a thread
+     */
+    public function createSearchIndexes()
+    {
+        $authorsTable = config('railforums.author_table_name');
+        $authorsTableKey = config('railforums.author_table_id_column_name');
+        $displayNameColumn = config('railforums.author_table_display_name_column_name');
+
+        $query = $this
+            ->baseQuery()
+            ->addSelect($authorsTable . '.' . $displayNameColumn)
+            ->join(
+                $authorsTable,
+                $authorsTable . '.' . $authorsTableKey,
+                '=',
+                $this->table . '.' . 'author_id'
+            )
+            ->orderBy('id');
+
+        $query->chunk(
+            100,
+            function (Collection $threads) {
+                /**
+                 * @var $threads Thread[]
+                 */
+
+                foreach ($threads as $thread) {
+
+                    $searchIndex = new SearchIndex();
+
+                    $searchIndex
+                        ->setHighValue($thread->getTitle())
+                        ->setMediumValue($thread->getAuthor()->getDisplayName())
+                        ->setPostId(null)
+                        ->setThreadId($thread->getId())
+                        ->setCreatedAt(Carbon::now()->toDateTimeString());
+
+                    $searchIndex->persist();
+                }
+            }
+        );
+
+    }
+
 }

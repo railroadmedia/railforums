@@ -111,6 +111,9 @@ class SearchIndexDataMapper extends DataMapperBase
             ->skip(($page - 1) * $limit)
             ->orderBy($sort, 'DESC');
 
+        // if $type == 'post', set where on query 'post_id' IS NOT NULL
+        // if $type == 'thread', set where on query 'post_id' IS NULL
+
         echo "\n\n search query: " . $query->toSql() . "\n\n";
 
         // TODO - get ids from search results and query for Post and/or Threads objects
@@ -128,83 +131,10 @@ class SearchIndexDataMapper extends DataMapperBase
         //delete old indexes
         $this->deleteOldIndexes();
 
-        $this->indexMapper($this->postDataMapper);
-        $this->indexMapper($this->threadDataMapper);
+        $this->postDataMapper->createSearchIndexes();
+        $this->threadDataMapper->createSearchIndexes();
 
         DB::statement('OPTIMIZE table ' . $this->table);
-    }
-
-    /**
-     * Creates and persists a collection of SearchIndex entities
-     * SearchIndex entities are created based on mapper's collection
-     *
-     * @param DataMapperBase $mapper
-     */
-    protected function indexMapper(DataMapperBase $mapper)
-    {
-        /** @var \Illuminate\Database\Query\Builder $query */
-        $query = $mapper
-                    ->baseQuery()
-                    ->select($mapper->table . '.*')
-                    ->addSelect($this->authorsTable . '.' . $this->displayNameColumn)
-                    ->join(
-                        $this->authorsTable,
-                        $this->authorsTable . '.' . $this->authorsTableKey,
-                        '=',
-                        $mapper->table . '.' . self::AUTHOR_KEY_COLUMN
-                    )
-                    ->orderBy('id');
-
-        $query->chunk(
-            self::CHUNK_SIZE,
-            function (Collection $results) use ($mapper) {
-
-                foreach ($results as $entityData) {
-
-                    /** @var EntityBase $entity */
-                    $entity = $mapper->entity();
-
-                    $mapper->fill($entity, (array) $entityData);
-
-                    $searchIndex = $this->createSearchIndex(
-                                        $entity,
-                                        $entityData->{$this->displayNameColumn}
-                                    );
-
-                    $searchIndex->persist();
-                }
-            }
-        );
-    }
-
-    /**
-     * @param EntityBase $entity
-     * @param string $authorName
-     *
-     * @return SearchIndex
-     */
-    protected function createSearchIndex(EntityBase $entity, $authorName)
-    {
-        $searchIndex = new SearchIndex();
-
-        if ($entity instanceof Post) {
-            /** @var Post $entity */
-            $searchIndex
-                ->setMediumValue($entity->getContent())
-                ->setPostId($entity->getId())
-                ->setThreadId($entity->getThreadId());
-        } else {
-            /** @var \Railroad\Railforums\Entities\Thread $entity */
-            $searchIndex
-                ->setHighValue($entity->getTitle())
-                ->setThreadId($entity->getId());
-        }
-
-        $searchIndex
-            ->setLowValue($authorName)
-            ->setCreatedAt(Carbon::now()->toDateTimeString());
-
-        return $searchIndex;
     }
 
     /**

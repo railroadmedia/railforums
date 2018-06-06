@@ -2,12 +2,15 @@
 
 namespace Railroad\Railforums\DataMappers;
 
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\PostReply;
+use Railroad\Railforums\Entities\SearchIndex;
 use Railroad\Railforums\Entities\UserCloak;
-use Railroad\Railmap\Entity\Links\OneToOne;
 use Railroad\Railmap\Entity\Links\OneToMany;
+use Railroad\Railmap\Entity\Links\OneToOne;
 
 /**
  * Class PostDataMapper
@@ -237,5 +240,50 @@ class PostDataMapper extends DataMapperBase
                         ->limit(1);
                 }
             )[0] ?? null;
+    }
+
+    /**
+     * Create search index rows that represent a post
+     */
+    public function createSearchIndexes()
+    {
+        $authorsTable = config('railforums.author_table_name');
+        $authorsTableKey = config('railforums.author_table_id_column_name');
+        $displayNameColumn = config('railforums.author_table_display_name_column_name');
+
+        $query = $this
+            ->baseQuery()
+            ->addSelect($authorsTable . '.' . $displayNameColumn)
+            ->join(
+                $authorsTable,
+                $authorsTable . '.' . $authorsTableKey,
+                '=',
+                $this->table . '.' . 'author_id'
+            )
+            ->orderBy('id');
+
+        $query->chunk(
+            100,
+            function (Collection $posts) {
+                /**
+                 * @var $posts Post[]
+                 */
+
+                foreach ($posts as $post) {
+
+                    $searchIndex = new SearchIndex();
+
+                    $searchIndex
+                        ->setHighValue($post->getContent())
+                        ->setMediumValue($post->getAuthor()->getDisplayName())
+                        ->setPostId($post->getId())
+                        ->setThreadId($post->getThreadId())
+                        ->setCreatedAt(Carbon::now()->toDateTimeString());
+
+                    $searchIndex->persist();
+                }
+            }
+        );
+
     }
 }
