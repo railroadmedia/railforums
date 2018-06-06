@@ -3,7 +3,7 @@
 namespace Railroad\Railforums\Commands;
 
 use Illuminate\Console\Command;
-use Railroad\Railforums\DataMappers\PostsSearchIndexDataMapper;
+use Railroad\Railforums\DataMappers\SearchIndexDataMapper;
 
 class CreateSearchIndexes extends Command
 {
@@ -22,9 +22,9 @@ class CreateSearchIndexes extends Command
     protected $description = 'Create search indexes';
 
     /**
-     * @var PostsSearchIndexDataMapper
+     * @var SearchIndexDataMapper
      */
-    protected $postsSearchIndexDataMapper;
+    protected $searchIndexDataMapper;
 
     /**
      * Create a new command instance.
@@ -32,11 +32,11 @@ class CreateSearchIndexes extends Command
      * @return void
      */
     public function __construct(
-        PostsSearchIndexDataMapper $postsSearchIndexDataMapper
+        SearchIndexDataMapper $searchIndexDataMapper
     ) {
         parent::__construct();
 
-        $this->postsSearchIndexDataMapper = $postsSearchIndexDataMapper;
+        $this->searchIndexDataMapper = $searchIndexDataMapper;
     }
 
     /**
@@ -44,6 +44,6 @@ class CreateSearchIndexes extends Command
      */
     public function handle()
     {
-        $this->postsSearchIndexDataMapper->createSearchIndexes();
+        $this->searchIndexDataMapper->createSearchIndexes();
     }
 }

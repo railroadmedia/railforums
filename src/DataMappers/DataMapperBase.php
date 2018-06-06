@@ -44,4 +44,9 @@ abstract class DataMapperBase extends DatabaseDataMapperBase
 
         return $query;
     }
+
+    /**
+     * @return \Railroad\Railmap\Entity\EntityInterface
+     */
+    abstract public function entity();
 }

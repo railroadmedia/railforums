@@ -26,9 +26,10 @@ class UserForumSearchJsonController extends Controller
     {
         $resultData = $this->searchService->search(
             $request->get('term', null),
+            $request->get('type', null),
             $request->get('page', 1),
             $request->get('limit', 10),
-            $request->get('sort', '-score')
+            $request->get('sort', 'score')
         );
 
         return new JsonPaginatedResponse(

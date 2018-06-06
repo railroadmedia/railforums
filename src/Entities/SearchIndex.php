@@ -4,11 +4,11 @@ namespace Railroad\Railforums\Entities;
 
 use Carbon\Carbon;
 use Faker\Generator;
-use Railroad\Railforums\DataMappers\PostsSearchIndexDataMapper;
+use Railroad\Railforums\DataMappers\SearchIndexDataMapper;
 use Railroad\Railmap\Entity\EntityBase;
 use Railroad\Railmap\Entity\Properties\Timestamps;
 
-class PostsSearchIndex extends EntityBase
+class SearchIndex extends EntityBase
 {
     use Timestamps;
 
@@ -28,11 +28,21 @@ class PostsSearchIndex extends EntityBase
     private $lowValue;
 
     /**
-     * PostsSearchIndex constructor.
+     * @var int
+     */
+    private $threadId;
+
+    /**
+     * @var int
+     */
+    private $postId;
+
+    /**
+     * SearchIndex constructor.
      */
     public function __construct()
     {
-        $this->setOwningDataMapper(app(PostsSearchIndexDataMapper::class));
+        $this->setOwningDataMapper(app(SearchIndexDataMapper::class));
     }
 
     /**
@@ -46,7 +56,7 @@ class PostsSearchIndex extends EntityBase
     /**
      * @param string $highValue
      *
-     * @return PostsSearchIndex
+     * @return SearchIndex
      */
     public function setHighValue($highValue)
     {
@@ -66,7 +76,7 @@ class PostsSearchIndex extends EntityBase
     /**
      * @param string $mediumValue
      *
-     * @return PostsSearchIndex
+     * @return SearchIndex
      */
     public function setMediumValue($mediumValue)
     {
@@ -86,11 +96,51 @@ class PostsSearchIndex extends EntityBase
     /**
      * @param string $lowValue
      *
-     * @return PostsSearchIndex
+     * @return SearchIndex
      */
     public function setLowValue($lowValue)
     {
         $this->lowValue = $lowValue;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getThreadId()
+    {
+        return $this->threadId;
+    }
+
+    /**
+     * @param int $threadId
+     *
+     * @return SearchIndex
+     */
+    public function setThreadId($threadId)
+    {
+        $this->threadId = $threadId;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPostId()
+    {
+        return $this->postId;
+    }
+
+    /**
+     * @param int $postId
+     *
+     * @return SearchIndex
+     */
+    public function setPostId($postId)
+    {
+        $this->postId = $postId;
 
         return $this;
     }
@@ -106,6 +156,8 @@ class PostsSearchIndex extends EntityBase
         $this->setHighValue($faker->paragraph());
         $this->setMediumValue($faker->paragraph());
         $this->setLowValue($faker->paragraph());
+        $this->setThreadId($faker->numberBetween());
+        $this->setPostId($faker->numberBetween());
         $this->setCreatedAt(Carbon::instance($faker->dateTime)->toDateTimeString());
     }
 }

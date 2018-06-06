@@ -2,36 +2,43 @@
 
 namespace Railroad\Railforums\Services\Search;
 
-use Railroad\Railforums\DataMappers\PostsSearchIndexDataMapper;
+use Railroad\Railforums\DataMappers\SearchIndexDataMapper;
 
 class SearchService
 {
     /**
-     * @var PostsSearchIndexDataMapper
+     * @var SearchIndexDataMapper
      */
-    protected $postsSearchIndexDataMapper;
+    protected $searchIndexDataMapper;
 
     /**
      * SearchService constructor.
      *
-     * @param PostsSearchIndexDataMapper $postsSearchIndexDataMapper
+     * @param SearchIndexDataMapper $searchIndexDataMapper
      */
     public function __construct(
-        PostsSearchIndexDataMapper $postsSearchIndexDataMapper
+        SearchIndexDataMapper $searchIndexDataMapper
     ) {
-        $this->postsSearchIndexDataMapper = $postsSearchIndexDataMapper;
+        $this->searchIndexDataMapper = $searchIndexDataMapper;
     }
 
     /**
      * @param string $term
+     * @param string $type
      * @param int $page
      * @param int $limit
      * @param string $sort
      *
      * @return array
      */
-    public function search($term, $page, $limit, $sort)
+    public function search($term, $type, $page, $limit, $sort)
     {
-        return ['results' => [], 'total_results' => 50];
+        $results = $this->searchIndexDataMapper
+                        ->search($term, $type, $page, $limit, $sort);
+
+        $count = $this->searchIndexDataMapper
+                        ->countTotalResults($term, $type);
+
+        return ['results' => $results, 'total_results' => $count];
     }
 }
