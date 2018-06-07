@@ -49,4 +49,18 @@ abstract class DataMapperBase extends DatabaseDataMapperBase
      * @return \Railroad\Railmap\Entity\EntityInterface
      */
     abstract public function entity();
+
+    /**
+     * @param \stdClass $entityStdData
+     *
+     * @return \Railroad\Railmap\Entity\EntityInterface
+     */
+    public function getHydratedEntity(\stdClass $entityStdData)
+    {
+        $entity = $this->entity();
+
+        $this->fill($entity, (array) $entityStdData);
+
+        return $entity;
+    }
 }

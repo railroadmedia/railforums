@@ -44,4 +44,10 @@ return array(
             ],
         ],
     ],
+
+    'search' => [
+        'high_value_multiplier' => 4,
+        'medium_value_multiplier' => 2,
+        'low_value_multiplier' => 1,
+    ]
 );

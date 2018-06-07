@@ -181,6 +181,7 @@ class ThreadDataMapper extends DataMapperBase
 
         $query = $this
             ->baseQuery()
+            ->select($this->table . '.*')
             ->addSelect($authorsTable . '.' . $displayNameColumn)
             ->join(
                 $authorsTable,
@@ -192,18 +193,19 @@ class ThreadDataMapper extends DataMapperBase
 
         $query->chunk(
             100,
-            function (Collection $threads) {
-                /**
-                 * @var $threads Thread[]
-                 */
+            function (Collection $threadsData) use ($displayNameColumn) {
 
-                foreach ($threads as $thread) {
+                foreach ($threadsData as $threadStdData) {
+
+                    /** @var Thread $thread */
+                    $thread = $this->getHydratedEntity($threadStdData);
 
                     $searchIndex = new SearchIndex();
 
                     $searchIndex
                         ->setHighValue($thread->getTitle())
-                        ->setMediumValue($thread->getAuthor()->getDisplayName())
+                        ->setMediumValue(null)
+                        ->setLowValue($threadStdData->{$displayNameColumn})
                         ->setPostId(null)
                         ->setThreadId($thread->getId())
                         ->setCreatedAt(Carbon::now()->toDateTimeString());

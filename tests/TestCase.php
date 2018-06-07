@@ -163,6 +163,7 @@ class TestCase extends BaseTestCase
     {
         $entity = new Thread();
         $entity->randomize();
+        $entity->setTitle($this->faker->sentence(20));
         if ($categoryId) {
             $entity->setCategoryId($categoryId);
         }

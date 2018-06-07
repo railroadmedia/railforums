@@ -253,6 +253,7 @@ class PostDataMapper extends DataMapperBase
 
         $query = $this
             ->baseQuery()
+            ->select($this->table . '.*')
             ->addSelect($authorsTable . '.' . $displayNameColumn)
             ->join(
                 $authorsTable,
@@ -260,22 +261,23 @@ class PostDataMapper extends DataMapperBase
                 '=',
                 $this->table . '.' . 'author_id'
             )
-            ->orderBy('id');
+            ->orderBy($this->table . '.id');
 
         $query->chunk(
             100,
-            function (Collection $posts) {
-                /**
-                 * @var $posts Post[]
-                 */
+            function (Collection $postsData) use ($displayNameColumn) {
 
-                foreach ($posts as $post) {
+                foreach ($postsData as $postStdData) {
+
+                    /** @var Post $post */
+                    $post = $this->getHydratedEntity($postStdData);
 
                     $searchIndex = new SearchIndex();
 
                     $searchIndex
-                        ->setHighValue($post->getContent())
-                        ->setMediumValue($post->getAuthor()->getDisplayName())
+                        ->setHighValue(null)
+                        ->setMediumValue($post->getContent())
+                        ->setLowValue($postStdData->{$displayNameColumn})
                         ->setPostId($post->getId())
                         ->setThreadId($post->getThreadId())
                         ->setCreatedAt(Carbon::now()->toDateTimeString());

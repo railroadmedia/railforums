@@ -5,6 +5,7 @@ namespace Railroad\Railforums\DataMappers;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Query\Builder;
 use Railroad\Railmap\Entity\EntityBase;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Entities\SearchIndex;
@@ -16,7 +17,8 @@ use Railroad\Railforums\Entities\SearchIndex;
 class SearchIndexDataMapper extends DataMapperBase
 {
     const CHUNK_SIZE = 100;
-    const AUTHOR_KEY_COLUMN = 'author_id';
+    const SEARCH_TYPE_POSTS = 'posts';
+    const SEARCH_TYPE_THREADS = 'threads';
 
     /**
      * @var string
@@ -32,21 +34,6 @@ class SearchIndexDataMapper extends DataMapperBase
      * @var ThreadDataMapper
      */
     protected $threadDataMapper;
-
-    /**
-     * @var string
-     */
-    protected $authorsTable;
-
-    /**
-     * @var string
-     */
-    protected $authorsTableKey;
-
-    /**
-     * @var string
-     */
-    protected $displayNameColumn;
 
     public function mapTo()
     {
@@ -70,10 +57,6 @@ class SearchIndexDataMapper extends DataMapperBase
 
         $this->postDataMapper = $postDataMapper;
         $this->threadDataMapper = $threadDataMapper;
-
-        $this->authorsTable = config('railforums.author_table_name');
-        $this->authorsTableKey = config('railforums.author_table_id_column_name');
-        $this->displayNameColumn = config('railforums.author_table_display_name_column_name');
     }
 
     /**
@@ -86,9 +69,18 @@ class SearchIndexDataMapper extends DataMapperBase
 
     public function search($term, $type, $page, $limit, $sort)
     {
-        // TODO - deal with the search type Posts only, Threads only, Posts + Threads / same must apply to count query
+        $highMultiplier = config('railforums.search.high_value_multiplier');
+        $mediumMultiplier = config('railforums.search.medium_value_multiplier');
+        $lowMultiplier = config('railforums.search.low_value_multiplier');
 
         $termsWithPrefix = '+' . implode(' +', explode(' ', $term));
+
+        $scoreSql = <<<SQL
+(MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier +
+MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * $mediumMultiplier +
+MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier) as score
+SQL;
+
         $query = $this
             ->baseQuery()
             ->addSelect(
@@ -97,26 +89,62 @@ class SearchIndexDataMapper extends DataMapperBase
                     $this->table . '.high_value',
                     $this->table . '.medium_value',
                     $this->table . '.low_value',
-                    DB::raw(
-                        "(MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * 4 + " .
-                        "MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * 2 + " .
-                        "MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE)) as score"
-                    ),
-                    DB::raw("MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * 4 AS high_score"),
-                    DB::raw("MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * 2 AS medium_score"),
-                    DB::raw("MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) AS low_score"),
+                    DB::raw($scoreSql),
+                    DB::raw("MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier AS high_score"),
+                    DB::raw("MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * $mediumMultiplier AS medium_score"),
+                    DB::raw("MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier AS low_score"),
+                    $this->table . '.post_id',
+                    $this->table . '.thread_id',
                 ]
             )
             ->limit($limit)
             ->skip(($page - 1) * $limit)
             ->orderBy($sort, 'DESC');
 
-        // if $type == 'post', set where on query 'post_id' IS NOT NULL
-        // if $type == 'thread', set where on query 'post_id' IS NULL
+        if ($term) {
 
-        echo "\n\n search query: " . $query->toSql() . "\n\n";
+            $query->where(
+                function (Builder $query) use ($term, $termsWithPrefix) {
+                    $query
+                        ->whereRaw("MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE)")
+                        ->orWhereRaw("MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE)")
+                        ->orWhereRaw("MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE)");
+                }
+            );
+        }
 
-        // TODO - get ids from search results and query for Post and/or Threads objects
+        $this->restrictByType($query, $type);
+
+        // echo "\n\n search query: " . $query->toSql() . "\n\n";
+
+        return $this->getSearchContentResults($query->get());
+    }
+
+    public function getSearchContentResults(Collection $results)
+    {
+        $postsIds = []; // key is post id, value is position in search results
+        $threadsIds = []; // key is thread id, value is position in search results
+
+        foreach ($results as $key => $searchIndexStdData) {
+            if ($searchIndexStdData->post_id) {
+                $postsIds[$searchIndexStdData->post_id] = $key;
+            } else {
+                $threadsIds[$searchIndexStdData->thread_id] = $key;
+            }
+        }
+
+        $results = [];
+
+        if (!empty($postsIds)) {
+            $posts = $this->postDataMapper
+                        ->gettingQuery()
+                        ->whereIn(array_keys($postsIds))
+                        ->get();
+
+            // TODO - populate results with posts, on position specified in postsIds
+        }
+
+        // TODO - finish implementation
     }
 
     public function countTotalResults($term, $type)
@@ -135,6 +163,24 @@ class SearchIndexDataMapper extends DataMapperBase
         $this->threadDataMapper->createSearchIndexes();
 
         DB::statement('OPTIMIZE table ' . $this->table);
+    }
+
+    /**
+     * Adds type restriction logic to query
+     *
+     * @param Builder $query
+     * @param string $type
+     */
+    protected function restrictByType(Builder $query, $type = '')
+    {
+        if ($type == self::SEARCH_TYPE_THREADS) {
+
+            $query->whereNull('post_id');
+
+        } else if ($type == self::SEARCH_TYPE_POSTS) {
+
+            $query->whereNotNull('post_id');
+        }
     }
 
     /**
