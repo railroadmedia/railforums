@@ -1,6 +1,7 @@
 <?php namespace Railroad\Railforums;
 
 use Illuminate\Support\ServiceProvider;
+use Railroad\Railforums\Commands\CreateSearchIndexes;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\EventListeners\EntityEventListener;
 use Railroad\Railmap\Events\EntityDestroyed;
@@ -35,6 +36,10 @@ class ForumServiceProvider extends ServiceProvider
         if (config('railforums.data_mode') == 'host') {
             $this->loadMigrationsFrom(__DIR__ . '/../migrations');
         }
+
+        $this->commands([
+            CreateSearchIndexes::class
+        ]);
     }
 
     /**

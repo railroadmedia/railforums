@@ -31,7 +31,7 @@ class UserForumSearchJsonControllerTest extends TestCase
 
     public function test_search_index()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $this->fakeCurrentUserCloak();
         $author = $this->fakeUserCloak();
         $category = $this->fakeCategory();
         $thread = $this->fakeThread($category->getId(), $author->getId());
@@ -61,13 +61,7 @@ class UserForumSearchJsonControllerTest extends TestCase
         // this selects some random words from thread title, to assert it later as first result
         $term = $this->getRandomWordsFromSentence($topSearchResult->getTitle());
 
-        // $sidm = $this->app->make(\Railroad\Railforums\DataMappers\SearchIndexDataMapper::class);
-        // $sidm->search($term, '', $page, $limit, 'score');
-
-        $command = $this->app->make(\Railroad\Railforums\Commands\CreateSearchIndexes::class);
-        $command->handle();
-
-        // $this->artisan('command:createSearchIndexes'); // TODO - make it work and remove the above
+        $this->artisan('command:createSearchIndexes');
 
         $response = $this->call('GET', self::API_PREFIX . '/search', [
             'page' => $page,
@@ -76,7 +70,21 @@ class UserForumSearchJsonControllerTest extends TestCase
             'type' => $type
         ]);
 
-        // TODO - assert response
-        $this->assertTrue(true);
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $decodeResponse = $response->decodeResponseJson();
+
+        // assert results count
+        $this->assertLessThanOrEqual($limit, count($decodeResponse['results']));
+
+        // assert top search result
+        $this->assertEquals(
+            $topSearchResult->getId(),
+            $decodeResponse['results'][0]['id']
+        );
+
+        // assert total results
+        $this->assertGreaterThanOrEqual(1, $decodeResponse['total_results']);
     }
 }
