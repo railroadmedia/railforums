@@ -15,7 +15,8 @@ class CreateForumsTableSearchIndexes extends Migration
      */
     public function up()
     {
-        if (config('railforums.database_connection_name') != 'testbench') {
+        if (config('railforums.database_connection_name') != config('railforums.connection_mask_prefix') . 'testbench') {
+
             Schema::connection(config('railforums.database_connection_name'))
                 ->create(
                     self::TABLE_NAME,
@@ -50,6 +51,7 @@ class CreateForumsTableSearchIndexes extends Migration
                     'ALTER TABLE ' . self::TABLE_NAME . ' ' .
                     'ADD FULLTEXT medium_full_text(medium_value)'
                 );
+
             Schema::connection(config('railforums.database_connection_name'))
                 ->getConnection()
                 ->getPdo()

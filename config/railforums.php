@@ -8,6 +8,14 @@ return array(
 
     // database
     'database_connection_name' => 'mysql',
+    'connection_mask_prefix' => 'railforums_',
+
+    // tables
+    'table_prefix' => 'forum_',
+    'tables' => [
+        'categories' => 'categories',
+        'threads' => 'threads'
+    ],
 
     // host does the db migrations, clients do not
     'data_mode' => 'host', // 'host' or 'client'

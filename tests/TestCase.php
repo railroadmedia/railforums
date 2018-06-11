@@ -14,12 +14,18 @@ use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Entities\Category;
 use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\Post;
-use Railroad\Railforums\ForumServiceProvider;
+// use Railroad\Railforums\ForumServiceProvider;
+use Railroad\Railforums\Providers\ForumServiceProvider;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
 
+use Railroad\Railforums\Services\ConfigService;
+
 class TestCase extends BaseTestCase
 {
+    const THREAD_STATE_PUBLISHED = 'published';
+    const THREAD_STATE_HIDDEN = 'hidden';
+
     /**
      * @var Generator
      */
@@ -42,11 +48,11 @@ class TestCase extends BaseTestCase
 
     protected function setUp()
     {
-        parent::setUp();
-
         if (!$this->getDefaultConnection()) {
             $this->setDefaultConnection('testbench');
         }
+
+        parent::setUp();
 
         $this->artisan('migrate:fresh', []);
         $this->createUsersTable();
@@ -83,16 +89,27 @@ class TestCase extends BaseTestCase
      */
     protected function getEnvironmentSetUp($app)
     {
+
         $defaultConfig = require(__DIR__ . '/../config/railforums.php');
 
         foreach ($defaultConfig as $key => $value) {
             $app['config']->set('railforums.' . $key, $value);
         }
 
-        $app['config']->set('database.default', $this->getDefaultConnection());
-        $app['config']->set('railforums.database_connection_name', $this->getDefaultConnection());
         $app['config']->set(
-            'database.connections.testbench',
+            'database.default',
+            config('railforums.connection_mask_prefix') .
+            $this->getDefaultConnection()
+        );
+        $app['config']->set(
+            'railforums.database_connection_name',
+            config('railforums.connection_mask_prefix') .
+            $this->getDefaultConnection()
+        );
+        $app['config']->set(
+            'database.connections.' .
+            config('railforums.connection_mask_prefix') .
+            'testbench',
             [
                 'driver' => 'sqlite',
                 'database' => ':memory:',
@@ -100,7 +117,9 @@ class TestCase extends BaseTestCase
             ]
         );
         $app['config']->set(
-            'database.connections.mysql',
+            'database.connections.' .
+            config('railforums.connection_mask_prefix') .
+            'mysql',
             [
                 'driver' => 'mysql',
                 'host' => 'mysql',
@@ -146,34 +165,49 @@ class TestCase extends BaseTestCase
             UserCloakDataMapper::class
         );
         $app['config']->set('railforums.controller_middleware', []);
-        $app->register(RailmapServiceProvider::class);
+        // $app->register(RailmapServiceProvider::class);
+        // $app->register(ForumServiceProvider::class);
+
         $app->register(ForumServiceProvider::class);
     }
 
     protected function fakeCategory()
     {
-        $entity = new Category();
-        $entity->randomize();
-        $entity->persist();
+        $category = [
+            'title' => $this->faker->sentence(20),
+            'slug' => strtolower(implode('-', $this->faker->words(5))),
+            'description' => $this->faker->sentence(20),
+            'weight' => $this->faker->numberBetween(),
+        ];
 
-        return $entity;
+        $categoryId = $this->databaseManager
+            ->table(ConfigService::$tableCategories)
+            ->insertGetId($category);
+
+        $category['id'] = $categoryId;
+
+        return $category;
     }
 
-    protected function fakeThread($categoryId = null, $authorId = null)
+    protected function fakeThread($categoryId = null, $authorId = null, $postCount = null)
     {
-        $entity = new Thread();
-        $entity->randomize();
-        $entity->setTitle($this->faker->sentence(20));
-        if ($categoryId) {
-            $entity->setCategoryId($categoryId);
-        }
-        if ($authorId) {
-            $entity->setAuthorId($authorId);
-        }
-        $entity->setState(Thread::STATE_PUBLISHED);
-        $entity->persist();
+        $thread = [
+            'category_id' => $categoryId ?? $this->faker->randomNumber(),
+            'author_id' => $authorId ?? $this->faker->randomNumber(),
+            'title' => $this->faker->sentence(20),
+            'slug' => strtolower(implode('-', $this->faker->words(5))),
+            'state' => self::THREAD_STATE_PUBLISHED,
+            'post_count' => $postCount ?? $this->faker->randomNumber(),
+            'published_on' => Carbon::instance($this->faker->dateTime)->toDateTimeString(),
+        ];
 
-        return $entity;
+        $threadId = $this->databaseManager
+            ->table(ConfigService::$tableThreads)
+            ->insertGetId($thread);
+
+        $thread['id'] = $threadId;
+
+        return $thread;
     }
 
     protected function fakePost($threadId = null, $authorId = null)

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Railroad\Railforums\Services\ConfigService;
 
 class CreateForumTableCategories extends Migration
 {
@@ -16,7 +17,7 @@ class CreateForumTableCategories extends Migration
 
         Schema::connection(config('railforums.database_connection_name'))
             ->create(
-                'forum_categories',
+                ConfigService::$tableCategories,
                 function (Blueprint $table) {
                     $table->increments('id');
                     $table->string('title');
@@ -37,6 +38,6 @@ class CreateForumTableCategories extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('forum_categories');
+        Schema::dropIfExists(ConfigService::$tableCategories);
     }
 }

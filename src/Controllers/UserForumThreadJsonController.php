@@ -12,6 +12,7 @@ use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
 use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
 use Railroad\Railforums\Services\Threads\UserForumThreadService;
 use Railroad\Railforums\Services\Posts\ForumThreadReadService;
+use Railroad\Railforums\Repositories\ThreadRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadJsonController extends Controller
@@ -45,6 +46,11 @@ class UserForumThreadJsonController extends Controller
     protected $threadDataMapper;
 
     /**
+     * @var ThreadRepository
+     */
+    protected $threadRepository;
+
+    /**
      * ThreadController constructor.
      *
      * @param ForumThreadReadService $threadReadService
@@ -52,19 +58,23 @@ class UserForumThreadJsonController extends Controller
      * @param UserForumThreadService $threadService
      * @param UserCloakDataMapper $userCloakDataMapper
      * @param ThreadDataMapper $threadDataMapper
+     * @param ThreadRepository $threadRepository
      */
     public function __construct(
         ForumThreadReadService $threadReadService,
         ThreadFollowService $threadFollowService,
         UserForumThreadService $threadService,
         UserCloakDataMapper $userCloakDataMapper,
-        ThreadDataMapper $threadDataMapper
+        ThreadDataMapper $threadDataMapper,
+        ThreadRepository $threadRepository
     ) {
         $this->threadReadService = $threadReadService;
         $this->threadFollowService = $threadFollowService;
         $this->threadService = $threadService;
         $this->userCloakDataMapper = $userCloakDataMapper;
         $this->threadDataMapper = $threadDataMapper;
+
+        $this->threadRepository = $threadRepository;
 
         $this->middleware(config('railforums.controller_middleware'));
     }
@@ -167,13 +177,11 @@ class UserForumThreadJsonController extends Controller
      */
     public function show($id)
     {
-        $thread = $this->threadDataMapper->get($id);
+        $thread = $this->threadRepository->read($id);
 
-        if (!$thread) {
-            throw new NotFoundHttpException();
-        }
+        // TODO - check how other packages throw 404 when id not found and replicate, or add existance test here
 
-        return response()->json($thread->flatten());
+        return response()->json($thread);
     }
 
     /**
