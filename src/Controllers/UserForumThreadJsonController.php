@@ -2,8 +2,10 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\Requests\ThreadJsonIndexRequest;
@@ -13,12 +15,15 @@ use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
 use Railroad\Railforums\Services\Threads\UserForumThreadService;
 use Railroad\Railforums\Services\Posts\ForumThreadReadService;
 use Railroad\Railforums\Repositories\ThreadRepository;
+use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadJsonController extends Controller
 {
     const AMOUNT = 10;
     const PAGE = 1;
+    const STATE_PUBLISHED = 'published';
 
     /**
      * @var ForumThreadReadService
@@ -51,6 +56,16 @@ class UserForumThreadJsonController extends Controller
     protected $threadRepository;
 
     /**
+     * @var PostRepository
+     */
+    protected $postRepository;
+
+    /**
+     * @var PermissionService
+     */
+    private $permissionService;
+
+    /**
      * ThreadController constructor.
      *
      * @param ForumThreadReadService $threadReadService
@@ -59,6 +74,8 @@ class UserForumThreadJsonController extends Controller
      * @param UserCloakDataMapper $userCloakDataMapper
      * @param ThreadDataMapper $threadDataMapper
      * @param ThreadRepository $threadRepository
+     * @param PostRepository $postRepository
+     * @param PermissionService $permissionService
      */
     public function __construct(
         ForumThreadReadService $threadReadService,
@@ -66,7 +83,9 @@ class UserForumThreadJsonController extends Controller
         UserForumThreadService $threadService,
         UserCloakDataMapper $userCloakDataMapper,
         ThreadDataMapper $threadDataMapper,
-        ThreadRepository $threadRepository
+        ThreadRepository $threadRepository,
+        PostRepository $postRepository,
+        PermissionService $permissionService
     ) {
         $this->threadReadService = $threadReadService;
         $this->threadFollowService = $threadFollowService;
@@ -75,8 +94,10 @@ class UserForumThreadJsonController extends Controller
         $this->threadDataMapper = $threadDataMapper;
 
         $this->threadRepository = $threadRepository;
+        $this->postRepository = $postRepository;
+        $this->permissionService = $permissionService;
 
-        $this->middleware(config('railforums.controller_middleware'));
+        $this->middleware(ConfigService::$controllerMiddleware);
     }
 
     /**
@@ -177,11 +198,17 @@ class UserForumThreadJsonController extends Controller
      */
     public function show($id)
     {
-        $thread = $this->threadRepository->read($id);
+        if (!$this->permissionService->can(auth()->id(), 'show-threads')) {
+            throw new NotFoundHttpException();
+        }
 
-        // TODO - check how other packages throw 404 when id not found and replicate, or add existance test here
+        $threads = $this->threadRepository->getDecoratedThreads([$id]);
 
-        return response()->json($thread);
+        if (!$threads || $threads->isEmpty()) {
+            throw new NotFoundHttpException();
+        }
+
+        return response()->json($threads->first());
     }
 
     /**
@@ -191,15 +218,47 @@ class UserForumThreadJsonController extends Controller
      */
     public function store(ThreadJsonCreateRequest $request)
     {
-        $title = $request->get('title');
-        $firstPostContent = $request->get('first_post_content');
-        $categoryId = $request->get('category_id');
+        if (!$this->permissionService->can(auth()->id(), 'create-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $now = Carbon::now()->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
 
-        $thread = $this->threadService
-            ->createThread($title, $firstPostContent, $categoryId, $authorId);
+        $thread = $this->threadRepository->create(
+            array_merge(
+                $request->only(
+                    [
+                        'title',
+                        'category_id',
+                    ]
+                ),
+                [
+                    'author_id' => $authorId,
+                    'slug' => self::sanitizeForSlug($request->get('title')),
+                    'state' => self::STATE_PUBLISHED,
+                    'published_on' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            )
+        );
 
-        return response()->json($thread->flatten());
+        $this->postRepository->create(
+            [
+                'thread_id' => $thread->id,
+                'author_id' => $authorId,
+                'content' => $request->get('first_post_content'),
+                'state' => self::STATE_PUBLISHED,
+                'published_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
+
+        $threads = $this->threadRepository->getDecoratedThreads([$thread->id]);
+
+        return response()->json($threads->first());
     }
 
     /**
@@ -255,5 +314,21 @@ class UserForumThreadJsonController extends Controller
         $this->threadDataMapper->flushCache();
 
         return new JsonResponse(null, 204);
+    }
+
+    /**
+     * @param $string
+     *
+     * @return string
+     */
+    public static function sanitizeForSlug($string)
+    {
+        return strtolower(
+            preg_replace(
+                '/(\-)+/',
+                '-',
+                str_replace(' ', '-', preg_replace('/[^ \w]+/', '', str_replace('&', 'and', trim($string))))
+            )
+        );
     }
 }

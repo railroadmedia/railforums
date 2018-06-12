@@ -15,7 +15,7 @@ class CreateForumTableCategories extends Migration
     public function up()
     {
 
-        Schema::connection(config('railforums.database_connection_name'))
+        Schema::connection(ConfigService::$databaseConnectionName)
             ->create(
                 ConfigService::$tableCategories,
                 function (Blueprint $table) {

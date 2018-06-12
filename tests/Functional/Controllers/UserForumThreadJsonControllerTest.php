@@ -4,6 +4,7 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Entities\ThreadFollow;
+use Railroad\Railforums\Services\ConfigService;
 
 class UserForumThreadJsonControllerTest extends TestCase
 {
@@ -209,7 +210,7 @@ class UserForumThreadJsonControllerTest extends TestCase
     //     }
     // }
 
-    public function test_thread_show()
+    public function test_thread_show_with_permission()
     {
         $user = $this->fakeCurrentUserCloak();
 
@@ -219,7 +220,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user->getId());
 
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -228,8 +229,6 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
-
-        echo "\n### response: " . var_export($response->baseResponse->getContent(), true) . "\n";
 
         // assert response data
         $this->assertArraySubset(
@@ -242,83 +241,203 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
     }
 
-    // public function test_thread_show_not_exists()
-    // {
-    //     $response = $this->call(
-    //         'GET',
-    //         self::API_PREFIX . '/thread/show/' . rand(0, 32767)
-    //     );
+    public function test_thread_show_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
-    // }
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    // public function test_thread_store()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     $category = $this->fakeCategory();
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/thread/show/' . $thread['id']
+        );
 
-    //     $threadData = [
-    //         'title' => $this->faker->sentence(),
-    //         'first_post_content' => $this->faker->paragraph(),
-    //         'category_id' => $category->getId(),
-    //     ];
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/thread/store',
-    //         $threadData
-    //     );
+    public function test_thread_show_with_decorated_data()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     // assert response data
-    //     $response->assertJsonFragment([
-    //         'title' => $threadData['title'],
-    //         'categoryId' => (int) $category->getId(),
-    //         'authorId' => (int) $user->getId()
-    //     ]);
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     // assert the thread data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_threads',
-    //         [
-    //             'title' => $threadData['title'],
-    //             'category_id' => $category->getId(),
-    //             'author_id' => $user->getId()
-    //         ]
-    //     );
-    // }
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
 
-    // public function test_thread_store_validation_fail()
-    // {
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/thread/store',
-    //         []
-    //     );
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response status code
-    //     $this->assertEquals(422, $response->getStatusCode());
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/thread/show/' . $thread['id']
+        );
 
-    //     // assert response validation error messages
-    //     $this->assertEquals([
-    //         [
-    //             "source" => "title",
-    //             "detail" => "The title field is required.",
-    //         ],
-    //         [
-    //             "source" => "first_post_content",
-    //             "detail" => "The first post content field is required.",
-    //         ],
-    //         [
-    //             "source" => "category_id",
-    //             "detail" => "The category id field is required.",
-    //         ]
-    //     ], $response->decodeResponseJson()['errors']);
-    // }
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // TODO: add thread read and thread followed above and assert data below
+
+        // assert response data
+        $this->assertArraySubset(
+            [
+                'title' => $thread['title'],
+                'category_id' => (int) $category['id'],
+                'author_id' => (int) $user->getId(),
+                'post_count' => 1,
+                'last_post_published_on' => $post['published_on'],
+                'last_post_id' => $post['id'],
+                'last_post_user_id' => $user->getId(),
+                'last_post_user_display_name' => $user->getDisplayName(),
+                'is_read' => 0,
+                'is_followed' => 0
+            ],
+            $response->decodeResponseJson()
+        );
+    }
+
+    public function test_thread_show_not_exists()
+    {
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/thread/show/' . rand(0, 32767)
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    public function test_thread_store_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        $threadData = [
+            'title' => $this->faker->sentence(),
+            'first_post_content' => $this->faker->paragraph(),
+            'category_id' => $category['id'],
+        ];
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/store',
+            $threadData
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // assert response data
+        $response->assertJsonFragment([
+            'title' => $threadData['title'],
+            'category_id' => (int) $category['id'],
+            'author_id' => (int) $user->getId()
+        ]);
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            ConfigService::$tableThreads,
+            [
+                'title' => $threadData['title'],
+                'category_id' => $category['id'],
+                'author_id' => $user->getId()
+            ]
+        );
+
+        // assert the first post data was saved in the db
+        $this->assertDatabaseHas(
+            ConfigService::$tablePosts,
+            [
+                'content' => $threadData['first_post_content'],
+                'author_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_store_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        $threadData = [
+            'title' => $this->faker->sentence(),
+            'first_post_content' => $this->faker->paragraph(),
+            'category_id' => $category['id'],
+        ];
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/store',
+            $threadData
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreads,
+            [
+                'title' => $threadData['title'],
+                'category_id' => $category['id'],
+                'author_id' => $user->getId()
+            ]
+        );
+
+        // assert the first post data was saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tablePosts,
+            [
+                'content' => $threadData['first_post_content'],
+                'author_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_store_validation_fail()
+    {
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/store',
+            []
+        );
+
+        // assert response status code
+        $this->assertEquals(422, $response->getStatusCode());
+
+        // assert response validation error messages
+        $this->assertEquals([
+            [
+                "source" => "title",
+                "detail" => "The title field is required.",
+            ],
+            [
+                "source" => "first_post_content",
+                "detail" => "The first post content field is required.",
+            ],
+            [
+                "source" => "category_id",
+                "detail" => "The category id field is required.",
+            ]
+        ], $response->decodeResponseJson()['errors']);
+    }
+
+
 
     // public function test_thread_update()
     // {

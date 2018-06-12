@@ -14,7 +14,10 @@ return array(
     'table_prefix' => 'forum_',
     'tables' => [
         'categories' => 'categories',
-        'threads' => 'threads'
+        'threads' => 'threads',
+        'thread_follows' => 'thread_follows',
+        'thread_reads' => 'thread_reads',
+        'posts' => 'posts'
     ],
 
     // host does the db migrations, clients do not

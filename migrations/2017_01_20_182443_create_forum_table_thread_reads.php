@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Railroad\Railforums\Services\ConfigService;
 
 class CreateForumTableThreadReads extends Migration
 {
@@ -13,9 +14,9 @@ class CreateForumTableThreadReads extends Migration
      */
     public function up()
     {
-        Schema::connection(config('railforums.database_connection_name'))
+        Schema::connection(ConfigService::$databaseConnectionName)
             ->create(
-                'forum_thread_reads',
+                ConfigService::$tableThreadReads,
                 function (Blueprint $table) {
                     $table->increments('id');
                     $table->integer('thread_id')->unsigned();
@@ -38,6 +39,6 @@ class CreateForumTableThreadReads extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('forum_thread_reads');
+        Schema::dropIfExists(ConfigService::$tableThreadReads);
     }
 }

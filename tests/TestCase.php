@@ -9,6 +9,9 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use Railroad\Permissions\Providers\PermissionsServiceProvider;
+use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Entities\Category;
@@ -18,13 +21,14 @@ use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Providers\ForumServiceProvider;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
-
 use Railroad\Railforums\Services\ConfigService;
 
 class TestCase extends BaseTestCase
 {
     const THREAD_STATE_PUBLISHED = 'published';
     const THREAD_STATE_HIDDEN = 'hidden';
+    const POST_STATE_PUBLISHED = 'published';
+    const POST_STATE_HIDDEN = 'hidden';
 
     /**
      * @var Generator
@@ -46,6 +50,11 @@ class TestCase extends BaseTestCase
      */
     protected $defaultConnection;
 
+    /**
+     * @var MockObject
+     */
+    protected $permissionServiceMock;
+
     protected function setUp()
     {
         if (!$this->getDefaultConnection()) {
@@ -61,6 +70,12 @@ class TestCase extends BaseTestCase
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
         $this->userCloakDataMapper = $this->app->make(UserCloakDataMapper::class);
+
+        $this->permissionServiceMock = $this->getMockBuilder(PermissionService::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->app->instance(PermissionService::class, $this->permissionServiceMock);
 
         IdentityMap::empty();
 
@@ -212,18 +227,22 @@ class TestCase extends BaseTestCase
 
     protected function fakePost($threadId = null, $authorId = null)
     {
-        $entity = new Post();
-        $entity->randomize();
-        if ($threadId) {
-            $entity->setThreadId($threadId);
-        }
-        if ($authorId) {
-            $entity->setAuthorId($authorId);
-        }
-        $entity->setState(Post::STATE_PUBLISHED);
-        $entity->persist();
+        $post = [
+            'thread_id' => $threadId ?? $this->faker->randomNumber(),
+            'author_id' => $authorId ?? $this->faker->randomNumber(),
+            'prompting_post_id' => $this->faker->randomNumber(),
+            'content' => $this->faker->sentence(20),
+            'state' => self::POST_STATE_PUBLISHED,
+            'published_on' => Carbon::instance($this->faker->dateTime)->toDateTimeString(),
+        ];
 
-        return $entity;
+        $postId = $this->databaseManager
+            ->table(ConfigService::$tablePosts)
+            ->insertGetId($post);
+
+        $post['id'] = $postId;
+
+        return $post;
     }
 
     /**

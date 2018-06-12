@@ -14,7 +14,7 @@ class CreateForumTableThreads extends Migration
      */
     public function up()
     {
-        Schema::connection(config('railforums.database_connection_name'))
+        Schema::connection(ConfigService::$databaseConnectionName)
             ->create(
                 ConfigService::$tableThreads,
                 function (Blueprint $table) {
@@ -31,9 +31,6 @@ class CreateForumTableThreads extends Migration
 
                     $table->timestamps();
                     $table->softDeletes();
-
-                    $table->integer('version_master_id')->nullable();
-                    $table->timestamp('version_saved_at')->nullable();
                 }
             );
     }

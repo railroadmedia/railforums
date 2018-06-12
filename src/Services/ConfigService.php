@@ -48,4 +48,24 @@ class ConfigService
      * @var string
      */
     public static $tableThreads;
+
+    /**
+     * @var string
+     */
+    public static $tableThreadFollows;
+
+    /**
+     * @var string
+     */
+    public static $tableThreadReads;
+
+    /**
+     * @var string
+     */
+    public static $tablePosts;
+
+    /**
+     * @var array
+     */
+    public static $controllerMiddleware;
 }

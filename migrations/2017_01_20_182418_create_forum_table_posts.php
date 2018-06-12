@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Railroad\Railforums\Services\ConfigService;
 
 class CreateForumTablePosts extends Migration
 {
@@ -13,9 +14,9 @@ class CreateForumTablePosts extends Migration
      */
     public function up()
     {
-        Schema::connection(config('railforums.database_connection_name'))
+        Schema::connection(ConfigService::$databaseConnectionName)
             ->create(
-                'forum_posts',
+                ConfigService::$tablePosts,
                 function (Blueprint $table) {
                     $table->increments('id');
                     $table->integer('thread_id')->unsigned();
@@ -28,9 +29,6 @@ class CreateForumTablePosts extends Migration
 
                     $table->timestamps();
                     $table->softDeletes();
-
-                    $table->integer('version_master_id')->nullable();
-                    $table->timestamp('version_saved_at')->nullable();
 
                     $table->index(['thread_id']);
                     $table->index(['author_id']);
@@ -48,6 +46,6 @@ class CreateForumTablePosts extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('forum_posts');
+        Schema::dropIfExists(ConfigService::$tablePosts);
     }
 }

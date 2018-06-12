@@ -4,6 +4,7 @@ namespace Railroad\Railforums\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Railforums\Decorators\ThreadDecorator;
 
 class ForumServiceProvider extends ServiceProvider
 {
@@ -57,10 +58,25 @@ class ForumServiceProvider extends ServiceProvider
         ConfigService::$tablePrefix = config('railforums.table_prefix');
         ConfigService::$tableCategories = ConfigService::$tablePrefix . config('railforums.tables.categories');
         ConfigService::$tableThreads = ConfigService::$tablePrefix . config('railforums.tables.threads');
+        ConfigService::$tableThreadFollows = ConfigService::$tablePrefix . config('railforums.tables.thread_follows');
+        ConfigService::$tableThreadReads = ConfigService::$tablePrefix . config('railforums.tables.thread_reads');
+        ConfigService::$tablePosts = ConfigService::$tablePrefix . config('railforums.tables.posts');
 
         // author table
         ConfigService::$authorTableName = config('railforums.author_table_name');
         ConfigService::$authorTableIdColumnName = config('railforums.author_table_id_column_name');
         ConfigService::$authorTableDisplayNameColumnName = config('railforums.author_table_display_name_column_name');
+
+        // middleware
+        ConfigService::$controllerMiddleware = config('railforums.controller_middleware');
+
+        // No need for decorators yet
+        // config()->set(
+        //     'resora.decorators.threads',
+        //     array_merge(
+        //         config()->get('resora.decorators.threads', []),
+        //         [ThreadDecorator::class]
+        //     )
+        // );
     }
 }
