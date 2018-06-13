@@ -164,6 +164,10 @@ class UserForumThreadJsonController extends Controller
      */
     public function index(ThreadJsonIndexRequest $request)
     {
+        if (!$this->permissionService->can(auth()->id(), 'index-threads')) {
+            throw new NotFoundHttpException();
+        }
+
         $amount = $request->get('amount') ?
                     (int) $request->get('amount') : self::AMOUNT;
         $page = $request->get('page') ?
@@ -173,20 +177,27 @@ class UserForumThreadJsonController extends Controller
         $followed = $request->has('followed') ?
             (boolean) $request->get('followed') : null;
 
-        $threads = $this->threadService
-            ->getThreads($amount, $page, $categoryIds, $pinned, $followed);
+        $threads = $this->threadRepository
+            ->getDecoratedThreads(
+                $amount,
+                $page,
+                $categoryIds,
+                $pinned,
+                $followed
+            )
+            ->toArray();
 
-        $threadsCount = $this->threadService
-            ->getThreadCount($categoryIds, $followed);
+        $threadsCount = $this->threadRepository
+            ->getThreadsCount(
+                $categoryIds,
+                $pinned,
+                $followed
+            );
 
         $response = [
-            'threads' => [],
+            'threads' => $threads,
             'count' => $threadsCount
         ];
-
-        foreach ($threads as $thread) {
-            $response['threads'][] = $thread->flatten();
-        }
 
         return response()->json($response);
     }
@@ -202,7 +213,7 @@ class UserForumThreadJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $threads = $this->threadRepository->getDecoratedThreads([$id]);
+        $threads = $this->threadRepository->getDecoratedThreadsByIds([$id]);
 
         if (!$threads || $threads->isEmpty()) {
             throw new NotFoundHttpException();
@@ -256,7 +267,8 @@ class UserForumThreadJsonController extends Controller
             ]
         );
 
-        $threads = $this->threadRepository->getDecoratedThreads([$thread->id]);
+        $threads = $this->threadRepository
+                    ->getDecoratedThreadsByIds([$thread->id]);
 
         return response()->json($threads->first());
     }
@@ -269,11 +281,13 @@ class UserForumThreadJsonController extends Controller
      */
     public function update(ThreadJsonUpdateRequest $request, $id)
     {
-        $title = $request->get('title');
+        if (!$this->permissionService->can(auth()->id(), 'update-threads')) {
+            throw new NotFoundHttpException();
+        }
 
-        $result = $this->threadService
-            ->updateThread(
-                $id,
+        $thread = $this->threadRepository->update(
+            $id,
+            array_merge(
                 $request->only(
                     [
                         'category_id',
@@ -286,14 +300,21 @@ class UserForumThreadJsonController extends Controller
                         'post_count',
                         'published_on',
                     ]
-                )
-            );
+                ),
+                [
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ]
+            )
+        );
 
-        if (!$result) {
+        if (!$thread) {
             throw new NotFoundHttpException();
         }
 
-        return response()->json($result->flatten());
+        $threads = $this->threadRepository
+                    ->getDecoratedThreadsByIds([$thread->id]);
+
+        return response()->json($threads->first());
     }
 
     /**
@@ -303,15 +324,15 @@ class UserForumThreadJsonController extends Controller
      */
     public function delete($id)
     {
-        $thread = $this->threadDataMapper->get($id);
-
-        if (!$thread) {
+        if (!$this->permissionService->can(auth()->id(), 'delete-threads')) {
             throw new NotFoundHttpException();
         }
 
-        $thread->destroy();
+        $result = $this->threadRepository->delete($id);
 
-        $this->threadDataMapper->flushCache();
+        if (!$result) {
+            throw new NotFoundHttpException();
+        }
 
         return new JsonResponse(null, 204);
     }

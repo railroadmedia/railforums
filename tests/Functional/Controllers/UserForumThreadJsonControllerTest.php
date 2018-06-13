@@ -159,56 +159,88 @@ class UserForumThreadJsonControllerTest extends TestCase
     //     );
     // }
 
-    // public function test_thread_index()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+    public function test_thread_index_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     $categoryOne = $this->fakeCategory();
+        /** @var array $categoryOne */
+        $categoryOne = $this->fakeCategory();
 
-    //     $threads = [];
+        $threads = [];
 
-    //     for ($i=0; $i < 20; $i++) { 
-    //         $thread = $this->fakeThread($categoryOne->getId(), $user->getId());
+        for ($i=0; $i < 20; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryOne['id'], $user->getId());
 
-    //         $threads[$thread->getId()] = $thread;
-    //     }
+            $threads[$thread['id']] = $thread;
+        }
 
-    //     $categoryTwo = $this->fakeCategory();
+        /** @var array $categoryTwo */
+        $categoryTwo = $this->fakeCategory();
 
-    //     for ($i=0; $i < 10; $i++) { 
-    //         $thread = $this->fakeThread($categoryTwo->getId(), $user->getId());
+        for ($i=0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryTwo['id'], $user->getId());
 
-    //         $threads[$thread->getId()] = $thread;
-    //     }
+            $threads[$thread['id']] = $thread;
+        }
 
-    //     $payload = [
-    //         'amount' => 10,
-    //         'page' => 1,
-    //         'category_ids' => [$categoryOne->getId()]
-    //     ];
+        $payload = [
+            'amount' => 10,
+            'page' => 1,
+            'category_ids' => [$categoryOne['id']]
+        ];
 
-    //     $response = $this->call(
-    //         'GET',
-    //         self::API_PREFIX . '/thread/index',
-    //         $payload
-    //     );
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/thread/index',
+            $payload
+        );
 
-    //     $results = $response->decodeResponseJson();
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
 
-    //     // assert reponse entities count is the requested amount
-    //     $this->assertEquals(count($results['threads']), $payload['amount']);
+        $results = $response->decodeResponseJson();
 
-    //     // assert reponse has threads count for pagination
-    //     $this->assertArrayHasKey('count', $results);
+        // assert reponse entities count is the requested amount
+        $this->assertEquals(count($results['threads']), $payload['amount']);
 
-    //     // assert reponse entities have the requested category
-    //     foreach ($results['threads'] as $thread) {
-    //         $this->assertEquals($thread['categoryId'], $categoryOne->getId());
-    //     }
-    // }
+        // assert reponse has threads count for pagination
+        $this->assertArrayHasKey('count', $results);
+
+        // assert reponse entities have the requested category
+        foreach ($results['threads'] as $thread) {
+            $this->assertEquals($thread['category_id'], $categoryOne['id']);
+        }
+    }
+
+    public function test_thread_index_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        $payload = [
+            'amount' => 10,
+            'page' => 1,
+            'category_ids' => [$category['id']]
+        ];
+
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/thread/index',
+            $payload
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 
     public function test_thread_show_with_permission()
     {
@@ -389,7 +421,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
 
-        // assert the thread data was saved in the db
+        // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
             ConfigService::$tableThreads,
             [
@@ -437,108 +469,171 @@ class UserForumThreadJsonControllerTest extends TestCase
         ], $response->decodeResponseJson()['errors']);
     }
 
+    public function test_thread_update_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    // public function test_thread_update()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     $category = $this->fakeCategory();
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     $thread = $this->fakeThread($category->getId(), $user->getId());
+        $newTitle = $this->faker->sentence();
 
-    //     $newTitle = $this->faker->sentence();
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/thread/update/' . $thread['id'],
+            ['title' => $newTitle]
+        );
 
-    //     $response = $this->call(
-    //         'PATCH',
-    //         self::API_PREFIX . '/thread/update/' . $thread->getId(),
-    //         ['title' => $newTitle]
-    //     );
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            ConfigService::$tableThreads,
+            [
+                'id' => $thread['id'],
+                'title' => $newTitle
+            ]
+        );
 
-    //     // assert the thread data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_threads',
-    //         [
-    //             'id' => $thread->getId(),
-    //             'title' => $newTitle
-    //         ]
-    //     );
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        // assert response data
+        $response->assertJsonFragment([
+            'title' => $newTitle,
+            'category_id' => (int) $category['id'],
+            'author_id' => (int) $user->getId()
+        ]);
+    }
 
-    //     // assert response data
-    //     $response->assertJsonFragment([
-    //         'title' => $newTitle,
-    //         'categoryId' => (int) $category->getId(),
-    //         'authorId' => (int) $user->getId()
-    //     ]);
-    // }
+    public function test_thread_update_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    // public function test_thread_update_validation_fail()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
-    //     $thread = $this->fakeThread(null, $user->getId());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     $response = $this->call(
-    //         'PATCH',
-    //         self::API_PREFIX . '/thread/update/' . $thread->getId(),
-    //         []
-    //     );
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     // assert response status code
-    //     $this->assertEquals(422, $response->getStatusCode());
+        $newTitle = $this->faker->sentence();
 
-    //     // assert validation error messages
-    //     $this->assertEquals([
-    //         [
-    //             "source" => "title",
-    //             "detail" => "The title field is required.",
-    //         ]
-    //     ], $response->decodeResponseJson()['errors']);
-    // }
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/thread/update/' . $thread['id'],
+            ['title' => $newTitle]
+        );
 
-    // public function test_thread_update_not_found()
-    // {
-    //     $response = $this->call(
-    //         'PATCH',
-    //         self::API_PREFIX . '/thread/update/' . rand(0, 32767),
-    //         ['title' => $this->faker->sentence()]
-    //     );
+        // assert the thread data was saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreads,
+            [
+                'id' => $thread['id'],
+                'title' => $newTitle
+            ]
+        );
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
-    // }
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 
-    // public function test_thread_delete()
-    // {
-    //     $thread = $this->fakeThread();
+    public function test_thread_update_validation_fail()
+    {
+        $user = $this->fakeCurrentUserCloak();
+        $thread = $this->fakeThread(null, $user->getId());
 
-    //     $response = $this->call(
-    //         'DELETE',
-    //         self::API_PREFIX . '/thread/delete/' . $thread->getId()
-    //     );
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response status code
-    //     $this->assertEquals(204, $response->getStatusCode());
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/thread/update/' . $thread['id'],
+            ['title' => '']
+        );
 
-    //     // assert the thread data was marked as soft deleted
-    //     $this->assertSoftDeleted(
-    //         'forum_threads',
-    //         [
-    //             'id' => $thread->getId()
-    //         ]
-    //     );
-    // }
+        // assert response status code
+        $this->assertEquals(422, $response->getStatusCode());
 
-    // public function test_thread_delete_not_found()
-    // {
-    //     $response = $this->call(
-    //         'DELETE',
-    //         self::API_PREFIX . '/thread/delete/' . rand(0, 32767)
-    //     );
+        // assert validation error messages
+        $this->assertEquals([
+            [
+                "source" => "title",
+                "detail" => "The title must be at least 1 characters.",
+            ]
+        ], $response->decodeResponseJson()['errors']);
+    }
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
-    // }
+    public function test_thread_update_not_found()
+    {
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/thread/update/' . rand(0, 32767),
+            ['title' => $this->faker->sentence()]
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    public function test_thread_delete()
+    {
+        $thread = $this->fakeThread();
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/delete/' . $thread['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the thread data was marked as soft deleted
+        $this->assertSoftDeleted(
+            'forum_threads',
+            [
+                'id' => $thread['id']
+            ]
+        );
+    }
+
+    public function test_thread_delete_without_permission()
+    {
+        $thread = $this->fakeThread();
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/delete/' . $thread['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the thread data was not soft deleted or deleted from db
+        $this->assertDatabaseHas(
+            'forum_threads',
+            [
+                'id' => $thread['id'],
+                'deleted_at' => null
+            ]
+        );
+    }
+
+    public function test_thread_delete_not_found()
+    {
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/delete/' . rand(0, 32767)
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 }

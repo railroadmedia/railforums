@@ -3,14 +3,21 @@
 namespace Railroad\Railforums\Repositories;
 
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Railroad\Resora\Decorators\Decorator;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Repositories\Traits\SoftDelete;
 
 class ThreadRepository extends RepositoryBase
 {
+    const STATE_PUBLISHED = 'published';
+    const ACESSIBLE_STATES = [self::STATE_PUBLISHED];
+
+    use SoftDelete;
+
     /**
      * @var UserCloakDataMapper
      */
@@ -39,7 +46,109 @@ class ThreadRepository extends RepositoryBase
         return app('db')->connection(ConfigService::$databaseConnectionName);
     }
 
-    public function getDecoratedThreads($ids)
+    public function getDecoratedThreadsByIds($ids)
+    {
+        return $this->getDecoratedQuery()
+            ->whereIn(ConfigService::$tableThreads . '.id', $ids)
+            ->get();
+    }
+
+    public function getDecoratedThreads(
+        $amount,
+        $page,
+        $categoryIds,
+        $pinned = false,
+        $followed = null
+    ) {
+        $query = $this->getDecoratedQuery();
+
+        if ($followed === true) {
+            $query->whereExists(
+                function (Builder $builder) {
+                    return $builder
+                        ->selectRaw('*')
+                        ->from(ConfigService::$tableThreadFollows)
+                        ->limit(1)
+                        ->where(
+                            'follower_id',
+                            $this->userCloakDataMapper->getCurrentId()
+                        )
+                        ->whereRaw(
+                            ConfigService::$tableThreads . '.id = ' .
+                            ConfigService::$tableThreadFollows . '.thread_id'
+                        );
+                }
+            );
+        }
+
+        if (!empty($categoryIds)) {
+
+            $query->whereIn('category_id', $categoryIds);
+        }
+
+        $query->limit($amount)
+            ->skip($amount * ($page - 1))
+            ->orderByRaw('last_post_published_on desc, id desc')
+            ->whereIn(
+                ConfigService::$tableThreads . '.state',
+                self::ACESSIBLE_STATES
+            )
+            ->where('pinned', $pinned);
+
+        return $query->get();
+    }
+
+    public function getThreadsCount(
+        $categoryIds,
+        $pinned = false,
+        $followed = null
+    ) {
+        $query = $this->query()
+            ->selectRaw('COUNT(' . ConfigService::$tableThreads . '.id) as count')
+            ->whereIn(
+                ConfigService::$tableThreads . '.state',
+                self::ACESSIBLE_STATES
+            )
+            ->where(ConfigService::$tableThreads . '.pinned', $pinned);
+
+        if (!empty($categoryIds)) {
+            $query->whereIn(
+                ConfigService::$tableThreads . '.category_id',
+                $categoryIds
+            );
+        }
+
+        if (is_bool($followed)) {
+
+            $query->leftJoin(
+                ConfigService::$tableThreadFollows,
+                function (JoinClause $query) {
+                    $query->on(
+                        ConfigService::$tableThreadFollows . '.thread_id',
+                        '=',
+                        ConfigService::$tableThreads . '.id'
+                    )->on(
+                        ConfigService::$tableThreadFollows . '.follower_id',
+                        '=',
+                        $query->raw($this->userCloakDataMapper->getCurrentId())
+                    );
+                }
+            );
+
+            if ($followed === true) {
+
+                $query->whereNotNull(ConfigService::$tableThreadFollows.'.id');
+
+            } else if ($followed === false) {
+
+                $query->whereNull(ConfigService::$tableThreadFollows . '.id');
+            }
+        }
+
+        return $query->value('count');
+    }
+
+    public function getDecoratedQuery()
     {
         return $this->query()
             ->select(ConfigService::$tableThreads . '.*')
@@ -138,8 +247,6 @@ class ThreadRepository extends RepositoryBase
                         ->limit(1);
                 },
                 'is_followed'
-            )
-            ->whereIn(ConfigService::$tableThreads . '.id', $ids)
-            ->get();
+            );
     }
 }
