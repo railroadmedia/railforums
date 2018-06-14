@@ -7,14 +7,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
-use Railroad\Railforums\DataMappers\ThreadDataMapper;
 use Railroad\Railforums\Requests\ThreadJsonIndexRequest;
 use Railroad\Railforums\Requests\ThreadJsonCreateRequest;
 use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
-use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
-use Railroad\Railforums\Services\Threads\UserForumThreadService;
-use Railroad\Railforums\Services\Posts\ForumThreadReadService;
 use Railroad\Railforums\Repositories\ThreadRepository;
+use Railroad\Railforums\Repositories\ThreadReadRepository;
+use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -23,22 +21,6 @@ class UserForumThreadJsonController extends Controller
 {
     const AMOUNT = 10;
     const PAGE = 1;
-    const STATE_PUBLISHED = 'published';
-
-    /**
-     * @var ForumThreadReadService
-     */
-    protected $threadReadService;
-
-    /**
-     * @var ThreadFollowService
-     */
-    protected $threadFollowService;
-
-    /**
-     * @var UserForumThreadService
-     */
-    protected $threadService;
 
     /**
      * @var UserCloakDataMapper
@@ -46,14 +28,19 @@ class UserForumThreadJsonController extends Controller
     protected $userCloakDataMapper;
 
     /**
-     * @var ThreadDataMapper
-     */
-    protected $threadDataMapper;
-
-    /**
      * @var ThreadRepository
      */
     protected $threadRepository;
+
+    /**
+     * @var ThreadReadRepository
+     */
+    protected $threadReadRepository;
+
+    /**
+     * @var ThreadFollowRepository
+     */
+    protected $threadFollowRepository;
 
     /**
      * @var PostRepository
@@ -68,32 +55,25 @@ class UserForumThreadJsonController extends Controller
     /**
      * ThreadController constructor.
      *
-     * @param ForumThreadReadService $threadReadService
-     * @param ThreadFollowService $threadFollowService
-     * @param UserForumThreadService $threadService
      * @param UserCloakDataMapper $userCloakDataMapper
-     * @param ThreadDataMapper $threadDataMapper
      * @param ThreadRepository $threadRepository
+     * @param ThreadReadRepository $threadReadRepository
+     * @param ThreadFollowRepository $threadFollowRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
      */
     public function __construct(
-        ForumThreadReadService $threadReadService,
-        ThreadFollowService $threadFollowService,
-        UserForumThreadService $threadService,
         UserCloakDataMapper $userCloakDataMapper,
-        ThreadDataMapper $threadDataMapper,
         ThreadRepository $threadRepository,
+        ThreadReadRepository $threadReadRepository,
+        ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
         PermissionService $permissionService
     ) {
-        $this->threadReadService = $threadReadService;
-        $this->threadFollowService = $threadFollowService;
-        $this->threadService = $threadService;
         $this->userCloakDataMapper = $userCloakDataMapper;
-        $this->threadDataMapper = $threadDataMapper;
-
         $this->threadRepository = $threadRepository;
+        $this->threadReadRepository = $threadReadRepository;
+        $this->threadFollowRepository = $threadFollowRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
 
@@ -107,18 +87,27 @@ class UserForumThreadJsonController extends Controller
      */
     public function read($id)
     {
-        $thread = $this->threadDataMapper->get($id);
+        if (!$this->permissionService->can(auth()->id(), 'read-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $thread = $this->threadRepository->read($id);
 
         if (!$thread) {
             throw new NotFoundHttpException();
         }
 
-        $threadRead = $this->threadReadService->markThreadRead(
-            $thread->getId(),
-            $this->userCloakDataMapper->getCurrentId()
-        );
+        $now = Carbon::now()->toDateTimeString();
 
-        return response()->json($threadRead->flatten());
+        $threadRead = $this->threadReadRepository->create([
+            'thread_id' => $thread->id,
+            'reader_id' => $this->userCloakDataMapper->getCurrentId(),
+            'read_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        return response()->json($threadRead);
     }
 
     /**
@@ -128,18 +117,27 @@ class UserForumThreadJsonController extends Controller
      */
     public function follow($id)
     {
-        $thread = $this->threadDataMapper->get($id);
+        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $thread = $this->threadRepository->read($id);
 
         if (!$thread) {
             throw new NotFoundHttpException();
         }
 
-        $this->threadFollowService->follow(
-            $thread->getId(),
-            $this->userCloakDataMapper->getCurrentId()
-        );
+        $now = Carbon::now()->toDateTimeString();
 
-        return new JsonResponse(null, 204);
+        $threadFollow = $this->threadFollowRepository->create([
+            'thread_id' => $thread->id,
+            'follower_id' => $this->userCloakDataMapper->getCurrentId(),
+            'followed_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        return response()->json($threadFollow);
     }
 
     /**
@@ -149,10 +147,17 @@ class UserForumThreadJsonController extends Controller
      */
     public function unfollow($id)
     {
-        $this->threadFollowService->unFollow(
-            $id,
-            $this->userCloakDataMapper->getCurrentId()
-        );
+        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $threadFollow = $this->threadFollowRepository->read($id);
+
+        if (!$threadFollow) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->threadFollowRepository->destroy($threadFollow->id);
 
         return new JsonResponse(null, 204);
     }
@@ -246,8 +251,10 @@ class UserForumThreadJsonController extends Controller
                 ),
                 [
                     'author_id' => $authorId,
-                    'slug' => self::sanitizeForSlug($request->get('title')),
-                    'state' => self::STATE_PUBLISHED,
+                    'slug' => ThreadRepository::sanitizeForSlug(
+                                $request->get('title')
+                            ),
+                    'state' => ThreadRepository::STATE_PUBLISHED,
                     'published_on' => $now,
                     'created_at' => $now,
                     'updated_at' => $now,
@@ -260,7 +267,7 @@ class UserForumThreadJsonController extends Controller
                 'thread_id' => $thread->id,
                 'author_id' => $authorId,
                 'content' => $request->get('first_post_content'),
-                'state' => self::STATE_PUBLISHED,
+                'state' => PostRepository::STATE_PUBLISHED,
                 'published_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -335,21 +342,5 @@ class UserForumThreadJsonController extends Controller
         }
 
         return new JsonResponse(null, 204);
-    }
-
-    /**
-     * @param $string
-     *
-     * @return string
-     */
-    public static function sanitizeForSlug($string)
-    {
-        return strtolower(
-            preg_replace(
-                '/(\-)+/',
-                '-',
-                str_replace(' ', '-', preg_replace('/[^ \w]+/', '', str_replace('&', 'and', trim($string))))
-            )
-        );
     }
 }

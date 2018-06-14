@@ -2,68 +2,79 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Railroad\Railforums\DataMappers\ThreadDataMapper;
+use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Requests\ThreadCreateRequest;
 use Railroad\Railforums\Requests\ThreadUpdateRequest;
-use Railroad\Railforums\Services\Posts\ForumThreadReadService;
-use Railroad\Railforums\Services\ThreadFollows\ThreadFollowService;
-use Railroad\Railforums\Services\Threads\UserForumThreadService;
+use Railroad\Railforums\Repositories\ThreadRepository;
+use Railroad\Railforums\Repositories\ThreadReadRepository;
+use Railroad\Railforums\Repositories\ThreadFollowRepository;
+use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadController extends Controller
 {
-    /**
-     * @var ForumThreadReadService
-     */
-    protected $threadReadService;
-
-    /**
-     * @var ThreadFollowService
-     */
-    protected $threadFollowService;
-
-    /**
-     * @var UserForumThreadService
-     */
-    protected $threadService;
-
-    /**
-     * @var ThreadDataMapper
-     */
-    protected $threadDataMapper;
-
     /**
      * @var UserCloakDataMapper
      */
     protected $userCloakDataMapper;
 
     /**
+     * @var ThreadRepository
+     */
+    protected $threadRepository;
+
+    /**
+     * @var ThreadReadRepository
+     */
+    protected $threadReadRepository;
+
+    /**
+     * @var ThreadFollowRepository
+     */
+    protected $threadFollowRepository;
+
+    /**
+     * @var PostRepository
+     */
+    protected $postRepository;
+
+    /**
+     * @var PermissionService
+     */
+    private $permissionService;
+
+    /**
      * UserForumThreadController constructor.
      *
-     * @param ForumThreadReadService $threadReadService
-     * @param ThreadFollowService $threadFollowService
-     * @param UserForumThreadService $threadService
-     * @param ThreadDataMapper $threadDataMapper
      * @param UserCloakDataMapper $userCloakDataMapper
+     * @param ThreadRepository $threadRepository
+     * @param ThreadReadRepository $threadReadRepository
+     * @param ThreadFollowRepository $threadFollowRepository
+     * @param PostRepository $postRepository
+     * @param PermissionService $permissionService
      */
     public function __construct(
-        ForumThreadReadService $threadReadService,
-        ThreadFollowService $threadFollowService,
-        UserForumThreadService $threadService,
-        ThreadDataMapper $threadDataMapper,
-        UserCloakDataMapper $userCloakDataMapper
+        UserCloakDataMapper $userCloakDataMapper,
+        ThreadRepository $threadRepository,
+        ThreadReadRepository $threadReadRepository,
+        ThreadFollowRepository $threadFollowRepository,
+        PostRepository $postRepository,
+        PermissionService $permissionService
     ) {
-        $this->threadReadService = $threadReadService;
-        $this->threadFollowService = $threadFollowService;
-        $this->threadService = $threadService;
-        $this->threadDataMapper = $threadDataMapper;
         $this->userCloakDataMapper = $userCloakDataMapper;
+        $this->threadRepository = $threadRepository;
+        $this->threadReadRepository = $threadReadRepository;
+        $this->threadFollowRepository = $threadFollowRepository;
+        $this->postRepository = $postRepository;
+        $this->permissionService = $permissionService;
 
-        $this->middleware(config('railforums.controller_middleware'));
+        $this->middleware(ConfigService::$controllerMiddleware);
     }
 
     /**
@@ -74,16 +85,25 @@ class UserForumThreadController extends Controller
      */
     public function read(Request $request, $id)
     {
-        $thread = $this->threadDataMapper->get($id);
+        if (!$this->permissionService->can(auth()->id(), 'read-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $thread = $this->threadRepository->read($id);
 
         if (!$thread) {
             throw new NotFoundHttpException();
         }
 
-        $this->threadReadService->markThreadRead(
-            $thread->getId(),
-            $this->userCloakDataMapper->getCurrentId()
-        );
+        $now = Carbon::now()->toDateTimeString();
+
+        $threadRead = $this->threadReadRepository->create([
+            'thread_id' => $thread->id,
+            'reader_id' => $this->userCloakDataMapper->getCurrentId(),
+            'read_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
         $message = ['success' => true];
 
@@ -100,16 +120,25 @@ class UserForumThreadController extends Controller
      */
     public function follow(Request $request, $id)
     {
-        $thread = $this->threadDataMapper->get($id);
+        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $thread = $this->threadRepository->read($id);
 
         if (!$thread) {
             throw new NotFoundHttpException();
         }
 
-        $this->threadFollowService->follow(
-            $thread->getId(),
-            $this->userCloakDataMapper->getCurrentId()
-        );
+        $now = Carbon::now()->toDateTimeString();
+
+        $threadFollow = $this->threadFollowRepository->create([
+            'thread_id' => $thread->id,
+            'follower_id' => $this->userCloakDataMapper->getCurrentId(),
+            'followed_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
         $message = ['success' => true];
 
@@ -126,10 +155,17 @@ class UserForumThreadController extends Controller
      */
     public function unfollow(Request $request, $id)
     {
-        $this->threadFollowService->unFollow(
-            $id,
-            $this->userCloakDataMapper->getCurrentId()
-        );
+        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $threadFollow = $this->threadFollowRepository->read($id);
+
+        if (!$threadFollow) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->threadFollowRepository->destroy($threadFollow->id);
 
         $message = ['success' => true];
 
@@ -145,18 +181,50 @@ class UserForumThreadController extends Controller
      */
     public function store(ThreadCreateRequest $request)
     {
-        $title = $request->get('title');
-        $firstPostContent = $request->get('first_post_content');
-        $categoryId = $request->get('category_id');
+        if (!$this->permissionService->can(auth()->id(), 'create-threads')) {
+            throw new NotFoundHttpException();
+        }
+
+        $now = Carbon::now()->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
 
-        $thread = $this->threadService
-            ->createThread($title, $firstPostContent, $categoryId, $authorId);
+        $thread = $this->threadRepository->create(
+            array_merge(
+                $request->only(
+                    [
+                        'title',
+                        'category_id',
+                    ]
+                ),
+                [
+                    'author_id' => $authorId,
+                    'slug' => ThreadRepository::sanitizeForSlug(
+                                $request->get('title')
+                            ),
+                    'state' => ThreadRepository::STATE_PUBLISHED,
+                    'published_on' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            )
+        );
+
+        $this->postRepository->create(
+            [
+                'thread_id' => $thread->id,
+                'author_id' => $authorId,
+                'content' => $request->get('first_post_content'),
+                'state' => PostRepository::STATE_PUBLISHED,
+                'published_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
 
         $message = ['success' => true];
 
         // todo: temporary
-        return redirect()->to('/members/forums/thread/' . $thread->getId())->with($message);
+        return redirect()->to('/members/forums/thread/' . $thread->id)->with($message);
 
         //        return $request->has('redirect') ?
         //            redirect()->away($request->get('redirect'))->with($message) :
@@ -171,11 +239,13 @@ class UserForumThreadController extends Controller
      */
     public function update(ThreadUpdateRequest $request, $id)
     {
-        $title = $request->get('title');
+        if (!$this->permissionService->can(auth()->id(), 'update-threads')) {
+            throw new NotFoundHttpException();
+        }
 
-        $result = $this->threadService
-            ->updateThread(
-                $id,
+        $thread = $this->threadRepository->update(
+            $id,
+            array_merge(
                 $request->only(
                     [
                         'category_id',
@@ -188,10 +258,14 @@ class UserForumThreadController extends Controller
                         'post_count',
                         'published_on',
                     ]
-                )
-            );
+                ),
+                [
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ]
+            )
+        );
 
-        if (!$result) {
+        if (!$thread) {
             throw new NotFoundHttpException();
         }
 

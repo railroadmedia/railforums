@@ -19,17 +19,14 @@ use Railroad\Railforums\Entities\Thread;
 use Railroad\Railforums\Entities\Post;
 // use Railroad\Railforums\ForumServiceProvider;
 use Railroad\Railforums\Providers\ForumServiceProvider;
+use Railroad\Railforums\Repositories\ThreadRepository;
+use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
 use Railroad\Railforums\Services\ConfigService;
 
 class TestCase extends BaseTestCase
 {
-    const THREAD_STATE_PUBLISHED = 'published';
-    const THREAD_STATE_HIDDEN = 'hidden';
-    const POST_STATE_PUBLISHED = 'published';
-    const POST_STATE_HIDDEN = 'hidden';
-
     /**
      * @var Generator
      */
@@ -211,7 +208,7 @@ class TestCase extends BaseTestCase
             'author_id' => $authorId ?? $this->faker->randomNumber(),
             'title' => $this->faker->sentence(20),
             'slug' => strtolower(implode('-', $this->faker->words(5))),
-            'state' => self::THREAD_STATE_PUBLISHED,
+            'state' => ThreadRepository::STATE_PUBLISHED,
             'post_count' => $postCount ?? $this->faker->randomNumber(),
             'published_on' => Carbon::instance($this->faker->dateTime)->toDateTimeString(),
         ];
@@ -232,7 +229,7 @@ class TestCase extends BaseTestCase
             'author_id' => $authorId ?? $this->faker->randomNumber(),
             'prompting_post_id' => $this->faker->randomNumber(),
             'content' => $this->faker->sentence(20),
-            'state' => self::POST_STATE_PUBLISHED,
+            'state' => PostRepository::STATE_PUBLISHED,
             'published_on' => Carbon::instance($this->faker->dateTime)->toDateTimeString(),
         ];
 

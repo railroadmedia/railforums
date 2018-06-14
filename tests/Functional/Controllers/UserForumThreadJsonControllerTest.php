@@ -3,7 +3,6 @@
 namespace Tests;
 
 use Carbon\Carbon;
-use Railroad\Railforums\Entities\ThreadFollow;
 use Railroad\Railforums\Services\ConfigService;
 
 class UserForumThreadJsonControllerTest extends TestCase
@@ -17,147 +16,295 @@ class UserForumThreadJsonControllerTest extends TestCase
         parent::setUp();
     }
 
-    // public function test_thread_read()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+    public function test_thread_read_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     $thread = $this->fakeThread(null, $user->getId());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     // at least one post is required for a thread to be marked as read
-    //     $this->fakePost($thread->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/thread/read/' . $thread->getId()
-    //     );
+        $this->fakePost($thread['id'], $user->getId());
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response data
-    //     $response->assertJsonFragment([
-    //         'threadId' => $thread->getId(),
-    //         'readerId' => $user->getId()
-    //     ]);
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/read/' . $thread['id']
+        );
 
-    //     // assert the thread data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_thread_reads',
-    //         [
-    //             'thread_id' => $thread->getId(),
-    //             'reader_id' => $user->getId()
-    //         ]
-    //     );
-    // }
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
 
-    // public function test_thread_read_not_exists()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        // assert response data
+        $response->assertJsonFragment([
+            'thread_id' => $thread['id'],
+            'reader_id' => (int) $user->getId()
+        ]);
 
-    //     $threadId = rand(0, 32767);
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            ConfigService::$tableThreadReads,
+            [
+                'thread_id' => $thread['id'],
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/thread/read/' . $threadId
-    //     );
+    public function test_thread_read_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     // assert the data was not saved in the db
-    //     $this->assertDatabaseMissing(
-    //         'forum_thread_reads',
-    //         [
-    //             'thread_id' => $threadId,
-    //             'reader_id' => $user->getId()
-    //         ]
-    //     );
-    // }
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    // public function test_thread_follow()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        $this->fakePost($thread['id'], $user->getId());
 
-    //     $thread = $this->fakeThread(null, $user->getId());
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/read/' . $thread['id']
+        );
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/thread/follow/' . $thread->getId()
-    //     );
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
 
-    //     // assert response status code
-    //     $this->assertEquals(204, $response->getStatusCode());
+        // assert the thread data was not saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreadReads,
+            [
+                'thread_id' => $thread['id'],
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
 
-    //     // assert the thread data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_thread_follows',
-    //         [
-    //             'thread_id' => $thread->getId(),
-    //             'follower_id' => $user->getId()
-    //         ]
-    //     );
-    // }
+    public function test_thread_read_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    // public function test_thread_follow_not_exists()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
-    //     $threadId = rand(0, 32767);
+        $threadId = rand(0, 32767);
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/thread/follow/' . $threadId
-    //     );
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/read/' . $threadId
+        );
 
-    //     // assert the data was not saved in the db
-    //     $this->assertDatabaseMissing(
-    //         'forum_thread_follows',
-    //         [
-    //             'thread_id' => $threadId,
-    //             'follower_id' => $user->getId()
-    //         ]
-    //     );
-    // }
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
 
-    // public function test_thread_unfollow()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreadReads,
+            [
+                'thread_id' => $threadId,
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
 
-    //     $thread = $this->fakeThread(null, $user->getId());
+    public function test_thread_follow_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     $threadFollow = new ThreadFollow();
-    //     $threadFollow->setThreadId($thread->getId());
-    //     $threadFollow->setFollowerId($user->getId());
-    //     $threadFollow->setFollowedOn(Carbon::now()->toDateTimeString());
-    //     $threadFollow->persist();
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     $this->assertDatabaseHas(
-    //         'forum_thread_follows',
-    //         [
-    //             'thread_id' => $thread->getId(),
-    //             'follower_id' => $user->getId()
-    //         ]
-    //     );
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     $response = $this->call(
-    //         'DELETE',
-    //         self::API_PREFIX . '/thread/unfollow/' . $thread->getId()
-    //     );
+        $this->fakePost($thread['id'], $user->getId());
 
-    //     // assert response status code
-    //     $this->assertEquals(204, $response->getStatusCode());
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert the data was removed from the db
-    //     $this->assertDatabaseMissing(
-    //         'forum_thread_follows',
-    //         [
-    //             'thread_id' => $thread->getId(),
-    //             'follower_id' => $user->getId()
-    //         ]
-    //     );
-    // }
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/follow/' . $thread['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // assert response data
+        $response->assertJsonFragment([
+            'thread_id' => $thread['id'],
+            'follower_id' => (int) $user->getId()
+        ]);
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseHas(
+            ConfigService::$tableThreadFollows,
+            [
+                'thread_id' => $thread['id'],
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_follow_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        $this->fakePost($thread['id'], $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/follow/' . $thread['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreadFollows,
+            [
+                'thread_id' => $thread['id'],
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_follow_not_exists()
+    {
+        $user = $this->fakeCurrentUserCloak();
+        $threadId = rand(0, 32767);
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/thread/follow/' . $threadId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreadFollows,
+            [
+                'thread_id' => $threadId,
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_unfollow_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+
+        $threadFollow = [
+            'thread_id' => $thread['id'],
+            'follower_id' => $user->getId(),
+            'followed_on' => $dateTime,
+            'created_at' => $dateTime,
+            'updated_at' => $dateTime,
+        ];
+
+        $this->databaseManager
+            ->table(ConfigService::$tableThreadFollows)
+            ->insertGetId($threadFollow);
+
+        $this->assertDatabaseHas(
+            ConfigService::$tableThreadFollows,
+            [
+                'thread_id' => $thread['id'],
+                'follower_id' => $user->getId()
+            ]
+        );
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/unfollow/' . $thread['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the data was removed from the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreadFollows,
+            [
+                'thread_id' => $thread['id'],
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_unfollow_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        $thread = $this->fakeThread(null, $user->getId());
+
+        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+
+        $threadFollow = [
+            'thread_id' => $thread['id'],
+            'follower_id' => $user->getId(),
+            'followed_on' => $dateTime,
+            'created_at' => $dateTime,
+            'updated_at' => $dateTime,
+        ];
+
+        $this->databaseManager
+            ->table(ConfigService::$tableThreadFollows)
+            ->insertGetId($threadFollow);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/unfollow/' . $thread['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not removed from the db
+        $this->assertDatabaseHas(
+            ConfigService::$tableThreadFollows,
+            [
+                'thread_id' => $thread['id'],
+                'follower_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_thread_unfollow_not_exists()
+    {
+        $this->fakeCurrentUserCloak();
+
+        $threadFollowId = rand(0, 32767);
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/thread/unfollow/' . $threadFollowId
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 
     public function test_thread_index_with_permission()
     {
@@ -223,8 +370,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $this->fakeThread($category['id'], $user->getId());
 
         $payload = [
             'amount' => 10,
@@ -305,6 +451,32 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user->getId());
 
+        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+
+        $threadFollow = [
+            'thread_id' => $thread['id'],
+            'follower_id' => $user->getId(),
+            'followed_on' => $dateTime,
+            'created_at' => $dateTime,
+            'updated_at' => $dateTime,
+        ];
+
+        $this->databaseManager
+            ->table(ConfigService::$tableThreadFollows)
+            ->insertGetId($threadFollow);
+
+        $threadRead = [
+            'thread_id' => $thread['id'],
+            'reader_id' => $user->getId(),
+            'read_on' => $dateTime,
+            'created_at' => $dateTime,
+            'updated_at' => $dateTime,
+        ];
+
+        $this->databaseManager
+            ->table(ConfigService::$tableThreadReads)
+            ->insertGetId($threadRead);
+
         $this->permissionServiceMock->method('can')->willReturn(true);
 
         $response = $this->call(
@@ -314,8 +486,6 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
-
-        // TODO: add thread read and thread followed above and assert data below
 
         // assert response data
         $this->assertArraySubset(
@@ -328,8 +498,8 @@ class UserForumThreadJsonControllerTest extends TestCase
                 'last_post_id' => $post['id'],
                 'last_post_user_id' => $user->getId(),
                 'last_post_user_display_name' => $user->getDisplayName(),
-                'is_read' => 0,
-                'is_followed' => 0
+                'is_read' => 1,
+                'is_followed' => 1
             ],
             $response->decodeResponseJson()
         );
@@ -431,7 +601,7 @@ class UserForumThreadJsonControllerTest extends TestCase
             ]
         );
 
-        // assert the first post data was saved in the db
+        // assert the first post data was not saved in the db
         $this->assertDatabaseMissing(
             ConfigService::$tablePosts,
             [
@@ -527,7 +697,7 @@ class UserForumThreadJsonControllerTest extends TestCase
             ['title' => $newTitle]
         );
 
-        // assert the thread data was saved in the db
+        // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
             ConfigService::$tableThreads,
             [
@@ -616,7 +786,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         // assert the thread data was not soft deleted or deleted from db
         $this->assertDatabaseHas(
-            'forum_threads',
+            ConfigService::$tableThreads,
             [
                 'id' => $thread['id'],
                 'deleted_at' => null

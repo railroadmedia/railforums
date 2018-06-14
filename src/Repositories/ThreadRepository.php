@@ -14,7 +14,7 @@ use Railroad\Railforums\Repositories\Traits\SoftDelete;
 class ThreadRepository extends RepositoryBase
 {
     const STATE_PUBLISHED = 'published';
-    const ACESSIBLE_STATES = [self::STATE_PUBLISHED];
+    const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
 
     use SoftDelete;
 
@@ -91,7 +91,7 @@ class ThreadRepository extends RepositoryBase
             ->orderByRaw('last_post_published_on desc, id desc')
             ->whereIn(
                 ConfigService::$tableThreads . '.state',
-                self::ACESSIBLE_STATES
+                self::ACCESSIBLE_STATES
             )
             ->where('pinned', $pinned);
 
@@ -107,7 +107,7 @@ class ThreadRepository extends RepositoryBase
             ->selectRaw('COUNT(' . ConfigService::$tableThreads . '.id) as count')
             ->whereIn(
                 ConfigService::$tableThreads . '.state',
-                self::ACESSIBLE_STATES
+                self::ACCESSIBLE_STATES
             )
             ->where(ConfigService::$tableThreads . '.pinned', $pinned);
 
@@ -248,5 +248,21 @@ class ThreadRepository extends RepositoryBase
                 },
                 'is_followed'
             );
+    }
+
+    /**
+     * @param $string
+     *
+     * @return string
+     */
+    public static function sanitizeForSlug($string)
+    {
+        return strtolower(
+            preg_replace(
+                '/(\-)+/',
+                '-',
+                str_replace(' ', '-', preg_replace('/[^ \w]+/', '', str_replace('&', 'and', trim($string))))
+            )
+        );
     }
 }
