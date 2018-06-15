@@ -65,6 +65,21 @@ class ConfigService
     public static $tablePosts;
 
     /**
+     * @var string
+     */
+    public static $tablePostLikes;
+
+    /**
+     * @var string
+     */
+    public static $tablePostReports;
+
+    /**
+     * @var string
+     */
+    public static $tablePostReplies;
+
+    /**
      * @var array
      */
     public static $controllerMiddleware;

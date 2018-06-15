@@ -17,7 +17,10 @@ return array(
         'threads' => 'threads',
         'thread_follows' => 'thread_follows',
         'thread_reads' => 'thread_reads',
-        'posts' => 'posts'
+        'posts' => 'posts',
+        'post_likes' => 'post_likes',
+        'post_reports' => 'post_reports',
+        'post_replies' => 'post_replies'
     ],
 
     // host does the db migrations, clients do not

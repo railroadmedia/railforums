@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Railroad\Railforums\Services\ConfigService;
 
 class CreateForumsTablePostReplies extends Migration
 {
@@ -13,9 +14,9 @@ class CreateForumsTablePostReplies extends Migration
      */
     public function up()
     {
-        Schema::connection(config('railforums.database_connection_name'))
+        Schema::connection(ConfigService::$databaseConnectionName)
             ->create(
-                'forum_post_replies',
+                ConfigService::$tablePostReplies,
                 function (Blueprint $table) {
                     $table->increments('id');
                     $table->integer('child_post_id')->unsigned();
@@ -34,6 +35,6 @@ class CreateForumsTablePostReplies extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('forum_post_replies');
+        Schema::dropIfExists(ConfigService::$tablePostReplies);
     }
 }

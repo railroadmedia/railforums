@@ -61,6 +61,9 @@ class ForumServiceProvider extends ServiceProvider
         ConfigService::$tableThreadFollows = ConfigService::$tablePrefix . config('railforums.tables.thread_follows');
         ConfigService::$tableThreadReads = ConfigService::$tablePrefix . config('railforums.tables.thread_reads');
         ConfigService::$tablePosts = ConfigService::$tablePrefix . config('railforums.tables.posts');
+        ConfigService::$tablePostLikes = ConfigService::$tablePrefix . config('railforums.tables.post_likes');
+        ConfigService::$tablePostReports = ConfigService::$tablePrefix . config('railforums.tables.post_reports');
+        ConfigService::$tablePostReplies = ConfigService::$tablePrefix . config('railforums.tables.post_replies');
 
         // author table
         ConfigService::$authorTableName = config('railforums.author_table_name');

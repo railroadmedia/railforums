@@ -2,16 +2,23 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Railroad\Permissions\Services\PermissionService;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\DataMappers\PostDataMapper;
 use Railroad\Railforums\Entities\Post;
 use Railroad\Railforums\Requests\PostJsonIndexRequest;
 use Railroad\Railforums\Requests\PostJsonCreateRequest;
 use Railroad\Railforums\Requests\PostJsonUpdateRequest;
+use Railroad\Railforums\Repositories\PostLikeRepository;
+use Railroad\Railforums\Repositories\PostReplyRepository;
+use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Services\PostLikes\ForumPostLikeService;
 use Railroad\Railforums\Services\Posts\UserForumPostService;
 use Railroad\Railforums\Services\PostReplies\PostReplyService;
+use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumPostJsonController extends Controller
@@ -40,24 +47,65 @@ class UserForumPostJsonController extends Controller
     protected $postDataMapper;
 
     /**
+     * @var PostLikeRepository
+     */
+    protected $postLikeRepository;
+
+    /**
+     * @var PostReplyRepository
+     */
+    protected $postReplyRepository;
+
+    /**
+     * @var PostRepository
+     */
+    protected $postRepository;
+
+    /**
+     * @var PermissionService
+     */
+    protected $permissionService;
+
+    /**
+     * @var UserCloakDataMapper
+     */
+    protected $userCloakDataMapper;
+
+    /**
      * ThreadController constructor.
      *
      * @param ForumPostLikeService $postLikeService
      * @param UserForumPostService $postService
      * @param PostDataMapper $postDataMapper
+     * @param PostLikeRepository $postLikeRepository
+     * @param PostReplyRepository $postReplyRepository
+     * @param PostRepository $postRepository
+     * @param PermissionService $permissionService
+     * @param UserCloakDataMapper $userCloakDataMapper
      */
     public function __construct(
         PostReplyService $postReplyService,
         ForumPostLikeService $postLikeService,
         UserForumPostService $postService,
-        PostDataMapper $postDataMapper
+        PostDataMapper $postDataMapper,
+        PostLikeRepository $postLikeRepository,
+        PostReplyRepository $postReplyRepository,
+        PostRepository $postRepository,
+        PermissionService $permissionService,
+        UserCloakDataMapper $userCloakDataMapper
     ) {
         $this->postReplyService = $postReplyService;
         $this->postLikeService = $postLikeService;
         $this->postService = $postService;
         $this->postDataMapper = $postDataMapper;
 
-        $this->middleware(config('railforums.controller_middleware'));
+        $this->postLikeRepository = $postLikeRepository;
+        $this->postReplyRepository = $postReplyRepository;
+        $this->postRepository = $postRepository;
+        $this->permissionService = $permissionService;
+        $this->userCloakDataMapper = $userCloakDataMapper;
+
+        $this->middleware(ConfigService::$controllerMiddleware);
     }
 
     /**
@@ -67,15 +115,27 @@ class UserForumPostJsonController extends Controller
      */
     public function like($id)
     {
-        $post = $this->postDataMapper->get($id);
+        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
+            throw new NotFoundHttpException();
+        }
+
+        $post = $this->postRepository->read($id);
 
         if (!$post) {
             throw new NotFoundHttpException();
         }
 
-        $postLike = $this->postLikeService->likePost($id);
+        $now = Carbon::now()->toDateTimeString();
 
-        return response()->json($postLike->flatten());
+        $postLike = $this->postLikeRepository->create([
+            'post_id' => $post->id,
+            'liker_id' => $this->userCloakDataMapper->getCurrentId(),
+            'liked_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        return response()->json($postLike);
     }
 
     /**
@@ -85,7 +145,17 @@ class UserForumPostJsonController extends Controller
      */
     public function unlike($id)
     {
-        $this->postLikeService->unLikePost($id);
+        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
+            throw new NotFoundHttpException();
+        }
+
+        $postLike = $this->postLikeRepository->read($id);
+
+        if (!$postLike) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->postLikeRepository->destroy($postLike->id);
 
         return new JsonResponse(null, 204);
     }
@@ -97,25 +167,25 @@ class UserForumPostJsonController extends Controller
      */
     public function index(PostJsonIndexRequest $request)
     {
+        if (!$this->permissionService->can(auth()->id(), 'index-posts')) {
+            throw new NotFoundHttpException();
+        }
+
         $amount = $request->get('amount') ?
                     (int) $request->get('amount') : self::AMOUNT;
         $page = $request->get('page') ?
                     (int) $request->get('page') : self::PAGE;
         $threadId = (int) $request->get('thread_id');
 
-        $posts = $this->postService
-            ->getPosts($amount, $page, $threadId);
+        $posts = $this->postRepository
+            ->getDecoratedPosts($amount, $page, $threadId);
 
-        $postsCount = $this->postService->getThreadPostCount($threadId);
+        $postsCount = $this->postRepository->getPostsCount($threadId);
 
         $response = [
-            'posts' => [],
+            'posts' => $posts,
             'count' => $postsCount
         ];
-
-        foreach ($posts as $post) {
-            $response['posts'][] = $post->flatten();
-        }
 
         return response()->json($response);
     }
@@ -127,50 +197,25 @@ class UserForumPostJsonController extends Controller
      */
     public function show($id)
     {
-        $post = $this->postDataMapper->get($id);
-
-        if (!$post) {
+        if (!$this->permissionService->can(auth()->id(), 'show-posts')) {
             throw new NotFoundHttpException();
         }
 
-        $result = $post->flatten();
+        $posts = $this->postRepository->getDecoratedPostsByIds([$id]);
 
-        if ($post->getIsLikedByCurrentUser()) {
-
-            $recentLikes = $this->postLikeService->getRecentLikes($id);
-
-            foreach ($recentLikes as $postLike) {
-                /** @var \Railroad\Railforums\Entities\PostLike $postLike */
-                $result['recentLikes'][] = $postLike->flatten();
-            }
+        if (!$posts || $posts->isEmpty()) {
+            throw new NotFoundHttpException();
         }
 
-        $postReplies = $this->postReplyService->getReplies($post->getId());
+        $post = $posts->first()->getArrayCopy();
 
-        $result['postReplies'] = [];
+        $posts = null;
 
-        foreach ($postReplies as $postReply) {
+        $post['reply_parents'] = $this->postReplyRepository
+            ->getPostReplyParents($post['id'])
+            ->all();
 
-            /** @var \Railroad\Railforums\Entities\PostReply $postReply */
-            $flatPostReply = $postReply->flatten();
-
-            $links = $postReply->getLoadedLinkedEntities();
-            if (
-                is_array($links) &&
-                isset($links['parent']) &&
-                $links['parent'] instanceof Post
-            ) {
-
-                /** @var \Railroad\Railforums\Entities\Post $parentPost */
-                $parentPost = $links['parent'];
-
-                $flatPostReply['parent'] = $parentPost->flatten();
-            }
-
-            $result['postReplies'][] = $flatPostReply;
-        }
-
-        return response()->json($result);
+        return response()->json($post);
     }
 
     /**
