@@ -80,6 +80,11 @@ class ConfigService
     public static $tablePostReplies;
 
     /**
+     * @var string
+     */
+    public static $tableSearchIndexes;
+
+    /**
      * @var array
      */
     public static $controllerMiddleware;

@@ -2,8 +2,11 @@
 
 namespace Railroad\Railforums\Repositories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Railroad\Resora\Decorators\Decorator;
+use Railroad\Resora\Queries\BaseQuery;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\Services\ConfigService;
@@ -14,6 +17,7 @@ class PostRepository extends RepositoryBase
 {
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
+    const CHUNK_SIZE = 100;
 
     use SoftDelete;
 
@@ -45,6 +49,18 @@ class PostRepository extends RepositoryBase
         return app('db')->connection(ConfigService::$databaseConnectionName);
     }
 
+    protected function baseQuery()
+    {
+        return new BaseQuery($this->connection());
+    }
+
+    /**
+     * Returns the posts count of the specified thread
+     *
+     * @param int $threadId
+     *
+     * @return int
+     */
     public function getPostsCount($threadId)
     {
         return $this->query()
@@ -57,6 +73,15 @@ class PostRepository extends RepositoryBase
             ->value('count');
     }
 
+    /**
+     * Returns the posts and associated data
+     *
+     * @param int $amount
+     * @param int $page
+     * @param int $threadId
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getDecoratedPosts($amount, $page, $threadId)
     {
         return $this->getDecoratedQuery()
@@ -71,6 +96,13 @@ class PostRepository extends RepositoryBase
             ->get();
     }
 
+    /**
+     * Returns the posts and associated data
+     *
+     * @param array $ids
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getDecoratedPostsByIds($ids)
     {
         return $this->getDecoratedQuery()
@@ -78,6 +110,11 @@ class PostRepository extends RepositoryBase
             ->get();
     }
 
+    /**
+     * Returns a decorated query to retrive posts and associated data
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
     public function getDecoratedQuery()
     {
         return $this->query()
@@ -193,5 +230,62 @@ class PostRepository extends RepositoryBase
                 },
                 'liker_3_display_name'
             );
+    }
+
+    /**
+     * Performs a chunked table read and creates search index records with the fetched data
+     */
+    public function createSearchIndexes()
+    {
+        $authorsTable = config('railforums.author_table_name');
+        $authorsTableKey = config('railforums.author_table_id_column_name');
+        $displayNameColumn = config('railforums.author_table_display_name_column_name');
+
+        $query = $this
+            ->baseQuery()
+            ->from(ConfigService::$tablePosts)
+            ->select(ConfigService::$tablePosts . '.*')
+            ->addSelect($authorsTable . '.' . $displayNameColumn)
+            ->join(
+                $authorsTable,
+                $authorsTable . '.' . $authorsTableKey,
+                '=',
+                ConfigService::$tablePosts . '.author_id'
+            )
+            ->orderBy(ConfigService::$tablePosts . '.id');
+
+        $instance = $this;
+
+        $query->chunk(
+            self::CHUNK_SIZE,
+            function (Collection $postsData) use (
+                $displayNameColumn,
+                $instance
+            ) {
+
+                $chunk = [];
+                $now = Carbon::now()->toDateTimeString();
+
+                foreach ($postsData as $postData) {
+
+                    $searchIndex = [
+                        'high_value' => null,
+                        'medium_value' => $postData->content,
+                        'low_value' => $postData->{$displayNameColumn},
+                        'thread_id' => $postData->thread_id,
+                        'post_id' => $postData->id,
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ];
+
+                    $chunk[] = $searchIndex;
+                }
+
+                $instance
+                    ->baseQuery()
+                    ->from(ConfigService::$tableSearchIndexes)
+                    ->insert($chunk);
+            }
+        );
     }
 }

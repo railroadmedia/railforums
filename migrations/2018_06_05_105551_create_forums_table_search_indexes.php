@@ -3,11 +3,10 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Railroad\Railforums\Services\ConfigService;
 
 class CreateForumsTableSearchIndexes extends Migration
 {
-    const TABLE_NAME = 'forum_search_indexes';
-
     /**
      * Run the migrations.
      *
@@ -15,11 +14,11 @@ class CreateForumsTableSearchIndexes extends Migration
      */
     public function up()
     {
-        if (config('railforums.database_connection_name') != config('railforums.connection_mask_prefix') . 'testbench') {
+        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
 
-            Schema::connection(config('railforums.database_connection_name'))
+            Schema::connection(ConfigService::$databaseConnectionName)
                 ->create(
-                    self::TABLE_NAME,
+                    ConfigService::$tableSearchIndexes,
                     function (Blueprint $table) {
 
                         $table->engine = 'InnoDB';
@@ -36,27 +35,27 @@ class CreateForumsTableSearchIndexes extends Migration
                     }
                 );
 
-            Schema::connection(config('railforums.database_connection_name'))
+            Schema::connection(ConfigService::$databaseConnectionName)
                 ->getConnection()
                 ->getPdo()
                 ->exec(
-                    'ALTER TABLE ' . self::TABLE_NAME . ' ' .
+                    'ALTER TABLE ' . ConfigService::$tableSearchIndexes . ' ' .
                     'ADD FULLTEXT high_full_text(high_value)'
                 );
 
-            Schema::connection(config('railforums.database_connection_name'))
+            Schema::connection(ConfigService::$databaseConnectionName)
                 ->getConnection()
                 ->getPdo()
                 ->exec(
-                    'ALTER TABLE ' . self::TABLE_NAME . ' ' .
+                    'ALTER TABLE ' . ConfigService::$tableSearchIndexes . ' ' .
                     'ADD FULLTEXT medium_full_text(medium_value)'
                 );
 
-            Schema::connection(config('railforums.database_connection_name'))
+            Schema::connection(ConfigService::$databaseConnectionName)
                 ->getConnection()
                 ->getPdo()
                 ->exec(
-                    'ALTER TABLE ' . self::TABLE_NAME . ' ' .
+                    'ALTER TABLE ' . ConfigService::$tableSearchIndexes . ' ' .
                     'ADD FULLTEXT low_full_text(low_value)'
                 );
         }
@@ -69,6 +68,6 @@ class CreateForumsTableSearchIndexes extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists(self::TABLE_NAME);
+        Schema::dropIfExists(ConfigService::$tableSearchIndexes);
     }
 }

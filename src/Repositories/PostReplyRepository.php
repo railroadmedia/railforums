@@ -22,9 +22,16 @@ class PostReplyRepository extends RepositoryBase
         return app('db')->connection(ConfigService::$databaseConnectionName);
     }
 
+    /**
+     * Returns the posts that represent reply parents of the parameter post
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getPostReplyParents($id)
     {
-        $q = $this->query()
+        return $this->query()
             ->select(ConfigService::$tablePosts . ".*")
             ->leftJoin(ConfigService::$tablePosts,
                 function (JoinClause $query) {
@@ -35,10 +42,18 @@ class PostReplyRepository extends RepositoryBase
                     );
                 }
             )
-            ->where(ConfigService::$tablePostReplies . '.child_post_id', $id);
+            ->where(ConfigService::$tablePostReplies . '.child_post_id', $id)
+            ->get();
+    }
 
-        // echo "\n\n %%% qry: " . $q->toSql() . "\n\n";
-
-        return $q->get();
+    /**
+     * Performs a bulk insert
+     *
+     * @param array $payload
+     */
+    public function insert($payload)
+    {
+        $this->continueOrNewQuery()
+            ->insert($payload);
     }
 }

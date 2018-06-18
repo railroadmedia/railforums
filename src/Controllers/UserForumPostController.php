@@ -2,50 +2,70 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Railroad\Permissions\Services\PermissionService;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Requests\PostCreateRequest;
 use Railroad\Railforums\Requests\PostUpdateRequest;
-use Railroad\Railforums\DataMappers\PostDataMapper;
-use Railroad\Railforums\Services\PostLikes\ForumPostLikeService;
-use Railroad\Railforums\Services\Posts\UserForumPostService;
+use Railroad\Railforums\Repositories\PostLikeRepository;
+use Railroad\Railforums\Repositories\PostReplyRepository;
+use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumPostController extends Controller
 {
     /**
-     * @var ForumPostLikeService
+     * @var PostLikeRepository
      */
-    protected $postLikeService;
+    protected $postLikeRepository;
 
     /**
-     * @var UserForumPostService
+     * @var PostReplyRepository
      */
-    protected $postService;
+    protected $postReplyRepository;
 
     /**
-     * @var PostDataMapper
+     * @var PostRepository
      */
-    protected $postDataMapper;
+    protected $postRepository;
+
+    /**
+     * @var PermissionService
+     */
+    protected $permissionService;
+
+    /**
+     * @var UserCloakDataMapper
+     */
+    protected $userCloakDataMapper;
 
     /**
      * UserForumPostController constructor.
      *
-     * @param ForumPostLikeService $postLikeService
-     * @param UserForumPostService $postService
-     * @param PostDataMapper $postDataMapper
+     * @param PostLikeRepository $postLikeRepository
+     * @param PostReplyRepository $postReplyRepository
+     * @param PostRepository $postRepository
+     * @param PermissionService $permissionService
+     * @param UserCloakDataMapper $userCloakDataMapper
      */
     public function __construct(
-        ForumPostLikeService $postLikeService,
-        UserForumPostService $postService,
-        PostDataMapper $postDataMapper
+        PostLikeRepository $postLikeRepository,
+        PostReplyRepository $postReplyRepository,
+        PostRepository $postRepository,
+        PermissionService $permissionService,
+        UserCloakDataMapper $userCloakDataMapper
     ) {
-        $this->postLikeService = $postLikeService;
-        $this->postService = $postService;
-        $this->postDataMapper = $postDataMapper;
+        $this->postLikeRepository = $postLikeRepository;
+        $this->postReplyRepository = $postReplyRepository;
+        $this->postRepository = $postRepository;
+        $this->permissionService = $permissionService;
+        $this->userCloakDataMapper = $userCloakDataMapper;
 
-        $this->middleware(config('railforums.controller_middleware'));
+        $this->middleware(ConfigService::$controllerMiddleware);
     }
 
     /**
@@ -56,13 +76,25 @@ class UserForumPostController extends Controller
      */
     public function like(Request $request, $id)
     {
-        $post = $this->postDataMapper->get($id);
+        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
+            throw new NotFoundHttpException();
+        }
+
+        $post = $this->postRepository->read($id);
 
         if (!$post) {
             throw new NotFoundHttpException();
         }
 
-        $this->postLikeService->likePost($id);
+        $now = Carbon::now()->toDateTimeString();
+
+        $this->postLikeRepository->create([
+            'post_id' => $post->id,
+            'liker_id' => $this->userCloakDataMapper->getCurrentId(),
+            'liked_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
         $message = ['success' => true];
 
@@ -79,7 +111,17 @@ class UserForumPostController extends Controller
      */
     public function unlike(Request $request, $id)
     {
-        $this->postLikeService->unLikePost($id);
+        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
+            throw new NotFoundHttpException();
+        }
+
+        $postLike = $this->postLikeRepository->read($id);
+
+        if (!$postLike) {
+            throw new NotFoundHttpException();
+        }
+
+        $this->postLikeRepository->destroy($postLike->id);
 
         $message = ['success' => true];
 
@@ -95,12 +137,42 @@ class UserForumPostController extends Controller
      */
     public function store(PostCreateRequest $request)
     {
-        $content = $request->get('content');
-        $promptingPostId = $request->get('prompting_post_id');
-        $threadId = $request->get('thread_id');
+        if (!$this->permissionService->can(auth()->id(), 'create-posts')) {
+            throw new NotFoundHttpException();
+        }
 
-        $this->postService
-            ->createPost($content, $promptingPostId, $threadId);
+        $now = Carbon::now()->toDateTimeString();
+        $authorId = $this->userCloakDataMapper->getCurrentId();
+
+        $post = $this->postRepository->create(array_merge(
+            $request->only([
+                'thread_id',
+                'content',
+                'prompting_post_id'
+            ]),
+            [
+                'state' => PostRepository::STATE_PUBLISHED,
+                'author_id' => $authorId,
+                'published_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]
+        ));
+
+        $parentIds = $request->get('parent_ids', []);
+
+        if (!empty($parentIds)) {
+            $replies = [];
+
+            foreach ($parentIds as $parentId) {
+                $replies[] = [
+                    'child_post_id' => $post->id,
+                    'parent_post_id' => $parentId
+                ];
+            }
+
+            $this->postReplyRepository->insert($replies);
+        }
 
         $message = ['success' => true];
 
@@ -117,12 +189,19 @@ class UserForumPostController extends Controller
      */
     public function update(PostUpdateRequest $request, $id)
     {
-        $content = $request->get('content');
+        if (!$this->permissionService->can(auth()->id(), 'update-posts')) {
+            throw new NotFoundHttpException();
+        }
 
-        $result = $this->postService
-                ->updatePostContent($id, $content);
+        $post = $this->postRepository->update(
+            $id,
+            [
+                'content' => $request->get('content'),
+                'updated_at' => Carbon::now()->toDateTimeString()
+            ]
+        );
 
-        if (!$result) {
+        if (!$post) {
             throw new NotFoundHttpException();
         }
 

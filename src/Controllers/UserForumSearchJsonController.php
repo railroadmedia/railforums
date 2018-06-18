@@ -4,37 +4,45 @@ namespace Railroad\Railforums\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Railroad\Railforums\Services\Search\SearchService;
+use Railroad\Railforums\Repositories\SearchIndexRepository;
 use Railroad\Railforums\Responses\JsonPaginatedResponse;
 
 class UserForumSearchJsonController extends Controller
 {
     /**
-     * @var SearchService
+     * @var SearchIndexRepository
      */
-    private $searchService;
+    private $searchIndexRepository;
 
     /**
-     * @param SearchService $searchService
+     * @param SearchIndexRepository $searchIndexRepository
      */
-    public function __construct(SearchService $searchService)
+    public function __construct(SearchIndexRepository $searchIndexRepository)
     {
-        $this->searchService = $searchService;
+        $this->searchIndexRepository = $searchIndexRepository;
     }
 
     public function index(Request $request)
     {
-        $resultData = $this->searchService->search(
-            $request->get('term', null),
-            $request->get('type', null),
-            $request->get('page', 1),
-            $request->get('limit', 10),
-            $request->get('sort', 'score')
-        );
+        $results = $this->searchIndexRepository
+                        ->search(
+                            $request->get('term', null),
+                            $request->get('type', null),
+                            $request->get('page', 1),
+                            $request->get('limit', 10),
+                            $request->get('sort', 'score')
+                        );
+
+        $count = $this->searchIndexRepository
+                        ->countTotalResults(
+                            $request->get('term', null),
+                            $request->get('type', null)
+                        );
+        // $count = 0;
 
         return new JsonPaginatedResponse(
-            $resultData['results'],
-            $resultData['total_results'],
+            $results,
+            $count,
             null,
             200
         );

@@ -2,9 +2,12 @@
 
 namespace Railroad\Railforums\Repositories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Collection;
 use Railroad\Resora\Decorators\Decorator;
+use Railroad\Resora\Queries\BaseQuery;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\Services\ConfigService;
@@ -15,6 +18,7 @@ class ThreadRepository extends RepositoryBase
 {
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
+    const CHUNK_SIZE = 100;
 
     use SoftDelete;
 
@@ -36,6 +40,11 @@ class ThreadRepository extends RepositoryBase
         return (new CachedQuery($this->connection()))->from(ConfigService::$tableThreads);
     }
 
+    protected function baseQuery()
+    {
+        return new BaseQuery($this->connection());
+    }
+
     protected function decorate($results)
     {
         return Decorator::decorate($results, 'threads');
@@ -46,6 +55,13 @@ class ThreadRepository extends RepositoryBase
         return app('db')->connection(ConfigService::$databaseConnectionName);
     }
 
+    /**
+     * Returns the threads and associated data
+     *
+     * @param array $ids
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getDecoratedThreadsByIds($ids)
     {
         return $this->getDecoratedQuery()
@@ -53,6 +69,17 @@ class ThreadRepository extends RepositoryBase
             ->get();
     }
 
+    /**
+     * Returns the threads and associated data
+     *
+     * @param int $amount
+     * @param int $page
+     * @param array $categoryIds
+     * @param bool $pinned
+     * @param bool $followed
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getDecoratedThreads(
         $amount,
         $page,
@@ -98,6 +125,15 @@ class ThreadRepository extends RepositoryBase
         return $query->get();
     }
 
+    /**
+     * Returns the threads count matching specified parameter filters
+     *
+     * @param array $categoryIds
+     * @param bool $pinned
+     * @param bool $followed
+     *
+     * @return int
+     */
     public function getThreadsCount(
         $categoryIds,
         $pinned = false,
@@ -148,6 +184,11 @@ class ThreadRepository extends RepositoryBase
         return $query->value('count');
     }
 
+    /**
+     * Returns a decorated query to retrive threads and associated data
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
     public function getDecoratedQuery()
     {
         return $this->query()
@@ -263,6 +304,63 @@ class ThreadRepository extends RepositoryBase
                 '-',
                 str_replace(' ', '-', preg_replace('/[^ \w]+/', '', str_replace('&', 'and', trim($string))))
             )
+        );
+    }
+
+    /**
+     * Performs a chunked table read and creates search index records with the fetched data
+     */
+    public function createSearchIndexes()
+    {
+        $authorsTable = config('railforums.author_table_name');
+        $authorsTableKey = config('railforums.author_table_id_column_name');
+        $displayNameColumn = config('railforums.author_table_display_name_column_name');
+
+        $query = $this
+            ->baseQuery()
+            ->from(ConfigService::$tableThreads)
+            ->select(ConfigService::$tableThreads . '.*')
+            ->addSelect($authorsTable . '.' . $displayNameColumn)
+            ->join(
+                $authorsTable,
+                $authorsTable . '.' . $authorsTableKey,
+                '=',
+                ConfigService::$tableThreads . '.author_id'
+            )
+            ->orderBy(ConfigService::$tableThreads . '.id');
+
+        $instance = $this;
+
+        $query->chunk(
+            self::CHUNK_SIZE,
+            function (Collection $threadsData) use (
+                $displayNameColumn,
+                $instance
+            ) {
+
+                $chunk = [];
+                $now = Carbon::now()->toDateTimeString();
+
+                foreach ($threadsData as $threadData) {
+
+                    $searchIndex = [
+                        'high_value' => $threadData->title,
+                        'medium_value' => null,
+                        'low_value' => $threadData->{$displayNameColumn},
+                        'thread_id' => $threadData->id,
+                        'post_id' => null,
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ];
+
+                    $chunk[] = $searchIndex;
+                }
+
+                $instance
+                    ->baseQuery()
+                    ->from(ConfigService::$tableSearchIndexes)
+                    ->insert($chunk);
+            }
         );
     }
 }

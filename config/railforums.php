@@ -20,7 +20,8 @@ return array(
         'posts' => 'posts',
         'post_likes' => 'post_likes',
         'post_reports' => 'post_reports',
-        'post_replies' => 'post_replies'
+        'post_replies' => 'post_replies',
+        'search_indexes' => 'search_indexes'
     ],
 
     // host does the db migrations, clients do not

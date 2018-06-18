@@ -32,9 +32,15 @@ class UserForumSearchJsonControllerTest extends TestCase
     public function test_search_index()
     {
         $this->fakeCurrentUserCloak();
+
         $author = $this->fakeUserCloak();
+
+        /** @var array $category */
         $category = $this->fakeCategory();
-        $thread = $this->fakeThread($category->getId(), $author->getId());
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $author->getId());
+
         $posts = [];
         $threads = [$thread];
         $authors = [$author];
@@ -46,11 +52,12 @@ class UserForumSearchJsonControllerTest extends TestCase
             if ($i % 3 == 0) {
                 $author = $this->fakeUserCloak();
                 $authors[] = $author;
-                $thread = $this->fakeThread($category->getId(), $author->getId());
+                /** @var array $thread */
+                $thread = $this->fakeThread($category['id'], $author->getId());
                 $threads[] = $thread;
             }
 
-            $posts[] = $this->fakePost($thread->getId(), $author->getId());
+            $posts[] = $this->fakePost($thread['id'], $author->getId());
         }
 
         $page = 1;
@@ -59,7 +66,7 @@ class UserForumSearchJsonControllerTest extends TestCase
         $topSearchResult = $threads[2];
 
         // this selects some random words from thread title, to assert it later as first result
-        $term = $this->getRandomWordsFromSentence($topSearchResult->getTitle());
+        $term = $this->getRandomWordsFromSentence($topSearchResult['title']);
 
         $this->artisan('command:createSearchIndexes');
 
@@ -80,7 +87,7 @@ class UserForumSearchJsonControllerTest extends TestCase
 
         // assert top search result
         $this->assertEquals(
-            $topSearchResult->getId(),
+            $topSearchResult['id'],
             $decodeResponse['results'][0]['id']
         );
 

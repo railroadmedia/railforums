@@ -3,10 +3,6 @@
 namespace Tests;
 
 use Carbon\Carbon;
-use Railroad\Railforums\Entities\PostLike;
-use Railroad\Railforums\Entities\PostReply;
-use Railroad\Railforums\DataMappers\PostDataMapper;
-use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railforums\Services\ConfigService;
 
 class UserForumPostJsonControllerTest extends TestCase
@@ -220,7 +216,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_unlike_not_exists()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $this->fakeCurrentUserCloak();
         $postId = rand(0, 32767);
 
         $this->permissionServiceMock->method('can')->willReturn(true);
@@ -605,257 +601,385 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->assertEquals(404, $response->getStatusCode());
     }
 
-    // public function test_post_store()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+    public function test_post_store_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     $category = $this->fakeCategory();
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     $thread = $this->fakeThread($category->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     $postData = [
-    //         'content' => $this->faker->sentence(),
-    //         'thread_id' => $thread->getId()
-    //     ];
+        $postData = [
+            'content' => $this->faker->sentence(),
+            'thread_id' => $thread['id']
+        ];
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/post/store',
-    //         $postData
-    //     );
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/store',
+            $postData
+        );
 
-    //     // assert the post data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_posts',
-    //         [
-    //             'content' => $postData['content'],
-    //             'thread_id' => $postData['thread_id']
-    //         ]
-    //     );
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
 
-    //     // assert response data
-    //     $response->assertJsonFragment([
-    //         'content' => $postData['content'],
-    //         'threadId' => $postData['thread_id']
-    //     ]);
-    // }
+        // assert the post data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'content' => $postData['content'],
+                'thread_id' => $postData['thread_id']
+            ]
+        );
 
-    // public function test_post_store_with_replies()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        // assert response data
+        $response->assertJsonFragment([
+            'content' => $postData['content'],
+            'thread_id' => $postData['thread_id']
+        ]);
+    }
 
-    //     $category = $this->fakeCategory();
+    public function test_post_store_without_permission()
+    {
+         $user = $this->fakeCurrentUserCloak();
 
-    //     $thread = $this->fakeThread($category->getId(), $user->getId());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     $postOne = $this->fakePost($thread->getId(), $user->getId());
-    //     $postTwo = $this->fakePost($thread->getId(), $user->getId());
-    //     $postThree = $this->fakePost($thread->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     $postData = [
-    //         'content' => $this->faker->sentence(),
-    //         'thread_id' => $thread->getId(),
-    //         'parent_ids' => [
-    //             $postOne->getId(),
-    //             $postTwo->getId(),
-    //             $postThree->getId()
-    //         ]
-    //     ];
+        $postData = [
+            'content' => $this->faker->sentence(),
+            'thread_id' => $thread['id']
+        ];
 
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/post/store',
-    //         $postData
-    //     );
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/store',
+            $postData
+        );
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
 
-    //     // assert the post data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_posts',
-    //         [
-    //             'content' => $postData['content'],
-    //             'thread_id' => $postData['thread_id']
-    //         ]
-    //     );
+        // assert the post data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_posts',
+            [
+                'content' => $postData['content'],
+                'thread_id' => $postData['thread_id']
+            ]
+        );
+    }
 
-    //     // assert response data
-    //     $response->assertJsonFragment([
-    //         'content' => $postData['content'],
-    //         'threadId' => $postData['thread_id']
-    //     ]);
+    public function test_post_store_with_replies()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     $postResponse = $response->decodeResponseJson();
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     // assert postOne is marked as parent in db
-    //     $this->assertDatabaseHas(
-    //         'forum_post_replies',
-    //         [
-    //             'parent_post_id' => $postOne->getId(),
-    //             'child_post_id' => $postResponse['id']
-    //         ]
-    //     );
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     // assert postTwo is marked as parent in db
-    //     $this->assertDatabaseHas(
-    //         'forum_post_replies',
-    //         [
-    //             'parent_post_id' => $postTwo->getId(),
-    //             'child_post_id' => $postResponse['id']
-    //         ]
-    //     );
+        /** @var array $postOne */
+        $postOne = $this->fakePost($thread['id'], $user->getId());
+        /** @var array $postTwo */
+        $postTwo = $this->fakePost($thread['id'], $user->getId());
+        /** @var array $postThree */
+        $postThree = $this->fakePost($thread['id'], $user->getId());
 
-    //     // assert postThree is marked as parent in db
-    //     $this->assertDatabaseHas(
-    //         'forum_post_replies',
-    //         [
-    //             'parent_post_id' => $postThree->getId(),
-    //             'child_post_id' => $postResponse['id']
-    //         ]
-    //     );
-    // }
+        $postData = [
+            'content' => $this->faker->sentence(),
+            'thread_id' => $thread['id'],
+            'parent_ids' => [
+                $postOne['id'],
+                $postTwo['id'],
+                $postThree['id']
+            ]
+        ];
 
-    // public function test_post_store_validation_fail()
-    // {
-    //     $response = $this->call(
-    //         'PUT',
-    //         self::API_PREFIX . '/post/store',
-    //         []
-    //     );
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    //     // assert response status code
-    //     $this->assertEquals(422, $response->getStatusCode());
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/store',
+            $postData
+        );
 
-    //     // assert response validation error messages
-    //     $this->assertEquals([
-    //         [
-    //             "source" => "content",
-    //             "detail" => "The content field is required.",
-    //         ],
-    //         [
-    //             "source" => "thread_id",
-    //             "detail" => "The thread id field is required.",
-    //         ]
-    //     ], $response->decodeResponseJson()['errors']);
-    // }
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
 
-    // public function test_post_update()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
+        // assert the post data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'content' => $postData['content'],
+                'thread_id' => $postData['thread_id']
+            ]
+        );
 
-    //     $thread = $this->fakeThread(null, $user->getId());
+        // assert response data
+        $response->assertJsonFragment([
+            'content' => $postData['content'],
+            'thread_id' => $postData['thread_id']
+        ]);
 
-    //     $post = $this->fakePost($thread->getId(), $user->getId());
+        $postResponse = $response->decodeResponseJson();
 
-    //     $newContent = $this->faker->sentence();
+        // assert postOne is marked as parent in db
+        $this->assertDatabaseHas(
+            'forum_post_replies',
+            [
+                'parent_post_id' => $postOne['id'],
+                'child_post_id' => $postResponse['id']
+            ]
+        );
 
-    //     $response = $this->call(
-    //         'PATCH',
-    //         self::API_PREFIX . '/post/update/' . $post->getId(),
-    //         ['content' => $newContent]
-    //     );
+        // assert postTwo is marked as parent in db
+        $this->assertDatabaseHas(
+            'forum_post_replies',
+            [
+                'parent_post_id' => $postTwo['id'],
+                'child_post_id' => $postResponse['id']
+            ]
+        );
 
-    //     // assert response status code
-    //     $this->assertEquals(200, $response->getStatusCode());
+        // assert postThree is marked as parent in db
+        $this->assertDatabaseHas(
+            'forum_post_replies',
+            [
+                'parent_post_id' => $postThree['id'],
+                'child_post_id' => $postResponse['id']
+            ]
+        );
+    }
 
-    //     // assert the post data was saved in the db
-    //     $this->assertDatabaseHas(
-    //         'forum_posts',
-    //         [
-    //             'id' => $post->getId(),
-    //             'content' => $newContent
-    //         ]
-    //     );
+    public function test_post_store_validation_fail()
+    {
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/store',
+            []
+        );
 
-    //     // assert response data
-    //     $response->assertJsonFragment([
-    //         'content' => $newContent,
-    //         'id' => $post->getId()
-    //     ]);
-    // }
+        // assert response status code
+        $this->assertEquals(422, $response->getStatusCode());
 
-    // public function test_post_update_validation_fail()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
-    //     $thread = $this->fakeThread(null, $user->getId());
-    //     $post = $this->fakePost($thread->getId(), $user->getId());
-    //     $newContent = $this->faker->sentence();
+        // assert response validation error messages
+        $this->assertEquals([
+            [
+                "source" => "content",
+                "detail" => "The content field is required.",
+            ],
+            [
+                "source" => "thread_id",
+                "detail" => "The thread id field is required.",
+            ]
+        ], $response->decodeResponseJson()['errors']);
+    }
 
-    //     $response = $this->call(
-    //         'PATCH',
-    //         self::API_PREFIX . '/post/update/' . $post->getId(),
-    //         []
-    //     );
+    public function test_post_update_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     // assert response status code
-    //     $this->assertEquals(422, $response->getStatusCode());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-    //     // assert response validation error messages
-    //     $this->assertEquals([
-    //         [
-    //             "source" => "content",
-    //             "detail" => "The content field is required.",
-    //         ]
-    //     ], $response->decodeResponseJson()['errors']);
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-    //     // assert new content was not saved in db
-    //     $this->assertDatabaseMissing(
-    //         'forum_posts',
-    //         [
-    //             'id' => $post->getId(),
-    //             'content' => $newContent
-    //         ]
-    //     );
-    // }
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
 
-    // public function test_post_update_not_found()
-    // {
-    //     $response = $this->call(
-    //         'PATCH',
-    //         self::API_PREFIX . '/post/update/' . rand(0, 32767),
-    //         ['content' => $this->faker->sentence()]
-    //     );
+        $newContent = $this->faker->sentence();
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
-    // }
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
-    // public function test_post_delete()
-    // {
-    //     $user = $this->fakeCurrentUserCloak();
-    //     $category = $this->fakeCategory();
-    //     $thread = $this->fakeThread($category->getId(), $user->getId());
-    //     $post = $this->fakePost($thread->getId(), $user->getId());
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/post/update/' . $post['id'],
+            ['content' => $newContent]
+        );
 
-    //     $response = $this->call(
-    //         'DELETE',
-    //         self::API_PREFIX . '/post/delete/' . $post->getId()
-    //     );
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
 
-    //     // assert response status code
-    //     $this->assertEquals(204, $response->getStatusCode());
+        // assert the post data was saved in the db
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'id' => $post['id'],
+                'content' => $newContent
+            ]
+        );
 
-    //     // assert the post data was marked as soft deleted
-    //     $this->assertSoftDeleted(
-    //         'forum_posts',
-    //         [
-    //             'id' => $post->getId()
-    //         ]
-    //     );
-    // }
+        // assert response data
+        $response->assertJsonFragment([
+            'content' => $newContent,
+            'id' => $post['id']
+        ]);
+    }
 
-    // public function test_post_delete_not_found()
-    // {
-    //     $response = $this->call(
-    //         'DELETE',
-    //         self::API_PREFIX . '/post/delete/' . rand(0, 32767)
-    //     );
+    public function test_post_update_validation_fail()
+    {
+        $user = $this->fakeCurrentUserCloak();
 
-    //     // assert response status code
-    //     $this->assertEquals(404, $response->getStatusCode());
-    // }
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/post/update/' . $post['id'],
+            []
+        );
+
+        // assert response status code
+        $this->assertEquals(422, $response->getStatusCode());
+
+        // assert response validation error messages
+        $this->assertEquals([
+            [
+                "source" => "content",
+                "detail" => "The content field is required.",
+            ]
+        ], $response->decodeResponseJson()['errors']);
+    }
+
+    public function test_post_update_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $newContent = $this->faker->sentence();
+
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/post/update/' . $post['id'],
+            ['content' => $newContent]
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the post data was saved in the db
+        $this->assertDatabaseMissing(
+            'forum_posts',
+            [
+                'id' => $post['id'],
+                'content' => $newContent
+            ]
+        );
+    }
+
+    public function test_post_update_not_found()
+    {
+        $this->fakeCurrentUserCloak();
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'PATCH',
+            self::API_PREFIX . '/post/update/' . rand(0, 32767),
+            ['content' => $this->faker->sentence()]
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    public function test_post_delete_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/post/delete/' . $post['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the post data was marked as soft deleted
+        $this->assertSoftDeleted(
+            'forum_posts',
+            [
+                'id' => $post['id']
+            ]
+        );
+    }
+
+    public function test_post_delete_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/post/delete/' . $post['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the post data was not marked as soft deleted
+        $this->assertDatabaseHas(
+            'forum_posts',
+            [
+                'id' => $post['id'],
+                'deleted_at' => null
+            ]
+        );
+    }
+
+    public function test_post_delete_not_found()
+    {
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            self::API_PREFIX . '/post/delete/' . rand(0, 32767)
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 }

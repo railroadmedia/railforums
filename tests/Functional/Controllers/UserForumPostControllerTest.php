@@ -3,7 +3,7 @@
 namespace Tests;
 
 use Carbon\Carbon;
-use Railroad\Railforums\Entities\PostLike;
+use Railroad\Railforums\Services\ConfigService;
 
 class UserForumPostControllerTest extends TestCase
 {
@@ -12,17 +12,24 @@ class UserForumPostControllerTest extends TestCase
         parent::setUp();
     }
 
-    public function test_post_like()
+    public function test_post_like_with_permission()
     {
         $user = $this->fakeCurrentUserCloak();
 
-        $thread = $this->fakeThread(null, $user->getId());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-        $post = $this->fakePost($thread->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
         $response = $this->call(
             'PUT',
-            '/post/like/' . $post->getId()
+            '/post/like/' . $post['id']
         );
 
         // assert the session has the success message
@@ -30,9 +37,40 @@ class UserForumPostControllerTest extends TestCase
 
         // assert the post like data was saved in the db
         $this->assertDatabaseHas(
-            'forum_post_likes',
+            ConfigService::$tablePostLikes,
             [
-                'post_id' => $post->getId(),
+                'post_id' => $post['id'],
+                'liker_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_post_like_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            '/post/like/' . $post['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tablePostLikes,
+            [
+                'post_id' => $post['id'],
                 'liker_id' => $user->getId()
             ]
         );
@@ -42,6 +80,8 @@ class UserForumPostControllerTest extends TestCase
     {
         $user = $this->fakeCurrentUserCloak();
         $postId = rand(0, 32767);
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -53,7 +93,7 @@ class UserForumPostControllerTest extends TestCase
 
         // assert the data was not saved in the db
         $this->assertDatabaseMissing(
-            'forum_post_likes',
+            ConfigService::$tablePostLikes,
             [
                 'post_id' => $postId,
                 'liker_id' => $user->getId()
@@ -61,31 +101,46 @@ class UserForumPostControllerTest extends TestCase
         );
     }
 
-    public function test_post_unlike()
+    public function test_post_unlike_with_permission()
     {
         $user = $this->fakeCurrentUserCloak();
 
-        $thread = $this->fakeThread(null, $user->getId());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-        $post = $this->fakePost($thread->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
-        $postLike = new PostLike();
-        $postLike->setPostId($post->getId());
-        $postLike->setLikerId($user->getId());
-        $postLike->setLikedOn(Carbon::now()->toDateTimeString());
-        $postLike->persist();
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+
+        $postLike = [
+            'post_id' => $post['id'],
+            'liker_id' => $user->getId(),
+            'liked_on' => $dateTime,
+            'created_at' => $dateTime,
+            'updated_at' => $dateTime,
+        ];
+
+        $this->databaseManager
+            ->table(ConfigService::$tablePostLikes)
+            ->insertGetId($postLike);
 
         $this->assertDatabaseHas(
-            'forum_post_likes',
+            ConfigService::$tablePostLikes,
             [
-                'post_id' => $post->getId(),
+                'post_id' => $post['id'],
                 'liker_id' => $user->getId()
             ]
         );
 
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
         $response = $this->call(
             'DELETE',
-            '/post/unlike/' . $post->getId()
+            '/post/unlike/' . $post['id']
         );
 
         // assert the session has the success message
@@ -93,26 +148,75 @@ class UserForumPostControllerTest extends TestCase
 
         // assert the data was removed from the db
         $this->assertDatabaseMissing(
-            'forum_post_likes',
+            ConfigService::$tablePostLikes,
             [
-                'post_id' => $post->getId(),
+                'post_id' => $post['id'],
                 'liker_id' => $user->getId()
             ]
         );
     }
 
-    public function test_post_store()
+    public function test_post_unlike_without_permission()
     {
         $user = $this->fakeCurrentUserCloak();
 
+        /** @var array $category */
         $category = $this->fakeCategory();
 
-        $thread = $this->fakeThread($category->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+
+        $postLike = [
+            'post_id' => $post['id'],
+            'liker_id' => $user->getId(),
+            'liked_on' => $dateTime,
+            'created_at' => $dateTime,
+            'updated_at' => $dateTime,
+        ];
+
+        $this->databaseManager
+            ->table(ConfigService::$tablePostLikes)
+            ->insertGetId($postLike);
+
+        $response = $this->call(
+            'DELETE',
+            '/post/unlike/' . $post['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the data was not removed from the db
+        $this->assertDatabaseHas(
+            ConfigService::$tablePostLikes,
+            [
+                'post_id' => $post['id'],
+                'liker_id' => $user->getId()
+            ]
+        );
+    }
+
+    public function test_post_store_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
 
         $postData = [
             'content' => $this->faker->sentence(),
-            'thread_id' => $thread->getId()
+            'thread_id' => $thread['id']
         ];
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -122,10 +226,10 @@ class UserForumPostControllerTest extends TestCase
 
         // assert the post data was saved in the db
         $this->assertDatabaseHas(
-            'forum_posts',
+            ConfigService::$tablePosts,
             [
                 'content' => $postData['content'],
-                'thread_id' => $postData['thread_id']
+                'thread_id' => $thread['id']
             ]
         );
 
@@ -133,8 +237,46 @@ class UserForumPostControllerTest extends TestCase
         $response->assertSessionHas('success', true);
     }
 
+    public function test_post_store_without_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        $postData = [
+            'content' => $this->faker->sentence(),
+            'thread_id' => $thread['id']
+        ];
+
+        $response = $this->call(
+            'PUT',
+            '/post/store',
+            $postData
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the post data was not saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tablePosts,
+            [
+                'content' => $postData['content'],
+                'thread_id' => $thread['id']
+            ]
+        );
+    }
+
     public function test_post_store_validation_fail()
     {
+        $this->fakeCurrentUserCloak();
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
         $response = $this->call(
             'PUT',
             '/post/store',
@@ -147,19 +289,26 @@ class UserForumPostControllerTest extends TestCase
         );
     }
 
-    public function test_post_update()
+    public function test_post_update_with_permission()
     {
         $user = $this->fakeCurrentUserCloak();
 
-        $thread = $this->fakeThread(null, $user->getId());
+        /** @var array $category */
+        $category = $this->fakeCategory();
 
-        $post = $this->fakePost($thread->getId(), $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
 
         $newContent = $this->faker->sentence();
 
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
         $response = $this->call(
             'PATCH',
-            '/post/update/' . $post->getId(),
+            '/post/update/' . $post['id'],
             ['content' => $newContent]
         );
 
@@ -167,7 +316,7 @@ class UserForumPostControllerTest extends TestCase
         $this->assertDatabaseHas(
             'forum_posts',
             [
-                'id' => $post->getId(),
+                'id' => $post['id'],
                 'content' => $newContent
             ]
         );
@@ -176,16 +325,58 @@ class UserForumPostControllerTest extends TestCase
         $response->assertSessionHas('success', true);
     }
 
-    public function test_post_update_validation_fail()
+    public function test_post_update_without_permission()
     {
         $user = $this->fakeCurrentUserCloak();
-        $thread = $this->fakeThread(null, $user->getId());
-        $post = $this->fakePost($thread->getId(), $user->getId());
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
         $newContent = $this->faker->sentence();
 
         $response = $this->call(
             'PATCH',
-            '/post/update/' . $post->getId(),
+            '/post/update/' . $post['id'],
+            ['content' => $newContent]
+        );
+
+        // assert the post data was not saved in the db
+        $this->assertDatabaseMissing(
+            'forum_posts',
+            [
+                'id' => $post['id'],
+                'content' => $newContent
+            ]
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    public function test_post_update_validation_fail()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        $response = $this->call(
+            'PATCH',
+            '/post/update/' . $post['id'],
             []
         );
 
@@ -194,19 +385,14 @@ class UserForumPostControllerTest extends TestCase
 
         // assert validation fail
         $response->assertSessionHasErrors(['content']);
-
-        // assert new content was not saved in db
-        $this->assertDatabaseMissing(
-            'forum_posts',
-            [
-                'id' => $post->getId(),
-                'content' => $newContent
-            ]
-        );
     }
 
     public function test_post_update_not_found()
     {
+        $this->fakeCurrentUserCloak();
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
         $response = $this->call(
             'PATCH',
             '/post/update/' . rand(0, 32767),

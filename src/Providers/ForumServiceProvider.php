@@ -3,8 +3,9 @@
 namespace Railroad\Railforums\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Railroad\Railforums\Services\ConfigService;
+use Railroad\Railforums\Commands\CreateSearchIndexes;
 use Railroad\Railforums\Decorators\ThreadDecorator;
+use Railroad\Railforums\Services\ConfigService;
 
 class ForumServiceProvider extends ServiceProvider
 {
@@ -30,9 +31,9 @@ class ForumServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__ . '/../../routes/routes.php');
 
-        // $this->commands([
-        //     CreateSearchIndexes::class
-        // ]);
+        $this->commands([
+            CreateSearchIndexes::class
+        ]);
     }
 
     /**
@@ -64,6 +65,7 @@ class ForumServiceProvider extends ServiceProvider
         ConfigService::$tablePostLikes = ConfigService::$tablePrefix . config('railforums.tables.post_likes');
         ConfigService::$tablePostReports = ConfigService::$tablePrefix . config('railforums.tables.post_reports');
         ConfigService::$tablePostReplies = ConfigService::$tablePrefix . config('railforums.tables.post_replies');
+        ConfigService::$tableSearchIndexes = ConfigService::$tablePrefix . config('railforums.tables.search_indexes');
 
         // author table
         ConfigService::$authorTableName = config('railforums.author_table_name');
