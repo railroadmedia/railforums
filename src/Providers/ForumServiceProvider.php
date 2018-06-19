@@ -2,13 +2,21 @@
 
 namespace Railroad\Railforums\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider;
 use Railroad\Railforums\Commands\CreateSearchIndexes;
 use Railroad\Railforums\Decorators\ThreadDecorator;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Railforums\EventListeners\PostEventListener;
+use Railroad\Railforums\Events\PostDeleted;
 
-class ForumServiceProvider extends ServiceProvider
+class ForumServiceProvider extends EventServiceProvider
 {
+    protected $listen = [
+        PostDeleted::class => [
+            PostEventListener::class . '@onPostDeleted',
+        ]
+    ];
+
     /**
      * Bootstrap the application services.
      *
@@ -34,6 +42,8 @@ class ForumServiceProvider extends ServiceProvider
         $this->commands([
             CreateSearchIndexes::class
         ]);
+
+        parent::boot();
     }
 
     /**

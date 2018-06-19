@@ -145,7 +145,8 @@ class ThreadRepository extends RepositoryBase
                 ConfigService::$tableThreads . '.state',
                 self::ACCESSIBLE_STATES
             )
-            ->where(ConfigService::$tableThreads . '.pinned', $pinned);
+            ->where(ConfigService::$tableThreads . '.pinned', $pinned)
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at');
 
         if (!empty($categoryIds)) {
             $query->whereIn(
@@ -203,6 +204,7 @@ class ThreadRepository extends RepositoryBase
                             ConfigService::$tablePosts . '.thread_id = ' .
                             ConfigService::$tableThreads . '.id'
                         )
+                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->limit(1);
                 },
                 'post_count'
@@ -212,7 +214,7 @@ class ThreadRepository extends RepositoryBase
 
                     return $builder->select(['published_on'])
                         ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->whereRaw(
                             ConfigService::$tablePosts . '.thread_id = ' .
                             ConfigService::$tableThreads . '.id'
@@ -226,7 +228,7 @@ class ThreadRepository extends RepositoryBase
                 function (Builder $builder) {
                     return $builder->select(['id'])
                         ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->whereRaw(
                             ConfigService::$tablePosts . '.thread_id = ' .
                             ConfigService::$tableThreads . '.id'
@@ -240,7 +242,7 @@ class ThreadRepository extends RepositoryBase
                 function (Builder $builder) {
                     return $builder->select(['author_id'])
                         ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->whereRaw(
                             ConfigService::$tablePosts . '.thread_id = ' .
                             ConfigService::$tableThreads . '.id'
@@ -288,7 +290,8 @@ class ThreadRepository extends RepositoryBase
                         ->limit(1);
                 },
                 'is_followed'
-            );
+            )
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at');
     }
 
     /**
@@ -327,6 +330,7 @@ class ThreadRepository extends RepositoryBase
                 '=',
                 ConfigService::$tableThreads . '.author_id'
             )
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->orderBy(ConfigService::$tableThreads . '.id');
 
         $instance = $this;

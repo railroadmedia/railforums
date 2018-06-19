@@ -8,18 +8,18 @@ use Illuminate\Support\Collection;
 use Railroad\Resora\Decorators\Decorator;
 use Railroad\Resora\Queries\BaseQuery;
 use Railroad\Resora\Queries\CachedQuery;
-use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Repositories\Traits\SoftDelete;
+use Railroad\Railforums\Events\PostCreated;
+use Railroad\Railforums\Events\PostDeleted;
+use Railroad\Railforums\Events\PostUpdated;
 
-class PostRepository extends RepositoryBase
+class PostRepository extends EventDispatchingRepository
 {
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 100;
-
-    use SoftDelete;
 
     /**
      * @var UserCloakDataMapper
@@ -29,6 +29,33 @@ class PostRepository extends RepositoryBase
     public function __construct()
     {
         $this->userCloakDataMapper = app(UserCloakDataMapper::class);
+    }
+
+    public function getCreateEvent($entity)
+    {
+        return new PostCreated($entity->id, $this->userCloakDataMapper->getCurrentId());
+    }
+
+    public function getReadEvent($entity)
+    {
+        return null;
+    }
+
+    public function getUpdateEvent($entity)
+    {
+        $id = is_object($entity) ? $entity->id : $entity;
+
+        return new PostUpdated($id, $this->userCloakDataMapper->getCurrentId());
+    }
+
+    public function getDestroyEvent($entity)
+    {
+        return null;
+    }
+
+    public function getDeleteEvent($id)
+    {
+        return new PostDeleted($id, $this->userCloakDataMapper->getCurrentId());
     }
 
     /**
@@ -70,6 +97,7 @@ class PostRepository extends RepositoryBase
                 ConfigService::$tablePosts . '.state',
                 self::ACCESSIBLE_STATES
             )
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
             ->value('count');
     }
 
@@ -229,7 +257,8 @@ class PostRepository extends RepositoryBase
                         );
                 },
                 'liker_3_display_name'
-            );
+            )
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at');
     }
 
     /**
@@ -252,6 +281,7 @@ class PostRepository extends RepositoryBase
                 '=',
                 ConfigService::$tablePosts . '.author_id'
             )
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
             ->orderBy(ConfigService::$tablePosts . '.id');
 
         $instance = $this;
