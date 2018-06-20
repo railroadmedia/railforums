@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Services\ConfigService;
 
-class RepositoryBaseTest extends TestCase
+class PostEventListenerTest extends TestCase
 {
     protected function setUp()
     {

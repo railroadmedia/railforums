@@ -9,7 +9,7 @@ use Railroad\Railforums\Events\PostUpdated;
 use Railroad\Railforums\Events\PostDeleted;
 use Railroad\Railforums\Repositories\PostRepository;
 
-class RepositoryBaseTest extends TestCase
+class PostRepositoryTest extends TestCase
 {
     protected function setUp()
     {
