@@ -295,18 +295,11 @@ class UserForumThreadJsonController extends Controller
         $thread = $this->threadRepository->update(
             $id,
             array_merge(
-                $request->only(
-                    [
-                        'category_id',
-                        'author_id',
-                        'title',
-                        'slug',
-                        'pinned',
-                        'locked',
-                        'state',
-                        'post_count',
-                        'published_on',
-                    ]
+                $this->permissionService->columns(
+                    auth()->id(),
+                    'update-threads',
+                    $request->all(),
+                    ['title']
                 ),
                 [
                     'updated_at' => Carbon::now()->toDateTimeString(),

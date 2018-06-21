@@ -20,6 +20,7 @@ use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Permissions\Services\ConfigService as PermissionsConfigService;
 
 class TestCase extends BaseTestCase
 {
@@ -48,6 +49,8 @@ class TestCase extends BaseTestCase
      */
     protected $permissionServiceMock;
 
+    protected $enablePermissionServiceMocking = true;
+
     protected function setUp()
     {
         if (!$this->getDefaultConnection()) {
@@ -64,11 +67,19 @@ class TestCase extends BaseTestCase
         $this->databaseManager = $this->app->make(DatabaseManager::class);
         $this->userCloakDataMapper = $this->app->make(UserCloakDataMapper::class);
 
-        $this->permissionServiceMock = $this->getMockBuilder(PermissionService::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        if ($this->enablePermissionServiceMocking) {
 
-        $this->app->instance(PermissionService::class, $this->permissionServiceMock);
+            $this->permissionServiceMock = $this->getMockBuilder(PermissionService::class)
+                ->disableOriginalConstructor()
+                ->getMock();
+
+            $this->app->instance(PermissionService::class, $this->permissionServiceMock);
+
+        } else {
+
+            $this->app->register(PermissionsServiceProvider::class);
+            $this->createPermissionTables();
+        }
 
         IdentityMap::empty();
 
@@ -85,6 +96,35 @@ class TestCase extends BaseTestCase
                 $table->string('label');
                 $table->string('permission_level');
                 $table->string('avatar_url')->nullable();
+            }
+        );
+    }
+
+    protected function createPermissionTables()
+    {
+        $this->app['db']->connection()->getSchemaBuilder()->create(
+            PermissionsConfigService::$tableUserAbilities,
+            function (Blueprint $table) {
+                $table->increments('id');
+
+                $table->integer('user_id')->index();
+                $table->string('ability', 191)->index();
+
+                $table->dateTime('created_at')->index();
+                $table->dateTime('updated_at')->index();
+            }
+        );
+
+        $this->app['db']->connection()->getSchemaBuilder()->create(
+            PermissionsConfigService::$tableUserRoles,
+            function (Blueprint $table) {
+                $table->increments('id');
+
+                $table->integer('user_id')->index();
+                $table->string('role', 191)->index();
+
+                $table->dateTime('created_at')->index();
+                $table->dateTime('updated_at')->index();
             }
         );
     }
