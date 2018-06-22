@@ -23,6 +23,8 @@ class ThreadUpdateColumnsTest extends TestCase
     {
         $user = $this->fakeCurrentUserCloak();
 
+        // test execution fails because auth()->id() call in controller returns null
+
         // \Illuminate\Support\Facades\Auth::loginUsingId($user->getId()); // Class '\App\User' not found
         // $this->be($user); // requires instance of Illuminate\Contracts\Auth\Authenticatable as the parameter
 

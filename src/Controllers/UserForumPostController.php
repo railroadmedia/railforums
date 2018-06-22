@@ -195,10 +195,17 @@ class UserForumPostController extends Controller
 
         $post = $this->postRepository->update(
             $id,
-            [
-                'content' => $request->get('content'),
-                'updated_at' => Carbon::now()->toDateTimeString()
-            ]
+            array_merge(
+                $this->permissionService->columns(
+                    auth()->id(),
+                    'update-posts',
+                    $request->all(),
+                    ['content']
+                ),
+                [
+                    'updated_at' => Carbon::now()->toDateTimeString(),
+                ]
+            )
         );
 
         if (!$post) {

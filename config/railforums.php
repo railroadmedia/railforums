@@ -72,12 +72,34 @@ return array(
                 'except' => [
                     'id'
                 ]
+            ],
+            'update-posts' => [
+                'except' => [
+                    'id'
+                ]
+            ]
+        ],
+        'moderator' => [
+            'update-threads' => [
+                'except' => [
+                    'id'
+                ]
+            ],
+            'update-posts' => [
+                'except' => [
+                    'id'
+                ]
             ]
         ],
         'user' => [
             'update-threads' => [
                 'only' => [
                     'title'
+                ]
+            ],
+            'update-posts' => [
+                'only' => [
+                    'content'
                 ]
             ]
         ]

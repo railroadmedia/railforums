@@ -649,9 +649,12 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
-
         $newTitle = $this->faker->sentence();
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock
+            ->method('columns')
+            ->willReturn(['title' => $newTitle]);
 
         $response = $this->call(
             'PATCH',
@@ -737,12 +740,17 @@ class UserForumThreadJsonControllerTest extends TestCase
 
     public function test_thread_update_not_found()
     {
+        $newTitle = $this->faker->sentence();
+
         $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock
+            ->method('columns')
+            ->willReturn(['title' => $newTitle]);
 
         $response = $this->call(
             'PATCH',
             self::API_PREFIX . '/thread/update/' . rand(0, 32767),
-            ['title' => $this->faker->sentence()]
+            ['title' => $newTitle]
         );
 
         // assert response status code

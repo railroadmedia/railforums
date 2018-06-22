@@ -800,6 +800,9 @@ class UserForumPostJsonControllerTest extends TestCase
         $newContent = $this->faker->sentence();
 
         $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock
+            ->method('columns')
+            ->willReturn(['content' => $newContent]);
 
         $response = $this->call(
             'PATCH',
@@ -895,12 +898,17 @@ class UserForumPostJsonControllerTest extends TestCase
     {
         $this->fakeCurrentUserCloak();
 
+        $newContent = $this->faker->sentence();
+
         $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock
+            ->method('columns')
+            ->willReturn(['content' => $newContent]);
 
         $response = $this->call(
             'PATCH',
             self::API_PREFIX . '/post/update/' . rand(0, 32767),
-            ['content' => $this->faker->sentence()]
+            ['content' => $newContent]
         );
 
         // assert response status code

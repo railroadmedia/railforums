@@ -305,6 +305,9 @@ class UserForumPostControllerTest extends TestCase
         $newContent = $this->faker->sentence();
 
         $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock
+            ->method('columns')
+            ->willReturn(['content' => $newContent]);
 
         $response = $this->call(
             'PATCH',
@@ -391,12 +394,17 @@ class UserForumPostControllerTest extends TestCase
     {
         $this->fakeCurrentUserCloak();
 
+        $newContent = $this->faker->sentence();
+
         $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock
+            ->method('columns')
+            ->willReturn(['content' => $newContent]);
 
         $response = $this->call(
             'PATCH',
             '/post/update/' . rand(0, 32767),
-            ['content' => $this->faker->sentence()]
+            ['content' => $newContent]
         );
 
         // assert response status code
