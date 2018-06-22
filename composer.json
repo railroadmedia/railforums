@@ -20,7 +20,8 @@
     "railroad/railnotifications": "dev-master",
     "railroad/railsettings": "dev-master",
     "railroad/resora": "5.60.*",
-    "railroad/permissions": "v0.0.01"
+    "railroad/permissions": "v0.0.01",
+    "spatie/laravel-fractal": "^5.3"
   },
   "require-dev": {
     "phpunit/phpunit": "^7.0",

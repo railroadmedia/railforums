@@ -15,6 +15,7 @@ use Railroad\Railforums\Repositories\ThreadReadRepository;
 use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Railforums\Transformers\ThreadTransformer;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadJsonController extends Controller
@@ -189,8 +190,7 @@ class UserForumThreadJsonController extends Controller
                 $categoryIds,
                 $pinned,
                 $followed
-            )
-            ->toArray();
+            );
 
         $threadsCount = $this->threadRepository
             ->getThreadsCount(
@@ -199,12 +199,10 @@ class UserForumThreadJsonController extends Controller
                 $followed
             );
 
-        $response = [
-            'threads' => $threads,
-            'count' => $threadsCount
-        ];
-
-        return response()->json($response);
+        return fractal()
+                ->collection($threads, ThreadTransformer::class)
+                ->addMeta(['count' => $threadsCount])
+                ->respond();
     }
 
     /**
