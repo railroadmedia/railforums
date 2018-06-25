@@ -354,8 +354,8 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert reponse entities count is the requested amount
         $this->assertEquals(count($results['data']), $payload['amount']);
 
-        // assert reponse has threads count for pagination
-        $this->assertArrayHasKey('count', $results['meta']);
+        // assert reponse has threads totalResults for pagination
+        $this->assertArrayHasKey('totalResults', $results['meta']);
 
         // assert reponse entities have the requested category
         foreach ($results['data'] as $thread) {
@@ -409,14 +409,11 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertArraySubset(
-            [
-                'title' => $thread['title'],
-                'category_id' => (int) $category['id'],
-                'author_id' => (int) $user->getId()
-            ],
-            $response->decodeResponseJson()
-        );
+        $response->assertJsonFragment([
+            'title' => $thread['title'],
+            'category_id' => (int) $category['id'],
+            'author_id' => (int) $user->getId()
+        ]);
     }
 
     public function test_thread_show_without_permission()
@@ -488,20 +485,19 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertArraySubset(
+        $response->assertJsonFragment(
             [
                 'title' => $thread['title'],
                 'category_id' => (int) $category['id'],
                 'author_id' => (int) $user->getId(),
                 'post_count' => 1,
                 'last_post_published_on' => $post['published_on'],
-                'last_post_id' => $post['id'],
-                'last_post_user_id' => $user->getId(),
+                'last_post_id' => (int) $post['id'],
+                'last_post_user_id' => (int) $user->getId(),
                 'last_post_user_display_name' => $user->getDisplayName(),
                 'is_read' => 1,
                 'is_followed' => 1
-            ],
-            $response->decodeResponseJson()
+            ]
         );
     }
 

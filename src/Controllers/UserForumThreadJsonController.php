@@ -17,6 +17,7 @@ use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\Transformers\ThreadTransformer;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Railroad\Response\Facades\Response;
 
 class UserForumThreadJsonController extends Controller
 {
@@ -108,7 +109,7 @@ class UserForumThreadJsonController extends Controller
             'updated_at' => $now,
         ]);
 
-        return response()->json($threadRead);
+        return Response::result($threadRead);
     }
 
     /**
@@ -138,7 +139,7 @@ class UserForumThreadJsonController extends Controller
             'updated_at' => $now,
         ]);
 
-        return response()->json($threadFollow);
+        return Response::result($threadFollow);
     }
 
     /**
@@ -160,7 +161,7 @@ class UserForumThreadJsonController extends Controller
 
         $this->threadFollowRepository->destroy($threadFollow->id);
 
-        return new JsonResponse(null, 204);
+        return Response::result(null, ['code' => 204]);
     }
 
     /**
@@ -199,10 +200,7 @@ class UserForumThreadJsonController extends Controller
                 $followed
             );
 
-        return fractal()
-                ->collection($threads, ThreadTransformer::class)
-                ->addMeta(['count' => $threadsCount])
-                ->respond();
+        return Response::result($threads, ['totalResults' => $threadsCount]);
     }
 
     /**
@@ -222,7 +220,7 @@ class UserForumThreadJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        return response()->json($threads->first());
+        return Response::result($threads);
     }
 
     /**
@@ -275,7 +273,7 @@ class UserForumThreadJsonController extends Controller
         $threads = $this->threadRepository
                     ->getDecoratedThreadsByIds([$thread->id]);
 
-        return response()->json($threads->first());
+        return Response::result($threads);
     }
 
     /**
@@ -312,7 +310,7 @@ class UserForumThreadJsonController extends Controller
         $threads = $this->threadRepository
                     ->getDecoratedThreadsByIds([$thread->id]);
 
-        return response()->json($threads->first());
+        return Response::result($threads);
     }
 
     /**
@@ -332,6 +330,6 @@ class UserForumThreadJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        return new JsonResponse(null, 204);
+        return Response::result(null, ['code' => 204]);
     }
 }

@@ -19,6 +19,7 @@ use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railmap\IdentityMap\IdentityMap;
 use Railroad\Railmap\RailmapServiceProvider;
+use Railroad\Response\Providers\ResponseServiceProvider;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Permissions\Services\ConfigService as PermissionsConfigService;
 
@@ -213,9 +214,8 @@ class TestCase extends BaseTestCase
             UserCloakDataMapper::class
         );
         $app['config']->set('railforums.controller_middleware', []);
-        // $app->register(RailmapServiceProvider::class);
-        // $app->register(ForumServiceProvider::class);
 
+        $app->register(ResponseServiceProvider::class);
         $app->register(ForumServiceProvider::class);
     }
 
