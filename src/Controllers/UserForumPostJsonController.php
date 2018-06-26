@@ -98,7 +98,7 @@ class UserForumPostJsonController extends Controller
             'updated_at' => $now,
         ]);
 
-        return response()->json($postLike);
+        return reply()->json($postLike);
     }
 
     /**
@@ -120,7 +120,7 @@ class UserForumPostJsonController extends Controller
 
         $this->postLikeRepository->destroy($postLike->id);
 
-        return new JsonResponse(null, 204);
+        return reply()->json(null, ['code' => 204]);
     }
 
     /**
@@ -145,12 +145,7 @@ class UserForumPostJsonController extends Controller
 
         $postsCount = $this->postRepository->getPostsCount($threadId);
 
-        $response = [
-            'posts' => $posts,
-            'count' => $postsCount
-        ];
-
-        return response()->json($response);
+        return reply()->json($posts, ['totalResults' => $postsCount]);
     }
 
     /**
@@ -170,15 +165,15 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $post = $posts->first()->getArrayCopy();
+        $post = $posts->first();
 
-        $posts = null;
+        $postReplyParents = $this->postReplyRepository
+                ->getPostReplyParents($post['id'])
+                ->all();
 
-        $post['reply_parents'] = $this->postReplyRepository
-            ->getPostReplyParents($post['id'])
-            ->all();
+        $post->offsetSet('replyParents', $postReplyParents);
 
-        return response()->json($post);
+        return reply()->json($post);
     }
 
     /**
@@ -229,7 +224,7 @@ class UserForumPostJsonController extends Controller
                 ->all();
         }
 
-        return response()->json($post);
+        return reply()->json($post);
     }
 
     /**
@@ -263,7 +258,7 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        return response()->json($post);
+        return reply()->json($post);
     }
 
     /**

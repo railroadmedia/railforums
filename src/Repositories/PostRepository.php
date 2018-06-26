@@ -68,7 +68,7 @@ class PostRepository extends EventDispatchingRepository
 
     protected function decorate($results)
     {
-        return Decorator::decorate($results, 'threads');
+        return Decorator::decorate($results, 'posts');
     }
 
     protected function connection()
