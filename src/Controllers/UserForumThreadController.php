@@ -105,11 +105,7 @@ class UserForumThreadController extends Controller
             'updated_at' => $now,
         ]);
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 
     /**
@@ -140,11 +136,7 @@ class UserForumThreadController extends Controller
             'updated_at' => $now,
         ]);
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 
     /**
@@ -167,11 +159,7 @@ class UserForumThreadController extends Controller
 
         $this->threadFollowRepository->destroy($threadFollow->id);
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 
     /**
@@ -221,14 +209,12 @@ class UserForumThreadController extends Controller
             ]
         );
 
-        $message = ['success' => true];
-
         // todo: temporary
-        return redirect()->to('/members/forums/thread/' . $thread->id)->with($message);
+        $temporaryRedirectLocation = '/members/forums/thread/' . $thread->id;
 
-        //        return $request->has('redirect') ?
-        //            redirect()->away($request->get('redirect'))->with($message) :
-        //            redirect()->back()->with($message);
+        return reply()->form([true], $temporaryRedirectLocation);
+
+        // return reply()->form();
     }
 
     /**
@@ -262,10 +248,6 @@ class UserForumThreadController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 }

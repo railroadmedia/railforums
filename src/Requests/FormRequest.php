@@ -38,10 +38,13 @@ class FormRequest extends LaravelFormRequest
             ];
         }
 
-        throw new HttpResponseException(response()->json(['status' => 'error',
+        throw new HttpResponseException(reply()->json(
+            null,
+            [
                 'code' => 422,
-                'total_results' => 0,
-                'results' => [],
-                'errors' => $errors], 422));
+                'totalResults' => 0,
+                'errors' => $errors
+            ]
+        ));
     }
 }

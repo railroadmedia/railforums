@@ -4,8 +4,9 @@ namespace Railroad\Railforums\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\SearchIndexRepository;
-use Railroad\Railforums\Responses\JsonPaginatedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumSearchJsonController extends Controller
 {
@@ -15,15 +16,28 @@ class UserForumSearchJsonController extends Controller
     private $searchIndexRepository;
 
     /**
-     * @param SearchIndexRepository $searchIndexRepository
+     * @var PermissionService
      */
-    public function __construct(SearchIndexRepository $searchIndexRepository)
-    {
+    protected $permissionService;
+
+    /**
+     * @param SearchIndexRepository $searchIndexRepository
+     * @param PermissionService $permissionService
+     */
+    public function __construct(
+        SearchIndexRepository $searchIndexRepository,
+        PermissionService $permissionService
+    ) {
         $this->searchIndexRepository = $searchIndexRepository;
+        $this->permissionService = $permissionService;
     }
 
     public function index(Request $request)
     {
+        if (!$this->permissionService->can(auth()->id(), 'index-search')) {
+            throw new NotFoundHttpException();
+        }
+
         $results = $this->searchIndexRepository
                         ->search(
                             $request->get('term', null),
@@ -38,13 +52,7 @@ class UserForumSearchJsonController extends Controller
                             $request->get('term', null),
                             $request->get('type', null)
                         );
-        // $count = 0;
 
-        return new JsonPaginatedResponse(
-            $results,
-            $count,
-            null,
-            200
-        );
+        return reply()->json($results, ['totalResults' => $count]);
     }
 }

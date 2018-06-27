@@ -70,6 +70,8 @@ class UserForumSearchJsonControllerTest extends TestCase
 
         $this->artisan('command:createSearchIndexes');
 
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
         $response = $this->call('GET', self::API_PREFIX . '/search', [
             'page' => $page,
             'limit' => $limit,
@@ -83,15 +85,15 @@ class UserForumSearchJsonControllerTest extends TestCase
         $decodeResponse = $response->decodeResponseJson();
 
         // assert results count
-        $this->assertLessThanOrEqual($limit, count($decodeResponse['results']));
+        $this->assertLessThanOrEqual($limit, count($decodeResponse['data']));
 
         // assert top search result
         $this->assertEquals(
             $topSearchResult['id'],
-            $decodeResponse['results'][0]['id']
+            $decodeResponse['data'][0]['id']
         );
 
         // assert total results
-        $this->assertGreaterThanOrEqual(1, $decodeResponse['total_results']);
+        $this->assertGreaterThanOrEqual(1, $decodeResponse['meta']['totalResults']);
     }
 }

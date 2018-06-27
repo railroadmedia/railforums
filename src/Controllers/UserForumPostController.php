@@ -96,11 +96,7 @@ class UserForumPostController extends Controller
             'updated_at' => $now,
         ]);
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 
     /**
@@ -123,11 +119,7 @@ class UserForumPostController extends Controller
 
         $this->postLikeRepository->destroy($postLike->id);
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 
     /**
@@ -174,11 +166,7 @@ class UserForumPostController extends Controller
             $this->postReplyRepository->insert($replies);
         }
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 
     /**
@@ -212,10 +200,6 @@ class UserForumPostController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+        return reply()->form();
     }
 }

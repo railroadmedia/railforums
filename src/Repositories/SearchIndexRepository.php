@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Repositories;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Query\Builder;
+use Railroad\Resora\Entities\Entity;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\Services\ConfigService;
@@ -131,7 +132,10 @@ SQL;
                 /** @var \stdClass $postStdData */
                 $postPosition = $postsIds[$postStdData->id];
 
-                $results[$postPosition] = (array) $postStdData;
+                $entity = new Entity();
+                $entity->replace((array) $postStdData);
+
+                $results[$postPosition] = $entity;
             }
         }
 
@@ -145,7 +149,10 @@ SQL;
                 /** @var \stdClass $threadStdData */
                 $threadPosition = $threadsIds[$threadStdData->id];
 
-                $results[$threadPosition] = (array) $threadStdData;
+                $entity = new Entity();
+                $entity->replace((array) $threadStdData);
+
+                $results[$threadPosition] = $entity;
             }
         }
 

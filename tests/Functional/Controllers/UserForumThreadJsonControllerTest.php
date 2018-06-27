@@ -619,20 +619,18 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(422, $response->getStatusCode());
 
         // assert response validation error messages
-        $this->assertEquals([
-            [
-                "source" => "title",
-                "detail" => "The title field is required.",
-            ],
-            [
-                "source" => "first_post_content",
-                "detail" => "The first post content field is required.",
-            ],
-            [
-                "source" => "category_id",
-                "detail" => "The category id field is required.",
-            ]
-        ], $response->decodeResponseJson()['errors']);
+        $response->assertJsonFragment([
+            "source" => "title",
+            "detail" => "The title field is required.",
+        ]);
+        $response->assertJsonFragment([
+            "source" => "first_post_content",
+            "detail" => "The first post content field is required.",
+        ]);
+        $response->assertJsonFragment([
+            "source" => "category_id",
+            "detail" => "The category id field is required.",
+        ]);
     }
 
     public function test_thread_update_with_permission()
@@ -726,12 +724,10 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(422, $response->getStatusCode());
 
         // assert validation error messages
-        $this->assertEquals([
-            [
-                "source" => "title",
-                "detail" => "The title must be at least 1 characters.",
-            ]
-        ], $response->decodeResponseJson()['errors']);
+        $response->assertJsonFragment([
+            "source" => "title",
+            "detail" => "The title must be at least 1 characters.",
+        ]);
     }
 
     public function test_thread_update_not_found()
