@@ -124,35 +124,29 @@ SQL;
 
         if (!empty($postsIds)) {
 
-            $postsData = $this->postRepository
+            $posts = $this->postRepository
                             ->getDecoratedPostsByIds(array_keys($postsIds));
 
-            foreach ($postsData as $postStdData) {
+            foreach ($posts as $post) {
 
-                /** @var \stdClass $postStdData */
-                $postPosition = $postsIds[$postStdData->id];
+                /** @var Entity $post */
+                $postPosition = $postsIds[$post->id];
 
-                $entity = new Entity();
-                $entity->replace((array) $postStdData);
-
-                $results[$postPosition] = $entity;
+                $results[$postPosition] = $post;
             }
         }
 
         if (!empty($threadsIds)) {
 
-            $threadsData = $this->threadRepository
+            $threads = $this->threadRepository
                             ->getDecoratedThreadsByIds(array_keys($threadsIds));
 
-            foreach ($threadsData as $threadStdData) {
+            foreach ($threads as $thread) {
 
-                /** @var \stdClass $threadStdData */
-                $threadPosition = $threadsIds[$threadStdData->id];
+                /** @var Entity $thread */
+                $threadPosition = $threadsIds[$thread->id];
 
-                $entity = new Entity();
-                $entity->replace((array) $threadStdData);
-
-                $results[$threadPosition] = $entity;
+                $results[$threadPosition] = $thread;
             }
         }
 

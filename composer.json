@@ -25,10 +25,10 @@
     "railroad/railmap": "dev-master",
     "railroad/railnotifications": "dev-master",
     "railroad/railsettings": "dev-master",
-    "railroad/resora": "0.0.05",
-    "railroad/permissions": "0.0.02",
+    "railroad/resora": "1.0.01",
+    "railroad/permissions": "1.0.*",
     "spatie/laravel-fractal": "^5.3",
-    "railroad/response": "0.0.07"
+    "railroad/response": "0.0.09"
   },
   "require-dev": {
     "phpunit/phpunit": "^7.0",
