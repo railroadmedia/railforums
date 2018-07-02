@@ -97,15 +97,10 @@ class UserForumThreadJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()->toDateTimeString();
-
-        $threadRead = $this->threadReadRepository->create([
-            'thread_id' => $thread->id,
-            'reader_id' => $this->userCloakDataMapper->getCurrentId(),
-            'read_on' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $threadRead = $this->threadReadRepository->markRead(
+            $thread->id,
+            $this->userCloakDataMapper->getCurrentId()
+        );
 
         return response()->json($threadRead);
     }

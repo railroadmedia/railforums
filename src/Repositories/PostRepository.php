@@ -138,6 +138,14 @@ class PostRepository extends EventDispatchingRepository
             ->get();
     }
 
+    public function getAllPostIdsInThread($id)
+    {
+        return $this->query()
+            ->where('thread_id', $id)
+            ->orderBy('published_on')
+            ->get();
+    }
+
     /**
      * Returns a decorated query to retrive posts and associated data
      *
@@ -147,6 +155,17 @@ class PostRepository extends EventDispatchingRepository
     {
         return $this->query()
             ->select(ConfigService::$tablePosts . '.*')
+            ->selectSub(
+                function (Builder $builder) {
+                    return $builder->select([
+                            config('railforums.author_table_display_name_column_name')
+                        ])
+                        ->from(config('railforums.author_table_name'))
+                        ->whereRaw(config('railforums.author_table_name') . '.id = author_id')
+                        ->limit(1);
+                },
+                'author_display_name'
+            )
             ->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*)')
