@@ -3,10 +3,10 @@
 namespace Railroad\Railforums\Repositories;
 
 use Railroad\Resora\Queries\CachedQuery;
-use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Railforums\Events\PostLiked;
 
-class PostLikeRepository extends RepositoryBase
+class PostLikeRepository extends EventDispatchingRepository
 {
     /**
      * @return CachedQuery|$this
@@ -19,5 +19,25 @@ class PostLikeRepository extends RepositoryBase
     protected function connection()
     {
         return app('db')->connection(ConfigService::$databaseConnectionName);
+    }
+
+    public function getCreateEvent($entity)
+    {
+        return new PostLiked($entity->post_id, $this->userCloakDataMapper->getCurrentId());
+    }
+
+    public function getReadEvent($entity)
+    {
+        return null;
+    }
+
+    public function getUpdateEvent($entity)
+    {
+        return null;
+    }
+
+    public function getDestroyEvent($entity)
+    {
+        return null;
     }
 }

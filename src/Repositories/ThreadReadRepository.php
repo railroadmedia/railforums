@@ -22,6 +22,14 @@ class ThreadReadRepository extends RepositoryBase
         return app('db')->connection(ConfigService::$databaseConnectionName);
     }
 
+    /**
+     * Creates a new instance of ThreadRead
+     *
+     * @param int $threadId
+     * @param int $userId
+     *
+     * @return \Railroad\Resora\Entities\Entity
+     */
     public function markRead($threadId, $userId)
     {
         $now = Carbon::now()->toDateTimeString();

@@ -138,6 +138,13 @@ class PostRepository extends EventDispatchingRepository
             ->get();
     }
 
+    /**
+     * Returns the posts of the specified thread
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getAllPostIdsInThread($id)
     {
         return $this->query()
