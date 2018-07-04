@@ -55,7 +55,7 @@ class ThreadRepository extends EventDispatchingRepository
 
     public function getDeleteEvent($id)
     {
-        return new PostDeleted($id, $this->userCloakDataMapper->getCurrentId());
+        return new ThreadDeleted($id, $this->userCloakDataMapper->getCurrentId());
     }
 
     /**

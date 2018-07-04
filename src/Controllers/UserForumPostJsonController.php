@@ -112,7 +112,7 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $postLike = $this->postLikeRepository->read($id);
+        $postLike = $this->postLikeRepository->query()->where('post_id', $id)->first();
 
         if (!$postLike) {
             throw new NotFoundHttpException();
