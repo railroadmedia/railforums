@@ -1,5 +1,102 @@
 # Railforums
 
+- [Railforums](#railforums)
+  * [Install](#install)
+  * [Configure](#configure)
+  * [API Reference](#api-reference)
+    + [Store Thread - forms controller](#store-thread---forms-controller)
+      - [Request Example](#request-example)
+      - [Request Parameters](#request-parameters)
+      - [Response Example](#response-example)
+    + [Update Thread - forms controller](#update-thread---forms-controller)
+      - [Request Example](#request-example-1)
+      - [Request Parameters](#request-parameters-1)
+      - [Response Example](#response-example-1)
+    + [Mark Thread as read - forms controller](#mark-thread-as-read---forms-controller)
+      - [Request Example](#request-example-2)
+      - [Request Parameters](#request-parameters-2)
+      - [Response Example](#response-example-2)
+    + [Follow Thread - forms controller](#follow-thread---forms-controller)
+      - [Request Example](#request-example-3)
+      - [Request Parameters](#request-parameters-3)
+      - [Response Example](#response-example-3)
+    + [Unfollow Thread - forms controller](#unfollow-thread---forms-controller)
+      - [Request Example](#request-example-4)
+      - [Request Parameters](#request-parameters-4)
+      - [Response Example](#response-example-4)
+    + [Store Thread - JSON controller](#store-thread---json-controller)
+      - [Request Example](#request-example-5)
+      - [Request Parameters](#request-parameters-5)
+      - [Response Example](#response-example-5)
+    + [Update Thread - JSON controller](#update-thread---json-controller)
+      - [Request Example](#request-example-6)
+      - [Request Parameters](#request-parameters-6)
+      - [Response Example](#response-example-6)
+    + [Mark Thread as read - JSON controller](#mark-thread-as-read---json-controller)
+      - [Request Example](#request-example-7)
+      - [Request Parameters](#request-parameters-7)
+      - [Response Example](#response-example-7)
+    + [Follow Thread - JSON controller](#follow-thread---json-controller)
+      - [Request Example](#request-example-8)
+      - [Request Parameters](#request-parameters-8)
+      - [Response Example](#response-example-8)
+    + [Unfollow Thread - JSON controller](#unfollow-thread---json-controller)
+      - [Request Example](#request-example-9)
+      - [Request Parameters](#request-parameters-9)
+      - [Response Example](#response-example-9)
+    + [Index Thread - JSON controller](#index-thread---json-controller)
+      - [Request Example](#request-example-10)
+      - [Request Parameters](#request-parameters-10)
+      - [Response Example](#response-example-10)
+    + [Show Thread - JSON controller](#show-thread---json-controller)
+      - [Request Example](#request-example-11)
+      - [Request Parameters](#request-parameters-11)
+      - [Response Example](#response-example-11)
+    + [Delete Thread - JSON controller](#delete-thread---json-controller)
+      - [Request Example](#request-example-12)
+      - [Request Parameters](#request-parameters-12)
+      - [Response Example](#response-example-12)
+    + [Store Post - forms controller](#store-post---forms-controller)
+      - [Request Example](#request-example-13)
+      - [Request Parameters](#request-parameters-13)
+      - [Response Example](#response-example-13)
+    + [Update Post - forms controller](#update-post---forms-controller)
+      - [Request Example](#request-example-14)
+      - [Request Parameters](#request-parameters-14)
+      - [Response Example](#response-example-14)
+    + [Like Post - forms controller](#like-post---forms-controller)
+      - [Request Example](#request-example-15)
+      - [Request Parameters](#request-parameters-15)
+      - [Response Example](#response-example-15)
+    + [Unlike Post - forms controller](#unlike-post---forms-controller)
+      - [Request Example](#request-example-16)
+      - [Request Parameters](#request-parameters-16)
+      - [Response Example](#response-example-16)
+    + [Store Post - JSON controller](#store-post---json-controller)
+      - [Request Example](#request-example-17)
+      - [Request Parameters](#request-parameters-17)
+      - [Response Example](#response-example-17)
+    + [Like Post - JSON controller](#like-post---json-controller)
+      - [Request Example](#request-example-18)
+      - [Request Parameters](#request-parameters-18)
+      - [Response Example](#response-example-18)
+    + [Unlike Post - JSON controller](#unlike-post---json-controller)
+      - [Request Example](#request-example-19)
+      - [Request Parameters](#request-parameters-19)
+      - [Response Example](#response-example-19)
+    + [Index Post - JSON controller](#index-post---json-controller)
+      - [Request Example](#request-example-20)
+      - [Request Parameters](#request-parameters-20)
+      - [Response Example](#response-example-20)
+    + [Show Post - JSON controller](#show-post---json-controller)
+      - [Request Example](#request-example-21)
+      - [Request Parameters](#request-parameters-21)
+      - [Response Example](#response-example-21)
+    + [Search Posts and/or Threads - JSON controller](#search-posts-and-or-threads---json-controller)
+      - [Request Example](#request-example-22)
+      - [Request Parameters](#request-parameters-22)
+      - [Response Example](#response-example-22)
+
 ## Install
 With composer command
 ``` composer require railroad/railforums:1.0.4 ```
@@ -916,3 +1013,408 @@ $.ajax({
   ]
 }
 ```
+
+### Like Post - JSON controller
+
+```
+PUT /forums/post/like/{id}
+```
+
+#### Request Example
+
+```
+var postId = 1;
+
+$.ajax({
+    url: '/forums/post/like/' + postId,
+    type: 'put',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes           |
+| ----------------- | ---- | -------- | ------- | ---------------------------- |
+| path              | {id} | yes      |         | The post id to mark as liked |
+
+#### Response Example
+
+`200 OK`
+```
+{
+  "id": 1,
+  "post_id": 1,
+  "liker_id": 1,
+  "liked_on": "2018-07-06 07:15:02",
+  "created_at": "2018-07-06 07:15:02",
+  "updated_at": "2018-07-06 07:15:02"
+}
+```
+```404``` when user does not have permission to like posts\
+``` 404 ``` when specified post does not exist
+
+### Unlike Post - JSON controller
+
+```
+DELETE /forums/post/unlike/{id}
+```
+
+#### Request Example
+
+```
+var postId = 1;
+
+$.ajax({
+    url: '/forums/post/unlike/' + postId,
+    type: 'delete',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes             |
+| ----------------- | ---- | -------- | ------- | ------------------------------ |
+| path              | {id} | yes      |         | The post id to mark as unliked |
+
+#### Response Example
+
+``` 204 ``` No content\
+``` 404 ``` when user does not have permission to like posts\
+``` 404 ``` when specified post does not exist
+
+### Index Post - JSON controller
+
+```
+GET /forums/post/index
+```
+
+#### Request Example
+
+```
+$.ajax({
+    url: '/forums/post/index',
+    type: 'put',
+    data: {amount: 2, page: 1, thread_id: 1},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key       | required | default | description\|notes                   |
+| ----------------- | --------- | -------- | ------- | ------------------------------------ |
+| query             | thread_id | yes      | null    | The thread id of the posts to return |
+| query             | amount    | no       | 10      | The amount of posts to return        |
+| query             | page      | no       | 1       | The page of posts to return          |
+
+#### Response Example
+
+` 200 OK `
+```
+{
+  "posts": [
+    {
+      "id": 17,
+      "thread_id": 1,
+      "author_id": 1,
+      "prompting_post_id": 1846,
+      "content": "Nihil in iste quia ut voluptatem explicabo ex nihil asperiores minima nihil rerum iste cumque quia.",
+      "state": "published",
+      "published_on": "1970-09-08 16:35:18",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null,
+      "author_display_name": "justine14367813251",
+      "like_count": 0,
+      "is_liked_by_viewer": 0,
+      "liker_1_id": null,
+      "liker_1_display_name": null,
+      "liker_2_id": null,
+      "liker_2_display_name": null,
+      "liker_3_id": null,
+      "liker_3_display_name": null
+    },
+    {
+      "id": 16,
+      "thread_id": 1,
+      "author_id": 1,
+      "prompting_post_id": 8160594,
+      "content": "Id ut optio et quae sed velit magni pariatur delectus et et ipsam amet molestias aut modi deleniti numquam et maiores et delectus harum aperiam et.",
+      "state": "published",
+      "published_on": "1973-04-08 14:04:16",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null,
+      "author_display_name": "justine14367813251",
+      "like_count": 0,
+      "is_liked_by_viewer": 0,
+      "liker_1_id": null,
+      "liker_1_display_name": null,
+      "liker_2_id": null,
+      "liker_2_display_name": null,
+      "liker_3_id": null,
+      "liker_3_display_name": null
+    }
+  ],
+  "count": 20
+}
+```
+``` 404 ``` when user does not have permission to index posts
+```402``` validation error
+```
+{
+  "status": "error",
+  "code": 422,
+  "total_results": 0,
+  "results": [],
+  "errors": [
+    {
+      "source": "thread_id",
+      "detail": "The thread id field is required."
+    }
+  ]
+}
+```
+
+### Show Post - JSON controller
+
+```
+GET /forums/post/show/{id}
+```
+
+#### Request Example
+
+```
+var postId = 5;
+
+$.ajax({
+    url: '/forums/post/show/' + postId,
+    type: 'get',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes  |
+| ----------------- | ---- | -------- | ------- | ------------------- |
+| path              | {id} | yes      |         | The post id to show |
+
+#### Response Example
+
+` 200 OK `
+```
+{
+  "id": 5,
+  "thread_id": 1,
+  "author_id": 1,
+  "prompting_post_id": 182692294,
+  "content": "Magni maxime ut ea inventore maxime nemo enim esse eum magnam eaque aperiam qui beatae recusandae.",
+  "state": "published",
+  "published_on": "2002-05-16 21:48:44",
+  "edited_on": null,
+  "created_at": null,
+  "updated_at": null,
+  "deleted_at": null,
+  "author_display_name": "berenice39811594521",
+  "like_count": 5,
+  "is_liked_by_viewer": 1,
+  "liker_1_id": 1,
+  "liker_1_display_name": "berenice39811594521",
+  "liker_2_id": 3,
+  "liker_2_display_name": "brown.delfina643461",
+  "liker_3_id": 2,
+  "liker_3_display_name": "sadye.smitham99",
+  "reply_parents": [
+    {
+      "id": 1,
+      "thread_id": 1,
+      "author_id": 1,
+      "prompting_post_id": 1179483,
+      "content": "Ipsam est quis molestias officia dolorem est ipsam est suscipit laudantium tempore veritatis.",
+      "state": "published",
+      "published_on": "2014-05-10 08:11:44",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null
+    },
+    {
+      "id": 2,
+      "thread_id": 1,
+      "author_id": 1,
+      "prompting_post_id": 342,
+      "content": "Inventore enim nobis quaerat et et consequatur qui itaque est nihil culpa molestiae officia nesciunt labore tenetur beatae quis quod quae nam ut.",
+      "state": "published",
+      "published_on": "1973-12-29 09:04:43",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null
+    },
+    {
+      "id": 3,
+      "thread_id": 1,
+      "author_id": 1,
+      "prompting_post_id": 57930,
+      "content": "Quisquam aut laboriosam eaque quod adipisci est dolore suscipit expedita qui deserunt esse ut perspiciatis sapiente consectetur autem odit et aut sed nisi.",
+      "state": "published",
+      "published_on": "2003-08-23 14:24:59",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null
+    }
+  ]
+}
+```
+``` 404 ``` when user does not have permission to show posts\
+``` 404 ``` when specified post does not exist
+
+### Search Posts and/or Threads - JSON controller
+
+```
+GET /forums/search
+```
+
+#### Request Example
+
+```
+var term = 'similique quidem dolorum suscipit eligendi';
+
+$.ajax({
+    url: '/forums/search',
+    type: 'put',
+    data: {term: term, page: 1, limit: 3},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key   | required | default | description\|notes                                   |
+| ----------------- | ----- | -------- | ------- | ---------------------------------------------------- |
+| query             | term  | no       | null    | The term(s) to search for                            |
+| query             | type  | no       | null    | The type of results to return. 'posts' or 'threads'. |
+| query             | page  | no       | 1       | The page of results to return                        |
+| query             | limit | no       | 10      | The amount of results to return                      |
+| query             | sort  | no       | score   | The column to sort results by                        |
+
+#### Response Example
+
+` 200 OK `
+```
+{
+  "status": "ok",
+  "code": 200,
+  "page": 1,
+  "limit": 3,
+  "total_results": 8,
+  "results": [
+    {
+      "id": 3,
+      "category_id": 1,
+      "author_id": 4,
+      "title": "Autem qui quidem sit suscipit eligendi rerum quo et dolorum minima commodi similique.",
+      "slug": "nemo-labore-aut-explicabo-tenetur",
+      "pinned": 0,
+      "locked": 0,
+      "state": "published",
+      "post_count": 3,
+      "published_on": "1973-10-03 11:18:17",
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null,
+      "last_post_published_on": "2011-04-17 01:46:40",
+      "last_post_id": 4,
+      "last_post_user_id": 4,
+      "last_post_user_display_name": "daniel.elsie1",
+      "is_read": 0,
+      "is_followed": 0
+    },
+    {
+      "id": 6,
+      "thread_id": 3,
+      "author_id": 4,
+      "prompting_post_id": 24,
+      "content": "Sint est quis debitis a similique dignissimos perspiciatis laboriosam at cum dolor quibusdam dignissimos alias dolorem corrupti aliquam quae.",
+      "state": "published",
+      "published_on": "2005-04-01 02:12:24",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null,
+      "author_display_name": "daniel.elsie1",
+      "like_count": 0,
+      "is_liked_by_viewer": 0,
+      "liker_1_id": null,
+      "liker_1_display_name": null,
+      "liker_2_id": null,
+      "liker_2_display_name": null,
+      "liker_3_id": null,
+      "liker_3_display_name": null
+    },
+    {
+      "id": 11,
+      "thread_id": 5,
+      "author_id": 6,
+      "prompting_post_id": 778272324,
+      "content": "Et et sunt illum et aut reprehenderit animi nihil numquam nihil eum laborum magnam eligendi quaerat esse odio.",
+      "state": "published",
+      "published_on": "2015-08-17 18:58:39",
+      "edited_on": null,
+      "created_at": null,
+      "updated_at": null,
+      "deleted_at": null,
+      "author_display_name": "brendon.cassin3661",
+      "like_count": 0,
+      "is_liked_by_viewer": 0,
+      "liker_1_id": null,
+      "liker_1_display_name": null,
+      "liker_2_id": null,
+      "liker_2_display_name": null,
+      "liker_3_id": null,
+      "liker_3_display_name": null
+    }
+  ],
+  "filter_options": null
+}
+```
+``` 404 ``` when user does not have permission to search posts and/or threads
