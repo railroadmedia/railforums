@@ -149,7 +149,12 @@ class PostRepository extends EventDispatchingRepository
     {
         return $this->query()
             ->where('thread_id', $id)
-            ->orderBy('published_on')
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+            ->whereIn(
+                ConfigService::$tablePosts . '.state',
+                self::ACCESSIBLE_STATES
+            )
+            ->orderBy('published_on', 'asc')
             ->get();
     }
 
