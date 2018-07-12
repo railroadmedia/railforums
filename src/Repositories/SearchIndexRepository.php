@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Repositories;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
@@ -211,14 +212,18 @@ SQL;
 
             $userId = $this->userCloakDataMapper->getCurrentId();
 
-            $query->whereNull('post_id');
-            $query->whereIn(
-                'thread_id',
-                function (Builder $query) use ($userId) {
-                    $query
-                        ->select('thread_id')
-                        ->from(ConfigService::$tableThreadFollows)
-                        ->where('follower_id', $userId);
+            $query->join(
+                ConfigService::$tableThreadFollows,
+                function (JoinClause $query) {
+                    $query->on(
+                        ConfigService::$tableThreadFollows . '.thread_id',
+                        '=',
+                        ConfigService::$tableSearchIndexes . '.thread_id'
+                    )->on(
+                        ConfigService::$tableThreadFollows . '.follower_id',
+                        '=',
+                        $query->raw($this->userCloakDataMapper->getCurrentId())
+                    );
                 }
             );
         }
