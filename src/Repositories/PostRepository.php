@@ -14,6 +14,7 @@ use Railroad\Railforums\Repositories\Traits\SoftDelete;
 use Railroad\Railforums\Events\PostCreated;
 use Railroad\Railforums\Events\PostDeleted;
 use Railroad\Railforums\Events\PostUpdated;
+use Symfony\Component\DomCrawler\Crawler;
 
 class PostRepository extends EventDispatchingRepository
 {
@@ -331,7 +332,7 @@ class PostRepository extends EventDispatchingRepository
 
                     $searchIndex = [
                         'high_value' => null,
-                        'medium_value' => $postData->content,
+                        'medium_value' => $this->getFilteredPostContent($postData->content),
                         'low_value' => $postData->{$displayNameColumn},
                         'thread_id' => $postData->thread_id,
                         'post_id' => $postData->id,
@@ -348,5 +349,55 @@ class PostRepository extends EventDispatchingRepository
                     ->insert($chunk);
             }
         );
+    }
+
+    /**
+     * strips out blockquote tags with it's content, return the rest of the content, if not empty
+     * if post content is composed just of blockquote tags, return the content without quoted post metadata
+     */
+    protected function getFilteredPostContent($content)
+    {
+        // filter out blockquote tags
+        $crawler = new Crawler($content);
+
+        $crawler->filter('blockquote')->each(function (Crawler $crawler) {
+            foreach ($crawler as $node) {
+                $node->parentNode->removeChild($node);
+            }
+        });
+
+        $result = $crawler->text();
+
+        if ($result) {
+
+            $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2).chr(0xA0));
+        }
+
+        if (!$result) {
+            // if post contains only a blockquote tag
+            // filter out the quoted post metadata
+            $crawler = new Crawler($content);
+
+            $crawler->filter('span.post-id')->each(function (Crawler $crawler) {
+                foreach ($crawler as $node) {
+                    $node->parentNode->removeChild($node);
+                }
+            });
+
+            $crawler->filter('p.quote-heading')->each(function (Crawler $crawler) {
+                foreach ($crawler as $node) {
+                    $node->parentNode->removeChild($node);
+                }
+            });
+
+            $result = $crawler->text();
+
+            if ($result) {
+
+                $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2).chr(0xA0));
+            }
+        }
+
+        return $result ? $result : $content;
     }
 }

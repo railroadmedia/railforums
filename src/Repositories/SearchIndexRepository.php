@@ -7,12 +7,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Query\Builder;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Services\ConfigService;
 
 class SearchIndexRepository extends RepositoryBase
 {
     const SEARCH_TYPE_POSTS = 'posts';
     const SEARCH_TYPE_THREADS = 'threads';
+    const SEARCH_TYPE_FOLLOWED_THREADS = 'followed';
 
     /**
      * @var PostRepository
@@ -24,12 +26,18 @@ class SearchIndexRepository extends RepositoryBase
      */
     protected $threadRepository;
 
+    /**
+     * @var UserCloakDataMapper
+     */
+    protected $userCloakDataMapper;
+
     public function __construct(
         PostRepository $postRepository,
         ThreadRepository $threadRepository
     ) {
         $this->postRepository = $postRepository;
         $this->threadRepository = $threadRepository;
+        $this->userCloakDataMapper = app(UserCloakDataMapper::class);
     }
 
     /**
@@ -198,6 +206,21 @@ SQL;
         } else if ($type == self::SEARCH_TYPE_POSTS) {
 
             $query->whereNotNull('post_id');
+
+        } else if ($type == self::SEARCH_TYPE_FOLLOWED_THREADS) {
+
+            $userId = $this->userCloakDataMapper->getCurrentId();
+
+            $query->whereNull('post_id');
+            $query->whereIn(
+                'thread_id',
+                function (Builder $query) use ($userId) {
+                    $query
+                        ->select('thread_id')
+                        ->from(ConfigService::$tableThreadFollows)
+                        ->where('follower_id', $userId);
+                }
+            );
         }
 
         return $query;
