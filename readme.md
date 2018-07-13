@@ -5,97 +5,124 @@
   * [Configure](#configure)
   * [API Reference](#api-reference)
     + [Store Thread - forms controller](#store-thread---forms-controller)
+      - [Permission required `create-threads`](#permission-required--create-threads-)
       - [Request Example](#request-example)
       - [Request Parameters](#request-parameters)
       - [Response Example](#response-example)
     + [Update Thread - forms controller](#update-thread---forms-controller)
+      - [Permission required `update-threads`](#permission-required--update-threads-)
       - [Request Example](#request-example-1)
       - [Request Parameters](#request-parameters-1)
       - [Response Example](#response-example-1)
     + [Mark Thread as read - forms controller](#mark-thread-as-read---forms-controller)
+      - [Permission required `read-threads`](#permission-required--read-threads-)
       - [Request Example](#request-example-2)
       - [Request Parameters](#request-parameters-2)
       - [Response Example](#response-example-2)
     + [Follow Thread - forms controller](#follow-thread---forms-controller)
+      - [Permission required `follow-threads`](#permission-required--follow-threads-)
       - [Request Example](#request-example-3)
       - [Request Parameters](#request-parameters-3)
       - [Response Example](#response-example-3)
     + [Unfollow Thread - forms controller](#unfollow-thread---forms-controller)
+      - [Permission required `follow-threads`](#permission-required--follow-threads--1)
       - [Request Example](#request-example-4)
       - [Request Parameters](#request-parameters-4)
       - [Response Example](#response-example-4)
     + [Store Thread - JSON controller](#store-thread---json-controller)
+      - [Permission required `create-threads`](#permission-required--create-threads--1)
       - [Request Example](#request-example-5)
       - [Request Parameters](#request-parameters-5)
       - [Response Example](#response-example-5)
     + [Update Thread - JSON controller](#update-thread---json-controller)
+      - [Permission required `update-threads`](#permission-required--update-threads--1)
       - [Request Example](#request-example-6)
       - [Request Parameters](#request-parameters-6)
       - [Response Example](#response-example-6)
     + [Mark Thread as read - JSON controller](#mark-thread-as-read---json-controller)
+      - [Permission required `read-threads`](#permission-required--read-threads--1)
       - [Request Example](#request-example-7)
       - [Request Parameters](#request-parameters-7)
       - [Response Example](#response-example-7)
     + [Follow Thread - JSON controller](#follow-thread---json-controller)
+      - [Permission required `follow-threads`](#permission-required--follow-threads--2)
       - [Request Example](#request-example-8)
       - [Request Parameters](#request-parameters-8)
       - [Response Example](#response-example-8)
     + [Unfollow Thread - JSON controller](#unfollow-thread---json-controller)
+      - [Permission required `follow-threads`](#permission-required--follow-threads--3)
       - [Request Example](#request-example-9)
       - [Request Parameters](#request-parameters-9)
       - [Response Example](#response-example-9)
     + [Index Thread - JSON controller](#index-thread---json-controller)
+      - [Permission required `index-threads`](#permission-required--index-threads-)
       - [Request Example](#request-example-10)
       - [Request Parameters](#request-parameters-10)
       - [Response Example](#response-example-10)
     + [Show Thread - JSON controller](#show-thread---json-controller)
+      - [Permission required `show-threads`](#permission-required--show-threads-)
       - [Request Example](#request-example-11)
       - [Request Parameters](#request-parameters-11)
       - [Response Example](#response-example-11)
     + [Delete Thread - JSON controller](#delete-thread---json-controller)
+      - [Permission required `delete-threads`](#permission-required--delete-threads-)
       - [Request Example](#request-example-12)
       - [Request Parameters](#request-parameters-12)
       - [Response Example](#response-example-12)
     + [Store Post - forms controller](#store-post---forms-controller)
+      - [Permission required `create-posts`](#permission-required--create-posts-)
       - [Request Example](#request-example-13)
       - [Request Parameters](#request-parameters-13)
       - [Response Example](#response-example-13)
     + [Update Post - forms controller](#update-post---forms-controller)
       - [Request Example](#request-example-14)
+      - [Permission required `update-posts`](#permission-required--update-posts-)
       - [Request Parameters](#request-parameters-14)
       - [Response Example](#response-example-14)
     + [Like Post - forms controller](#like-post---forms-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts-)
       - [Request Example](#request-example-15)
       - [Request Parameters](#request-parameters-15)
       - [Response Example](#response-example-15)
     + [Unlike Post - forms controller](#unlike-post---forms-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts--1)
       - [Request Example](#request-example-16)
       - [Request Parameters](#request-parameters-16)
       - [Response Example](#response-example-16)
     + [Store Post - JSON controller](#store-post---json-controller)
+      - [Permission required `create-posts`](#permission-required--create-posts--1)
       - [Request Example](#request-example-17)
       - [Request Parameters](#request-parameters-17)
       - [Response Example](#response-example-17)
-    + [Like Post - JSON controller](#like-post---json-controller)
+    + [Update Post - JSON controller](#update-post---json-controller)
       - [Request Example](#request-example-18)
+      - [Permission required `update-posts`](#permission-required--update-posts--1)
       - [Request Parameters](#request-parameters-18)
       - [Response Example](#response-example-18)
-    + [Unlike Post - JSON controller](#unlike-post---json-controller)
+    + [Like Post - JSON controller](#like-post---json-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts--2)
       - [Request Example](#request-example-19)
       - [Request Parameters](#request-parameters-19)
       - [Response Example](#response-example-19)
-    + [Index Post - JSON controller](#index-post---json-controller)
+    + [Unlike Post - JSON controller](#unlike-post---json-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts--3)
       - [Request Example](#request-example-20)
       - [Request Parameters](#request-parameters-20)
       - [Response Example](#response-example-20)
-    + [Show Post - JSON controller](#show-post---json-controller)
+    + [Index Post - JSON controller](#index-post---json-controller)
+      - [Permission required `index-posts`](#permission-required--index-posts-)
       - [Request Example](#request-example-21)
       - [Request Parameters](#request-parameters-21)
       - [Response Example](#response-example-21)
-    + [Search Posts and/or Threads - JSON controller](#search-posts-and-or-threads---json-controller)
+    + [Show Post - JSON controller](#show-post---json-controller)
+      - [Permission required `show-posts`](#permission-required--show-posts-)
       - [Request Example](#request-example-22)
       - [Request Parameters](#request-parameters-22)
       - [Response Example](#response-example-22)
+    + [Search Posts and/or Threads - JSON controller](#search-posts-and-or-threads---json-controller)
+      - [Request Example](#request-example-23)
+      - [Request Parameters](#request-parameters-23)
+      - [Response Example](#response-example-23)
 
 ## Install
 With composer command
@@ -185,6 +212,8 @@ In {application_dir}/config/railforums.php add
 PUT /thread/store
 ```
 
+#### Permission required `create-threads`
+
 #### Request Example
 
 ```
@@ -219,6 +248,8 @@ Session has either success key set to true or error bag with validation errors.\
 PATCH /thread/update/{id}
 ```
 
+#### Permission required `update-threads`
+
 #### Request Example
 
 ```
@@ -252,6 +283,8 @@ Session has either success key set to true or error bag with validation errors.\
 PUT /thread/read/{id}
 ```
 
+#### Permission required `read-threads`
+
 #### Request Example
 
 ```
@@ -281,6 +314,8 @@ Session has success key set to true\
 ```
 PUT /thread/follow/{id}
 ```
+
+#### Permission required `follow-threads`
 
 #### Request Example
 
@@ -312,6 +347,8 @@ Session has success key set to true.\
 DELETE /thread/unfollow/{id}
 ```
 
+#### Permission required `follow-threads`
+
 #### Request Example
 
 ```
@@ -341,6 +378,8 @@ Session has success key set to true\
 ```
 PUT /forums/thread/store
 ```
+
+#### Permission required `create-threads`
 
 #### Request Example
 
@@ -427,6 +466,8 @@ $.ajax({
 PATCH /forums/thread/update/{id}
 ```
 
+#### Permission required `update-threads`
+
 #### Request Example
 
 ```
@@ -504,6 +545,8 @@ $.ajax({
 PUT /forums/thread/read/{id}
 ```
 
+#### Permission required `read-threads`
+
 #### Request Example
 
 ```
@@ -550,6 +593,8 @@ $.ajax({
 ```
 PUT /forums/thread/follow/{id}
 ```
+
+#### Permission required `follow-threads`
 
 #### Request Example
 
@@ -598,6 +643,8 @@ $.ajax({
 DELETE /forums/thread/unfollow/{id}
 ```
 
+#### Permission required `follow-threads`
+
 #### Request Example
 
 ```
@@ -634,6 +681,8 @@ $.ajax({
 ```
 GET /forums/thread/index
 ```
+
+#### Permission required `index-threads`
 
 #### Request Example
 
@@ -722,6 +771,8 @@ $.ajax({
 GET /forums/thread/show/{id}
 ```
 
+#### Permission required `show-threads`
+
 #### Request Example
 
 ```
@@ -782,6 +833,8 @@ $.ajax({
 DELETE /forums/thread/delete/{id}
 ```
 
+#### Permission required `delete-threads`
+
 #### Request Example
 
 ```
@@ -818,6 +871,8 @@ $.ajax({
 ```
 PUT /post/store
 ```
+
+#### Permission required `create-posts`
 
 #### Request Example
 
@@ -856,6 +911,8 @@ PATCH /post/update/{id}
 
 #### Request Example
 
+#### Permission required `update-posts`
+
 ```
 <form action="/post/update/{id}" method="POST">
   <input name="_method" type="hidden" value="PATCH">
@@ -887,6 +944,8 @@ Session has either success key set to true or error bag with validation errors.\
 PUT /post/like/{id}
 ```
 
+#### Permission required `like-posts`
+
 #### Request Example
 
 ```
@@ -917,6 +976,8 @@ Session has success key set to true.\
 DELETE /post/unlike/{id}
 ```
 
+#### Permission required `like-posts`
+
 #### Request Example
 
 ```
@@ -946,6 +1007,8 @@ Session has success key set to true\
 ```
 PUT /forums/post/store
 ```
+
+#### Permission required `create-posts`
 
 #### Request Example
 
@@ -1014,11 +1077,83 @@ $.ajax({
 }
 ```
 
+### Update Post - JSON controller
+
+```
+PATCH /post/update/{id}
+```
+
+#### Request Example
+
+#### Permission required `update-posts`
+
+```
+var content = 'Nam sit delectus debitis consectetur.';
+
+$.ajax({
+    url: '/forums/post/update/{id}',
+    type: 'patch',
+    data: {content: content},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key      | required | default | description\|notes    |
+| ----------------- | -------- | -------- | ------- | --------------------- |
+| path              | {id}     | yes      |         | The post id to update |
+| body              | content  | yes      |         | New post content      |
+
+#### Response Example
+
+`200 OK`
+```
+{
+  "id": 1,
+  "thread_id": 1,
+  "author_id": 1,
+  "prompting_post_id": 97,
+  "content": "Nam sit delectus debitis consectetur.",
+  "state": "published",
+  "published_on": "2007-01-10 15:39:45",
+  "edited_on": null,
+  "created_at": null,
+  "updated_at": "2018-07-13 14:36:12",
+  "deleted_at": null
+}
+```
+``` 404 ``` when user does not have permission to update posts\
+``` 404 ``` when specified post does not exist\
+``` 422 ``` validation errors
+```
+{
+  "status": "error",
+  "code": 422,
+  "total_results": 0,
+  "results": [],
+  "errors": [
+    {
+      "source": "content",
+      "detail": "The content field is required."
+    }
+  ]
+}
+```
+
 ### Like Post - JSON controller
 
 ```
 PUT /forums/post/like/{id}
 ```
+
+#### Permission required `like-posts`
 
 #### Request Example
 
@@ -1067,6 +1202,8 @@ $.ajax({
 DELETE /forums/post/unlike/{id}
 ```
 
+#### Permission required `like-posts`
+
 #### Request Example
 
 ```
@@ -1103,6 +1240,8 @@ $.ajax({
 ```
 GET /forums/post/index
 ```
+
+#### Permission required `index-posts`
 
 #### Request Example
 
@@ -1205,6 +1344,8 @@ $.ajax({
 ```
 GET /forums/post/show/{id}
 ```
+
+#### Permission required `show-posts`
 
 #### Request Example
 
@@ -1417,4 +1558,3 @@ $.ajax({
   "filter_options": null
 }
 ```
-``` 404 ``` when user does not have permission to search posts and/or threads
