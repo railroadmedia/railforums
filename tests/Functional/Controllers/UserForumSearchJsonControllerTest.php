@@ -42,7 +42,6 @@ class UserForumSearchJsonControllerTest extends TestCase
         $thread = $this->fakeThread($category['id'], $author->getId());
 
         $posts = [];
-        $threads = [$thread];
         $authors = [$author];
 
         $postCount = 20;
@@ -51,10 +50,8 @@ class UserForumSearchJsonControllerTest extends TestCase
 
             if ($i % 3 == 0) {
                 $author = $this->fakeUserCloak();
-                $authors[] = $author;
                 /** @var array $thread */
                 $thread = $this->fakeThread($category['id'], $author->getId());
-                $threads[] = $thread;
             }
 
             $posts[] = $this->fakePost($thread['id'], $author->getId());
@@ -62,36 +59,34 @@ class UserForumSearchJsonControllerTest extends TestCase
 
         $page = 1;
         $limit = 5;
-        $type = ''; // posts | threads
-        $topSearchResult = $threads[2];
+        $topSearchResult = $posts[2];
 
-        // this selects some random words from thread title, to assert it later as first result
-        $term = $this->getRandomWordsFromSentence($topSearchResult['title']);
+        // this selects some random words from post content, to assert it later as first result
+        $term = $this->getRandomWordsFromSentence($topSearchResult['content']);
 
         $this->artisan('command:createSearchIndexes');
 
         $response = $this->call('GET', self::API_PREFIX . '/search', [
             'page' => $page,
             'limit' => $limit,
-            'term' => $term,
-            'type' => $type
+            'term' => $term
         ]);
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $decodeResponse = $response->decodeResponseJson();
+        $decodedResponse = $response->decodeResponseJson();
 
         // assert results count
-        $this->assertLessThanOrEqual($limit, count($decodeResponse['results']));
+        $this->assertLessThanOrEqual($limit, count($decodedResponse['results']));
 
         // assert top search result
         $this->assertEquals(
             $topSearchResult['id'],
-            $decodeResponse['results'][0]['id']
+            $decodedResponse['results'][0]['id']
         );
 
         // assert total results
-        $this->assertGreaterThanOrEqual(1, $decodeResponse['total_results']);
+        $this->assertGreaterThanOrEqual(1, $decodedResponse['total_results']);
     }
 }

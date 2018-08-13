@@ -56,17 +56,15 @@ class SearchIndexRepository extends RepositoryBase
 
     /**
      * Returns a page of matching results
-     * Based on type param, results may be a mix of posts and/or threads
      *
      * @param string $term
-     * @param string $type - 'posts' | 'threads' | null
      * @param int $page
      * @param int $limit
      * @param string $sort
      *
      * @return array
      */
-    public function search($term, $type, $page, $limit, $sort)
+    public function search($term, $page, $limit, $sort)
     {
         $highMultiplier = config('railforums.search.high_value_multiplier');
         $mediumMultiplier = config('railforums.search.medium_value_multiplier');
@@ -83,7 +81,7 @@ MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier) as score
 SQL;
 
         $searchIndexResults = $this
-            ->getSearchQuery($term, $type)
+            ->getSearchQuery($term)
             ->addSelect(
                 [
                     $table . '.id',
@@ -117,44 +115,44 @@ SQL;
     public function getSearchContentResults(Collection $searchResults)
     {
         $postsIds = []; // key is post id, value is position in searchResults
-        $threadsIds = []; // key is thread id, value is position in searchResults
+        $threadsIds = []; // key is thread id, value is an array with positions of the posts in searchResults
 
         foreach ($searchResults as $key => $searchIndexStdData) {
-            if ($searchIndexStdData->post_id) {
-                $postsIds[$searchIndexStdData->post_id] = $key;
+
+            $postsIds[$searchIndexStdData->post_id] = $key;
+
+            // this handles several posts with same thread id
+            if (isset($threadsIds[$searchIndexStdData->thread_id])) {
+                $threadsIds[$searchIndexStdData->thread_id][] = $key;
             } else {
-                $threadsIds[$searchIndexStdData->thread_id] = $key;
+                $threadsIds[$searchIndexStdData->thread_id] = [$key];
             }
         }
 
         // pre-fill the results array to insert content in correct order
         $results = array_fill(0, count($searchResults), null);
 
-        if (!empty($postsIds)) {
-
-            $postsData = $this->postRepository
+        $postsData = $this->postRepository
                             ->getDecoratedPostsByIds(array_keys($postsIds));
 
-            foreach ($postsData as $postStdData) {
+        foreach ($postsData as $postStdData) {
 
-                /** @var \stdClass $postStdData */
-                $postPosition = $postsIds[$postStdData->id];
+            /** @var \stdClass $postStdData */
+            $postPosition = $postsIds[$postStdData->id];
 
-                $results[$postPosition] = (array) $postStdData;
-            }
+            $results[$postPosition] = (array) $postStdData;
         }
 
-        if (!empty($threadsIds)) {
-
-            $threadsData = $this->threadRepository
+        $threadsData = $this->threadRepository
                             ->getDecoratedThreadsByIds(array_keys($threadsIds));
 
-            foreach ($threadsData as $threadStdData) {
+        foreach ($threadsData as $threadStdData) {
 
-                /** @var \stdClass $threadStdData */
-                $threadPosition = $threadsIds[$threadStdData->id];
+            /** @var \stdClass $threadStdData */
+            $threadPositions = $threadsIds[$threadStdData->id];
 
-                $results[$threadPosition] = (array) $threadStdData;
+            foreach ($threadPositions as $position) {
+                $results[$position]['thread'] = (array) $threadStdData;
             }
         }
 
@@ -162,27 +160,25 @@ SQL;
     }
 
     /**
-     * Returns the number of search index records that match term and type
+     * Returns the number of search index records that match term
      *
      * @param string $term
-     * @param string $type
      *
      * @return int
      */
-    public function countTotalResults($term, $type)
+    public function countTotalResults($term)
     {
-        return $this->getSearchQuery($term, $type)->count();
+        return $this->getSearchQuery($term)->count();
     }
 
     /**
-     * Returns newQuery decorated with term and type filters
+     * Returns newQuery decorated with term filter
      *
      * @param string $term
-     * @param string $type
      *
      * @return Builder
      */
-    protected function getSearchQuery($term, $type)
+    protected function getSearchQuery($term)
     {
         $query = $this->newQuery();
 
@@ -200,33 +196,7 @@ SQL;
             );
         }
 
-        if ($type == self::SEARCH_TYPE_THREADS) {
-
-            $query->whereNull('post_id');
-
-        } else if ($type == self::SEARCH_TYPE_POSTS) {
-
-            $query->whereNotNull('post_id');
-
-        } else if ($type == self::SEARCH_TYPE_FOLLOWED_THREADS) {
-
-            $userId = $this->userCloakDataMapper->getCurrentId();
-
-            $query->join(
-                ConfigService::$tableThreadFollows,
-                function (JoinClause $query) {
-                    $query->on(
-                        ConfigService::$tableThreadFollows . '.thread_id',
-                        '=',
-                        ConfigService::$tableSearchIndexes . '.thread_id'
-                    )->on(
-                        ConfigService::$tableThreadFollows . '.follower_id',
-                        '=',
-                        $query->raw($this->userCloakDataMapper->getCurrentId())
-                    );
-                }
-            );
-        }
+        $query->whereNotNull('post_id');
 
         return $query;
     }

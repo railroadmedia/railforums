@@ -27,18 +27,13 @@ class UserForumSearchJsonController extends Controller
         $results = $this->searchIndexRepository
                         ->search(
                             $request->get('term', null),
-                            $request->get('type', null),
                             $request->get('page', 1),
                             $request->get('limit', 10),
                             $request->get('sort', 'score')
                         );
 
         $count = $this->searchIndexRepository
-                        ->countTotalResults(
-                            $request->get('term', null),
-                            $request->get('type', null)
-                        );
-        // $count = 0;
+                        ->countTotalResults($request->get('term', null));
 
         return new JsonPaginatedResponse(
             $results,
