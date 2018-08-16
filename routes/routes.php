@@ -123,6 +123,11 @@ Route::group(
             \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@delete'
         )->name('railforums.api.post.delete');
 
+        Route::put(
+            'post/report/{id}',
+            \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@report'
+        )->name('railforums.api.post.report');
+
         // post likes
         Route::put(
             'post/like/{id}',

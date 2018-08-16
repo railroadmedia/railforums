@@ -4,6 +4,9 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Railforums\Notifications\PostReport;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Notifications\AnonymousNotifiable;
 
 class UserForumPostJsonControllerTest extends TestCase
 {
@@ -14,6 +17,107 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->setDefaultConnection('mysql');
 
         parent::setUp();
+    }
+
+    public function test_post_report_with_permission()
+    {
+        Notification::fake();
+
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        $this->permissionServiceMock->method('can')->willReturn(true);
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/report/' . $post['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(204, $response->getStatusCode());
+
+        // assert the emails were sent
+        Notification::assertSentTo(
+            (new AnonymousNotifiable)
+                ->route(
+                ConfigService::$postReportNotificationChannel,
+                ConfigService::$postReportNotificationRecipients
+            ),
+            ConfigService::$postReportNotificationClass,
+            function ($notification) use ($post) {
+                return $notification->post['id'] === $post['id'];
+            }
+        );
+    }
+
+    public function test_post_report_without_permission()
+    {
+        Notification::fake();
+
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        /** @var array $post */
+        $post = $this->fakePost($thread['id'], $user->getId());
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/report/' . $post['id']
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the emails were not sent
+        Notification::assertNotSentTo(
+            (new AnonymousNotifiable)
+                ->route(
+                ConfigService::$postReportNotificationChannel,
+                ConfigService::$postReportNotificationRecipients
+            ),
+            ConfigService::$postReportNotificationClass,
+            function ($notification) use ($post) {
+                return $notification->post['id'] === $post['id'];
+            }
+        );
+    }
+
+    public function test_post_report_not_exists()
+    {
+        Notification::fake();
+
+        $user = $this->fakeCurrentUserCloak();
+
+        $response = $this->call(
+            'PUT',
+            self::API_PREFIX . '/post/report/' . rand(0, 32767)
+        );
+
+        // assert response status code
+        $this->assertEquals(404, $response->getStatusCode());
+
+        // assert the emails were not sent
+        Notification::assertNotSentTo(
+            (new AnonymousNotifiable)
+                ->route(
+                ConfigService::$postReportNotificationChannel,
+                ConfigService::$postReportNotificationRecipients
+            ),
+            ConfigService::$postReportNotificationClass
+        );
     }
 
     public function test_post_like_with_permission()

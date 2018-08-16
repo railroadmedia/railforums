@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Requests\PostJsonIndexRequest;
@@ -69,6 +70,37 @@ class UserForumPostJsonController extends Controller
         $this->userCloakDataMapper = $userCloakDataMapper;
 
         $this->middleware(ConfigService::$controllerMiddleware);
+    }
+
+    /**
+     * @param integer $id
+     *
+     * @return JsonResponse
+     */
+    public function report($id)
+    {
+        if (!$this->permissionService->can(auth()->id(), 'report-posts')) {
+            throw new NotFoundHttpException();
+        }
+
+        $post = $this->postRepository->read($id);
+
+        if (!$post) {
+            throw new NotFoundHttpException();
+        }
+
+        (new AnonymousNotifiable)
+            ->route(
+                ConfigService::$postReportNotificationChannel,
+                ConfigService::$postReportNotificationRecipients
+            )
+            ->notify(
+                new ConfigService::$postReportNotificationClass(
+                    $post->getArrayCopy()
+                )
+            );
+
+        return new JsonResponse(null, 204);
     }
 
     /**

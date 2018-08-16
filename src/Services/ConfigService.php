@@ -88,4 +88,24 @@ class ConfigService
      * @var array
      */
     public static $controllerMiddleware;
+
+    /**
+     * @var string
+     */
+    public static $postReportNotificationClass;
+
+    /**
+     * @var string
+     */
+    public static $postReportNotificationChannel;
+
+    /**
+     * @var array
+     */
+    public static $postReportNotificationRecipients;
+
+    /**
+     * @var string
+     */
+    public static $postReportNotificationViewPostRoute;
 }

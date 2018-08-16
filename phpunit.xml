@@ -9,7 +9,6 @@
          processIsolation="false"
          stopOnError="false"
          stopOnFailure="false"
-         syntaxCheck="true"
 >
     <testsuites>
         <testsuite name="Railforums Test Suite">

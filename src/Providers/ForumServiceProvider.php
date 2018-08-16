@@ -94,6 +94,11 @@ class ForumServiceProvider extends EventServiceProvider
         // middleware
         ConfigService::$controllerMiddleware = config('railforums.controller_middleware');
 
+        // post report
+        ConfigService::$postReportNotificationClass = config('railforums.post_report_notification_class');
+        ConfigService::$postReportNotificationChannel = config('railforums.post_report_notification_channel');
+        ConfigService::$postReportNotificationViewPostRoute = config('railforums.post_report_notification_view_post_route');
+
         // No need for decorators yet
         // config()->set(
         //     'resora.decorators.threads',
