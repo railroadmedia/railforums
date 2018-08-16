@@ -48,7 +48,7 @@ return array(
 
     'post_report_notification_class' => \Railroad\Railforums\Notifications\PostReport::class,
     'post_report_notification_channel' => 'mail',
-    'post_report_notification_recipients' => ['bogdan.damian@artsoft-consult.ro', 'bogdan.damian+1@artsoft-consult.ro'],
+    'post_report_notification_recipients' => ['example@recordeo.com', 'example.two@recordeo.com'],
     'post_report_notification_view_post_route' => 'railforums.api.post.show', // laravel route name, eg: 'railforums.api.post.show' or 'forums.post.jump-to'
 
     'html_purifier_settings' => [
