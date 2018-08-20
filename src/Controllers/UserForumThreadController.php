@@ -85,9 +85,7 @@ class UserForumThreadController extends Controller
      */
     public function read(Request $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'read-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'read-threads');
 
         $thread = $this->threadRepository->read($id);
 
@@ -120,9 +118,7 @@ class UserForumThreadController extends Controller
      */
     public function follow(Request $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
         $thread = $this->threadRepository->read($id);
 
@@ -155,9 +151,7 @@ class UserForumThreadController extends Controller
      */
     public function unfollow(Request $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
         $threadFollow = $this->threadFollowRepository->read($id);
 
@@ -181,9 +175,7 @@ class UserForumThreadController extends Controller
      */
     public function store(ThreadCreateRequest $request)
     {
-        if (!$this->permissionService->can(auth()->id(), 'create-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'create-threads');
 
         $now = Carbon::now()->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
@@ -239,9 +231,22 @@ class UserForumThreadController extends Controller
      */
     public function update(ThreadUpdateRequest $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'update-threads')) {
+        $thread = $this->threadRepository->read($id);
+
+        if (!$thread) {
             throw new NotFoundHttpException();
         }
+
+        if ($thread['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'update-threads');
+        }
+
+        $columns = $this->permissionService->columns(
+                    auth()->id(),
+                    'update-threads',
+                    $request->all(),
+                    ['title']
+                );
 
         $thread = $this->threadRepository->update(
             $id,
@@ -257,10 +262,6 @@ class UserForumThreadController extends Controller
                 ]
             )
         );
-
-        if (!$thread) {
-            throw new NotFoundHttpException();
-        }
 
         $message = ['success' => true];
 

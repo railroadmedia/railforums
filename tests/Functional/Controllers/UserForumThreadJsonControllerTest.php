@@ -4,6 +4,7 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumThreadJsonControllerTest extends TestCase
 {
@@ -28,7 +29,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         $this->fakePost($thread['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -61,10 +62,16 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $otherUserId = rand(2, 32767);
 
-        $this->fakePost($thread['id'], $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $otherUserId);
+
+        $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to read-threads')
+        );
 
         $response = $this->call(
             'PUT',
@@ -72,7 +79,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
@@ -90,7 +97,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         $threadId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -122,7 +129,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         $this->fakePost($thread['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -155,10 +162,16 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $otherUserId = rand(2, 32767);
 
-        $this->fakePost($thread['id'], $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $otherUserId);
+
+        $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to follow-threads')
+        );
 
         $response = $this->call(
             'PUT',
@@ -166,7 +179,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was saved in the db
         $this->assertDatabaseMissing(
@@ -183,7 +196,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         $user = $this->fakeCurrentUserCloak();
         $threadId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -231,7 +244,7 @@ class UserForumThreadJsonControllerTest extends TestCase
             ]
         );
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -255,7 +268,9 @@ class UserForumThreadJsonControllerTest extends TestCase
     {
         $user = $this->fakeCurrentUserCloak();
 
-        $thread = $this->fakeThread(null, $user->getId());
+        $otherUserId = rand(2, 32767);
+
+        $thread = $this->fakeThread(null, $otherUserId);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
@@ -271,13 +286,17 @@ class UserForumThreadJsonControllerTest extends TestCase
             ->table(ConfigService::$tableThreadFollows)
             ->insertGetId($threadFollow);
 
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to follow-threads')
+        );
+
         $response = $this->call(
             'DELETE',
             self::API_PREFIX . '/thread/unfollow/' . $thread['id']
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the data was not removed from the db
         $this->assertDatabaseHas(
@@ -295,7 +314,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         $threadFollowId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -338,7 +357,7 @@ class UserForumThreadJsonControllerTest extends TestCase
             'category_ids' => [$categoryOne['id']]
         ];
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -370,13 +389,19 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        $this->fakeThread($category['id'], $user->getId());
+        $otherUserId = rand(2, 32767);
+
+        $this->fakeThread($category['id'], $otherUserId);
 
         $payload = [
             'amount' => 10,
             'page' => 1,
             'category_ids' => [$category['id']]
         ];
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to index-threads')
+        );
 
         $response = $this->call(
             'GET',
@@ -385,7 +410,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     public function test_thread_show_with_permission()
@@ -398,7 +423,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -426,8 +451,14 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to show-threads')
+        );
 
         $response = $this->call(
             'GET',
@@ -435,7 +466,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     public function test_thread_show_with_decorated_data()
@@ -477,7 +508,7 @@ class UserForumThreadJsonControllerTest extends TestCase
             ->table(ConfigService::$tableThreadReads)
             ->insertGetId($threadRead);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -507,7 +538,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
     public function test_thread_show_not_exists()
     {
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -531,7 +562,7 @@ class UserForumThreadJsonControllerTest extends TestCase
             'category_id' => $category['id'],
         ];
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -582,6 +613,10 @@ class UserForumThreadJsonControllerTest extends TestCase
             'category_id' => $category['id'],
         ];
 
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to create-threads')
+        );
+
         $response = $this->call(
             'PUT',
             self::API_PREFIX . '/thread/store',
@@ -589,7 +624,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
@@ -651,7 +686,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
         $newTitle = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
             ->willReturn(['title' => $newTitle]);
@@ -689,10 +724,16 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         $newTitle = $this->faker->sentence();
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to update-threads')
+        );
 
         $response = $this->call(
             'PATCH',
@@ -710,7 +751,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     public function test_thread_update_validation_fail()
@@ -718,7 +759,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         $user = $this->fakeCurrentUserCloak();
         $thread = $this->fakeThread(null, $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PATCH',
@@ -742,7 +783,7 @@ class UserForumThreadJsonControllerTest extends TestCase
     {
         $newTitle = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
             ->willReturn(['title' => $newTitle]);
@@ -761,7 +802,7 @@ class UserForumThreadJsonControllerTest extends TestCase
     {
         $thread = $this->fakeThread();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -782,7 +823,16 @@ class UserForumThreadJsonControllerTest extends TestCase
 
     public function test_thread_delete_without_permission()
     {
-        $thread = $this->fakeThread();
+        $user = $this->fakeCurrentUserCloak();
+
+        $otherUserId = rand(2, 32767);
+
+        /** @var array $thread */
+        $thread = $this->fakeThread(null, $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to delete-threads')
+        );
 
         $response = $this->call(
             'DELETE',
@@ -790,7 +840,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was not soft deleted or deleted from db
         $this->assertDatabaseHas(
@@ -804,7 +854,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
     public function test_thread_delete_not_found()
     {
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',

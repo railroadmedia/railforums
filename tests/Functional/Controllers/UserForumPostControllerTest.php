@@ -4,6 +4,7 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumPostControllerTest extends TestCase
 {
@@ -52,11 +53,17 @@ class UserForumPostControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to like-posts')
+        );
 
         $response = $this->call(
             'PUT',
@@ -64,7 +71,7 @@ class UserForumPostControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the data was not saved in the db
         $this->assertDatabaseMissing(
@@ -163,11 +170,13 @@ class UserForumPostControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
@@ -183,13 +192,17 @@ class UserForumPostControllerTest extends TestCase
             ->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to like-posts')
+        );
+
         $response = $this->call(
             'DELETE',
             '/post/unlike/' . $post['id']
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the data was not removed from the db
         $this->assertDatabaseHas(
@@ -244,13 +257,19 @@ class UserForumPostControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         $postData = [
             'content' => $this->faker->sentence(),
             'thread_id' => $thread['id']
         ];
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to like-posts')
+        );
 
         $response = $this->call(
             'PUT',
@@ -259,7 +278,7 @@ class UserForumPostControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was not saved in the db
         $this->assertDatabaseMissing(
@@ -335,13 +354,19 @@ class UserForumPostControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
 
         $newContent = $this->faker->sentence();
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to like-posts')
+        );
 
         $response = $this->call(
             'PATCH',
@@ -359,7 +384,7 @@ class UserForumPostControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     public function test_post_update_validation_fail()

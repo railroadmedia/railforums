@@ -7,6 +7,7 @@ use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\Notifications\PostReport;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Notifications\AnonymousNotifiable;
+use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumPostJsonControllerTest extends TestCase
 {
@@ -31,7 +32,7 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user->getId());
@@ -67,11 +68,17 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to report-posts')
+        );
 
         $response = $this->call(
             'PUT',
@@ -79,7 +86,7 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the emails were not sent
         Notification::assertNotSentTo(
@@ -130,7 +137,7 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user->getId());
@@ -169,11 +176,17 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to like-posts')
+        );
 
         $response = $this->call(
             'PUT',
@@ -181,7 +194,7 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post like data was not saved in the db
         $this->assertDatabaseMissing(
@@ -253,7 +266,7 @@ class UserForumPostJsonControllerTest extends TestCase
             ]
         );
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -280,11 +293,13 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
@@ -300,13 +315,17 @@ class UserForumPostJsonControllerTest extends TestCase
             ->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to like-posts')
+        );
+
         $response = $this->call(
             'DELETE',
             self::API_PREFIX . '/post/unlike/' . $post['id']
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the data was not removed from the db
         $this->assertDatabaseHas(
@@ -323,7 +342,7 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->fakeCurrentUserCloak();
         $postId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -369,7 +388,7 @@ class UserForumPostJsonControllerTest extends TestCase
             'thread_id' => $threadOne['id']
         ];
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -409,7 +428,7 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -433,11 +452,17 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to show-posts')
+        );
 
         $response = $this->call(
             'GET',
@@ -445,7 +470,7 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
     }
 
@@ -513,7 +538,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         // ^^ postFour is set to quote/reply to postOne, postTwo, postThree
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -660,7 +685,7 @@ class UserForumPostJsonControllerTest extends TestCase
             ->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'GET',
@@ -720,7 +745,7 @@ class UserForumPostJsonControllerTest extends TestCase
             'thread_id' => $thread['id']
         ];
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -754,13 +779,19 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         $postData = [
             'content' => $this->faker->sentence(),
             'thread_id' => $thread['id']
         ];
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to create-posts')
+        );
 
         $response = $this->call(
             'PUT',
@@ -769,7 +800,7 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was not saved in the db
         $this->assertDatabaseMissing(
@@ -808,7 +839,7 @@ class UserForumPostJsonControllerTest extends TestCase
             ]
         ];
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -903,7 +934,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $newContent = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
             ->willReturn(['content' => $newContent]);
@@ -971,13 +1002,19 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
 
         $newContent = $this->faker->sentence();
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to update-posts')
+        );
 
         $response = $this->call(
             'PATCH',
@@ -986,7 +1023,7 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was saved in the db
         $this->assertDatabaseMissing(
@@ -1004,7 +1041,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $newContent = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
             ->willReturn(['content' => $newContent]);
@@ -1032,7 +1069,7 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -1058,11 +1095,17 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to delete-posts')
+        );
 
         $response = $this->call(
             'DELETE',
@@ -1070,7 +1113,7 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was not marked as soft deleted
         $this->assertDatabaseHas(
@@ -1084,7 +1127,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_delete_not_found()
     {
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',

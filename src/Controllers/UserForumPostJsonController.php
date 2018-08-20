@@ -79,9 +79,7 @@ class UserForumPostJsonController extends Controller
      */
     public function report($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'report-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'report-posts');
 
         $post = $this->postRepository->read($id);
 
@@ -110,9 +108,7 @@ class UserForumPostJsonController extends Controller
      */
     public function like($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
         $post = $this->postRepository->read($id);
 
@@ -140,9 +136,7 @@ class UserForumPostJsonController extends Controller
      */
     public function unlike($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
         $postLike = $this->postLikeRepository->query()->where('post_id', $id)->first();
 
@@ -162,9 +156,7 @@ class UserForumPostJsonController extends Controller
      */
     public function index(PostJsonIndexRequest $request)
     {
-        if (!$this->permissionService->can(auth()->id(), 'index-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'index-posts');
 
         $amount = $request->get('amount') ?
                     (int) $request->get('amount') : self::AMOUNT;
@@ -192,9 +184,7 @@ class UserForumPostJsonController extends Controller
      */
     public function show($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'show-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'show-posts');
 
         $posts = $this->postRepository->getDecoratedPostsByIds([$id]);
 
@@ -220,9 +210,7 @@ class UserForumPostJsonController extends Controller
      */
     public function store(PostJsonCreateRequest $request)
     {
-        if (!$this->permissionService->can(auth()->id(), 'create-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'create-posts');
 
         $now = Carbon::now()->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
@@ -272,8 +260,14 @@ class UserForumPostJsonController extends Controller
      */
     public function update(PostJsonUpdateRequest $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'update-posts')) {
+        $post = $this->postRepository->read($id);
+
+        if (!$post) {
             throw new NotFoundHttpException();
+        }
+
+        if ($post['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'update-posts');
         }
 
         $post = $this->postRepository->update(
@@ -291,10 +285,6 @@ class UserForumPostJsonController extends Controller
             )
         );
 
-        if (!$post) {
-            throw new NotFoundHttpException();
-        }
-
         return response()->json($post);
     }
 
@@ -305,9 +295,7 @@ class UserForumPostJsonController extends Controller
      */
     public function delete($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'delete-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'delete-posts');
 
         $result = $this->postRepository->delete($id);
 

@@ -97,16 +97,11 @@ return array(
             ]
         ],
         'user' => [
-            'update-threads' => [
-                'only' => [
-                    'title'
-                ]
-            ],
-            'update-posts' => [
-                'only' => [
-                    'content'
-                ]
-            ]
+            'create-posts',
+            'like-posts',
+            'read-threads',
+            'create-threads',
+            'follow-threads'
         ]
     ]
 );

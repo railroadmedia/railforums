@@ -4,6 +4,7 @@ namespace Tests;
 
 use Carbon\Carbon;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumThreadControllerTest extends TestCase
 {
@@ -26,7 +27,7 @@ class UserForumThreadControllerTest extends TestCase
 
         $this->fakePost($thread['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -53,10 +54,16 @@ class UserForumThreadControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $otherUserId = rand(2, 32767);
 
-        $this->fakePost($thread['id'], $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $otherUserId);
+
+        $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to read-threads')
+        );
 
         $response = $this->call(
             'PUT',
@@ -64,7 +71,7 @@ class UserForumThreadControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
@@ -82,7 +89,7 @@ class UserForumThreadControllerTest extends TestCase
 
         $threadId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -114,7 +121,7 @@ class UserForumThreadControllerTest extends TestCase
 
         $this->fakePost($thread['id'], $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -141,10 +148,16 @@ class UserForumThreadControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $otherUserId = rand(2, 32767);
 
-        $this->fakePost($thread['id'], $user->getId());
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $otherUserId);
+
+        $this->fakePost($thread['id'], $otherUserId);
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to follow-threads')
+        );
 
         $response = $this->call(
             'PUT',
@@ -152,7 +165,7 @@ class UserForumThreadControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
@@ -215,7 +228,7 @@ class UserForumThreadControllerTest extends TestCase
             ]
         );
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'DELETE',
@@ -239,7 +252,9 @@ class UserForumThreadControllerTest extends TestCase
     {
         $user = $this->fakeCurrentUserCloak();
 
-        $thread = $this->fakeThread(null, $user->getId());
+        $otherUserId = rand(2, 32767);
+
+        $thread = $this->fakeThread(null, $otherUserId);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
@@ -255,13 +270,17 @@ class UserForumThreadControllerTest extends TestCase
             ->table(ConfigService::$tableThreadFollows)
             ->insertGetId($threadFollow);
 
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to follow-threads')
+        );
+
         $response = $this->call(
             'DELETE',
             '/thread/unfollow/' . $thread['id']
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the data was removed from the db
         $this->assertDatabaseHas(
@@ -300,7 +319,7 @@ class UserForumThreadControllerTest extends TestCase
             'category_id' => $category['id'],
         ];
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PUT',
@@ -344,6 +363,10 @@ class UserForumThreadControllerTest extends TestCase
             'category_id' => $category['id'],
         ];
 
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to create-threads')
+        );
+
         $response = $this->call(
             'PUT',
             '/thread/store',
@@ -351,7 +374,7 @@ class UserForumThreadControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
 
         // assert the thread data was not saved in the db
         $this->assertDatabaseMissing(
@@ -399,7 +422,7 @@ class UserForumThreadControllerTest extends TestCase
 
         $newTitle = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
             ->willReturn(['title' => $newTitle]);
@@ -431,9 +454,13 @@ class UserForumThreadControllerTest extends TestCase
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], rand(2, 32767));
 
         $newTitle = $this->faker->sentence();
+
+        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
+            new NotAllowedException('You are not allowed to update-threads')
+        );
 
         $response = $this->call(
             'PATCH',
@@ -451,7 +478,7 @@ class UserForumThreadControllerTest extends TestCase
         );
 
         // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     public function test_thread_update_validation_fail()
@@ -459,7 +486,7 @@ class UserForumThreadControllerTest extends TestCase
         $user = $this->fakeCurrentUserCloak();
         $thread = $this->fakeThread(null, $user->getId());
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         $response = $this->call(
             'PATCH',
@@ -476,11 +503,9 @@ class UserForumThreadControllerTest extends TestCase
 
     public function test_thread_update_not_found()
     {
-        $this->permissionServiceMock->method('can')->willReturn(true);
-
         $newTitle = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
             ->willReturn(['title' => $newTitle]);

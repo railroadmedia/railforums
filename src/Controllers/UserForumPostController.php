@@ -76,9 +76,7 @@ class UserForumPostController extends Controller
      */
     public function like(Request $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
         $post = $this->postRepository->read($id);
 
@@ -111,9 +109,7 @@ class UserForumPostController extends Controller
      */
     public function unlike(Request $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'like-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
         $postLike = $this->postLikeRepository->read($id);
 
@@ -137,9 +133,7 @@ class UserForumPostController extends Controller
      */
     public function store(PostCreateRequest $request)
     {
-        if (!$this->permissionService->can(auth()->id(), 'create-posts')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'create-posts');
 
         $now = Carbon::now()->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
@@ -189,8 +183,14 @@ class UserForumPostController extends Controller
      */
     public function update(PostUpdateRequest $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'update-posts')) {
+        $post = $this->postRepository->read($id);
+
+        if (!$post) {
             throw new NotFoundHttpException();
+        }
+
+        if ($post['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'update-posts');
         }
 
         $post = $this->postRepository->update(
@@ -207,10 +207,6 @@ class UserForumPostController extends Controller
                 ]
             )
         );
-
-        if (!$post) {
-            throw new NotFoundHttpException();
-        }
 
         $message = ['success' => true];
 

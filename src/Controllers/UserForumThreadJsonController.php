@@ -87,9 +87,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function read($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'read-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'read-threads');
 
         $thread = $this->threadRepository->read($id);
 
@@ -112,9 +110,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function follow($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
         $thread = $this->threadRepository->read($id);
 
@@ -142,9 +138,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function unfollow($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'follow-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
         $threadFollow = $this->threadFollowRepository->read($id);
 
@@ -164,9 +158,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function index(ThreadJsonIndexRequest $request)
     {
-        if (!$this->permissionService->can(auth()->id(), 'index-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'index-threads');
 
         $amount = $request->get('amount') ?
                     (int) $request->get('amount') : self::AMOUNT;
@@ -209,9 +201,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function show($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'show-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'show-threads');
 
         $threads = $this->threadRepository->getDecoratedThreadsByIds([$id]);
 
@@ -229,9 +219,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function store(ThreadJsonCreateRequest $request)
     {
-        if (!$this->permissionService->can(auth()->id(), 'create-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'create-threads');
 
         $now = Carbon::now()->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
@@ -283,8 +271,14 @@ class UserForumThreadJsonController extends Controller
      */
     public function update(ThreadJsonUpdateRequest $request, $id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'update-threads')) {
+        $thread = $this->threadRepository->read($id);
+
+        if (!$thread) {
             throw new NotFoundHttpException();
+        }
+
+        if ($thread['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'update-threads');
         }
 
         $thread = $this->threadRepository->update(
@@ -302,10 +296,6 @@ class UserForumThreadJsonController extends Controller
             )
         );
 
-        if (!$thread) {
-            throw new NotFoundHttpException();
-        }
-
         $threads = $this->threadRepository
                     ->getDecoratedThreadsByIds([$thread->id]);
 
@@ -319,9 +309,7 @@ class UserForumThreadJsonController extends Controller
      */
     public function delete($id)
     {
-        if (!$this->permissionService->can(auth()->id(), 'delete-threads')) {
-            throw new NotFoundHttpException();
-        }
+        $this->permissionService->canOrThrow(auth()->id(), 'delete-threads');
 
         $result = $this->threadRepository->delete($id);
 
