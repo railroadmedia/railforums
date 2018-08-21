@@ -295,7 +295,15 @@ class UserForumPostJsonController extends Controller
      */
     public function delete($id)
     {
-        $this->permissionService->canOrThrow(auth()->id(), 'delete-posts');
+        $post = $this->postRepository->read($id);
+
+        if (!$post) {
+            throw new NotFoundHttpException();
+        }
+
+        if ($post['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'delete-posts');
+        }
 
         $result = $this->postRepository->delete($id);
 

@@ -73,35 +73,41 @@ return array(
 
     'role_abilities' => [
         'administrator' => [
-            'update-threads' => [
-                'except' => [
-                    'id'
-                ]
-            ],
-            'update-posts' => [
-                'except' => [
-                    'id'
-                ]
-            ]
+            'like-posts',
+            'index-posts',
+            'show-posts',
+            'create-posts',
+            'update-posts' => ['only' => ['content', 'thread_id']],
+            'delete-posts',
+            'read-threads',
+            'follow-threads',
+            'create-threads',
+            'update-threads' => ['only' => ['title', 'category_id']],
+            'delete-threads',
+            'report-posts'
         ],
         'moderator' => [
-            'update-threads' => [
-                'except' => [
-                    'id'
-                ]
-            ],
-            'update-posts' => [
-                'except' => [
-                    'id'
-                ]
-            ]
+            'like-posts',
+            'index-posts',
+            'show-posts',
+            'create-posts',
+            'update-posts' => ['only' => ['content', 'thread_id']],
+            'delete-posts',
+            'read-threads',
+            'follow-threads',
+            'create-threads',
+            'update-threads' => ['only' => ['title', 'category_id']],
+            'delete-threads',
+            'report-posts'
         ],
         'user' => [
-            'create-posts',
             'like-posts',
+            'index-posts',
+            'show-posts',
+            'create-posts',
             'read-threads',
-            'create-threads',
-            'follow-threads'
+            'follow-threads',
+            'create-threads'
         ]
     ]
 );

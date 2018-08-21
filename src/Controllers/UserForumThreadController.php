@@ -241,13 +241,6 @@ class UserForumThreadController extends Controller
             $this->permissionService->canOrThrow(auth()->id(), 'update-threads');
         }
 
-        $columns = $this->permissionService->columns(
-                    auth()->id(),
-                    'update-threads',
-                    $request->all(),
-                    ['title']
-                );
-
         $thread = $this->threadRepository->update(
             $id,
             array_merge(

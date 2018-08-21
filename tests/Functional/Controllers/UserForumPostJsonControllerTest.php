@@ -926,11 +926,13 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
 
         $newContent = $this->faker->sentence();
 
@@ -1063,11 +1065,13 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
+        $otherUserId = rand(2, 32767);
+
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $otherUserId);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $otherUserId);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 

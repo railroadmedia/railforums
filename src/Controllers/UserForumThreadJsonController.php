@@ -309,7 +309,15 @@ class UserForumThreadJsonController extends Controller
      */
     public function delete($id)
     {
-        $this->permissionService->canOrThrow(auth()->id(), 'delete-threads');
+        $thread = $this->threadRepository->read($id);
+
+        if (!$thread) {
+            throw new NotFoundHttpException();
+        }
+
+        if ($thread['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'delete-threads');
+        }
 
         $result = $this->threadRepository->delete($id);
 
