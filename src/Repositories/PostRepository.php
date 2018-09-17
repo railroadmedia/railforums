@@ -331,8 +331,8 @@ class PostRepository extends EventDispatchingRepository
                 foreach ($postsData as $postData) {
 
                     $searchIndex = [
-                        'high_value' => null,
-                        'medium_value' => $this->getFilteredPostContent($postData->content),
+                        'high_value' => $this->getFilteredPostContent($postData->content),
+                        'medium_value' => null,
                         'low_value' => $postData->{$displayNameColumn},
                         'thread_id' => $postData->thread_id,
                         'post_id' => $postData->id,
@@ -373,31 +373,31 @@ class PostRepository extends EventDispatchingRepository
             $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2).chr(0xA0));
         }
 
-        if (!$result) {
-            // if post contains only a blockquote tag
-            // filter out the quoted post metadata
-            $crawler = new Crawler($content);
+//        if (!$result) {
+//            // if post contains only a blockquote tag
+//            // filter out the quoted post metadata
+//            $crawler = new Crawler($content);
+//
+//            $crawler->filter('span.post-id')->each(function (Crawler $crawler) {
+//                foreach ($crawler as $node) {
+//                    $node->parentNode->removeChild($node);
+//                }
+//            });
+//
+//            $crawler->filter('p.quote-heading')->each(function (Crawler $crawler) {
+//                foreach ($crawler as $node) {
+//                    $node->parentNode->removeChild($node);
+//                }
+//            });
+//
+//            $result = $crawler->text();
+//
+//            if ($result) {
+//
+//                $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2).chr(0xA0));
+//            }
+//        }
 
-            $crawler->filter('span.post-id')->each(function (Crawler $crawler) {
-                foreach ($crawler as $node) {
-                    $node->parentNode->removeChild($node);
-                }
-            });
-
-            $crawler->filter('p.quote-heading')->each(function (Crawler $crawler) {
-                foreach ($crawler as $node) {
-                    $node->parentNode->removeChild($node);
-                }
-            });
-
-            $result = $crawler->text();
-
-            if ($result) {
-
-                $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2).chr(0xA0));
-            }
-        }
-
-        return $result ? $result : $content;
+        return (string) $result;
     }
 }

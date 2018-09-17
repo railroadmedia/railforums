@@ -374,8 +374,8 @@ class ThreadRepository extends EventDispatchingRepository
                 foreach ($threadsData as $threadData) {
 
                     $searchIndex = [
-                        'high_value' => $threadData->title,
-                        'medium_value' => null,
+                        'high_value' => null,
+                        'medium_value' => $threadData->title,
                         'low_value' => $threadData->{$displayNameColumn},
                         'thread_id' => $threadData->id,
                         'post_id' => null,
