@@ -19,7 +19,7 @@
     "railroad/railmap": "dev-master",
     "railroad/railnotifications": "dev-master",
     "railroad/railsettings": "dev-master",
-    "railroad/resora": "1.0.02",
+    "railroad/resora": "^1.0",
     "railroad/permissions": "^1.0",
     "symfony/dom-crawler": "^4.1"
   },
