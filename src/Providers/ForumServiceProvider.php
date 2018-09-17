@@ -88,6 +88,7 @@ class ForumServiceProvider extends EventServiceProvider
         // post report
         ConfigService::$postReportNotificationClass = config('railforums.post_report_notification_class');
         ConfigService::$postReportNotificationChannel = config('railforums.post_report_notification_channel');
+        ConfigService::$postReportNotificationRecipients = config('railforums.post_report_notification_recipients');
         ConfigService::$postReportNotificationViewPostRoute = config('railforums.post_report_notification_view_post_route');
 
         // No need for decorators yet
