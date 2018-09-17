@@ -44,15 +44,6 @@ class ForumServiceProvider extends EventServiceProvider
         ]);
 
         parent::boot();
-
-        // merge in permissions settings
-        config()->set(
-            'permissions.role_abilities',
-            array_merge(
-                config()->get('permissions.role_abilities', []),
-                config()->get('railforums.role_abilities', [])
-            )
-        );
     }
 
     /**

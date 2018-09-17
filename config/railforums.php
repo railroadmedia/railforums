@@ -71,6 +71,7 @@ return array(
         'low_value_multiplier' => 1,
     ],
 
+    // copy to permissions config file
     'role_abilities' => [
         'administrator' => [
             'like-posts',
