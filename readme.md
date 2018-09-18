@@ -373,6 +373,38 @@ Session has success key set to true\
 ``` 404 ``` when user does not have permission to follow threads\
 ``` 404 ``` when specified thread does not exist
 
+### Delete Thread - form controller
+
+```
+DELETE /thread/delete/{id}
+```
+
+#### Permission required `delete-threads`
+
+#### Request Example
+
+```
+<form action="/thread/delete/{id}" method="POST">
+  <input name="_method" type="hidden" value="DELETE">
+</form>
+```
+
+#### Request Parameters
+
+| path\|query\|body | key      | required | default            | description\|notes             |
+| ----------------- | -------- | -------- | ------------------ | ------------------------------ |
+| path              | {id}     | yes      |                    | The thread id to delete      |
+| body              | _method  | yes      |                    | Set HTTP method verb to DELETE |
+| body              | redirect | no       | redirect()->back() | The URI to redirect on success |
+
+#### Response Example
+
+``` 302 ```
+Redirects to previous url or to path passed in with redirect param.\
+Session has success key set to true\
+``` 404 ``` when user does not have permission to delete threads\
+``` 404 ``` when specified thread does not exist
+
 ### Store Thread - JSON controller
 
 ```

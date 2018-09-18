@@ -27,6 +27,12 @@ Route::put(
     \Railroad\Railforums\Controllers\UserForumThreadController::class . '@read'
 )->name('railforums.thread.read');
 
+// threads delete
+Route::delete(
+    'thread/delete/{id}',
+    \Railroad\Railforums\Controllers\UserForumThreadController::class . '@delete'
+)->name('railforums.thread.delete');
+
 
 // posts
 Route::put(

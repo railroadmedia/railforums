@@ -262,4 +262,35 @@ class UserForumThreadController extends Controller
             redirect()->away($request->get('redirect'))->with($message) :
             redirect()->back()->with($message);
     }
+
+    /**
+     * @param Request $request
+     * @param integer $id
+     *
+     * @return RedirectResponse
+     */
+    public function delete(Request $request, $id)
+    {
+        $thread = $this->threadRepository->read($id);
+
+        if (!$thread) {
+            throw new NotFoundHttpException();
+        }
+
+        if ($thread['author_id'] != auth()->id()) {
+            $this->permissionService->canOrThrow(auth()->id(), 'delete-threads');
+        }
+
+        $result = $this->threadRepository->delete($id);
+
+        if (!$result) {
+            throw new NotFoundHttpException();
+        }
+
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()->away($request->get('redirect'))->with($message) :
+            redirect()->back()->with($message);
+    }
 }
