@@ -519,4 +519,36 @@ class UserForumThreadControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
     }
+
+    public function test_thread_delete_with_permission()
+    {
+        $user = $this->fakeCurrentUserCloak();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user->getId());
+
+        $this->fakePost($thread['id'], $user->getId());
+
+        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+
+        $response = $this->call(
+            'DELETE',
+            '/thread/delete/' . $thread['id']
+        );
+
+        // assert the session has the success message
+        $response->assertSessionHas('success', true);
+
+        // assert the thread data was saved in the db
+        $this->assertDatabaseMissing(
+            ConfigService::$tableThreadReads,
+            [
+                'thread_id' => $thread['id'],
+                'reader_id' => $user->getId()
+            ]
+        );
+    }
 }
