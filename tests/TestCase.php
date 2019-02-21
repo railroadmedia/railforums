@@ -76,9 +76,7 @@ class TestCase extends BaseTestCase
             $this->app->instance(PermissionService::class, $this->permissionServiceMock);
 
         } else {
-
             $this->app->register(PermissionsServiceProvider::class);
-            $this->createPermissionTables();
         }
 
         IdentityMap::empty();
@@ -96,35 +94,6 @@ class TestCase extends BaseTestCase
                 $table->string('label');
                 $table->string('permission_level');
                 $table->string('avatar_url')->nullable();
-            }
-        );
-    }
-
-    protected function createPermissionTables()
-    {
-        $this->app['db']->connection()->getSchemaBuilder()->create(
-            PermissionsConfigService::$tableUserAbilities,
-            function (Blueprint $table) {
-                $table->increments('id');
-
-                $table->integer('user_id')->index();
-                $table->string('ability', 191)->index();
-
-                $table->dateTime('created_at')->index();
-                $table->dateTime('updated_at')->index();
-            }
-        );
-
-        $this->app['db']->connection()->getSchemaBuilder()->create(
-            PermissionsConfigService::$tableUserRoles,
-            function (Blueprint $table) {
-                $table->increments('id');
-
-                $table->integer('user_id')->index();
-                $table->string('role', 191)->index();
-
-                $table->dateTime('created_at')->index();
-                $table->dateTime('updated_at')->index();
             }
         );
     }
@@ -184,6 +153,10 @@ class TestCase extends BaseTestCase
             ]
         );
         $app['config']->set(
+            'railforums.author_database_connection',
+            config('railforums.connection_mask_prefix') . 'mysql'
+        );
+        $app['config']->set(
             'railforums.author_table_name',
             'users'
         );
@@ -194,6 +167,10 @@ class TestCase extends BaseTestCase
         $app['config']->set(
             'railforums.author_table_display_name_column_name',
             'display_name'
+        );
+        $app['config']->set(
+            'railforums.author_table_avatar_column_name',
+            'avatar_url'
         );
 
         $app['config']->set(

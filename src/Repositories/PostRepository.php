@@ -69,7 +69,7 @@ class PostRepository extends EventDispatchingRepository
 
     protected function decorate($results)
     {
-        return Decorator::decorate($results, 'threads');
+        return Decorator::decorate($results, 'posts');
     }
 
     protected function connection()
@@ -168,17 +168,17 @@ class PostRepository extends EventDispatchingRepository
     {
         return $this->query()
             ->select(ConfigService::$tablePosts . '.*')
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select([
-                            config('railforums.author_table_display_name_column_name')
-                        ])
-                        ->from(config('railforums.author_table_name'))
-                        ->whereRaw(config('railforums.author_table_name') . '.id = author_id')
-                        ->limit(1);
-                },
-                'author_display_name'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//                    return $builder->select([
+//                            config('railforums.author_table_display_name_column_name')
+//                        ])
+//                        ->from(config('railforums.author_table_name'))
+//                        ->whereRaw(config('railforums.author_table_name') . '.id = author_id')
+//                        ->limit(1);
+//                },
+//                'author_display_name'
+//            )
             ->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*)')
@@ -220,20 +220,20 @@ class PostRepository extends EventDispatchingRepository
                 },
                 'liker_1_id'
             )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select([
-                            config('railforums.author_table_display_name_column_name')
-                        ])
-                        ->from(config('railforums.author_table_name'))
-                        ->limit(1)
-                        ->whereRaw(
-                            config('railforums.author_table_name') .
-                            '.id = liker_1_id'
-                        );
-                },
-                'liker_1_display_name'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//                    return $builder->select([
+//                            config('railforums.author_table_display_name_column_name')
+//                        ])
+//                        ->from(config('railforums.author_table_name'))
+//                        ->limit(1)
+//                        ->whereRaw(
+//                            config('railforums.author_table_name') .
+//                            '.id = liker_1_id'
+//                        );
+//                },
+//                'liker_1_display_name'
+//            )
             ->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('liker_id')
@@ -248,20 +248,20 @@ class PostRepository extends EventDispatchingRepository
                 },
                 'liker_2_id'
             )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select([
-                            config('railforums.author_table_display_name_column_name')
-                        ])
-                        ->from(config('railforums.author_table_name'))
-                        ->limit(1)
-                        ->whereRaw(
-                            config('railforums.author_table_name') .
-                            '.id = liker_2_id'
-                        );
-                },
-                'liker_2_display_name'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//                    return $builder->select([
+//                            config('railforums.author_table_display_name_column_name')
+//                        ])
+//                        ->from(config('railforums.author_table_name'))
+//                        ->limit(1)
+//                        ->whereRaw(
+//                            config('railforums.author_table_name') .
+//                            '.id = liker_2_id'
+//                        );
+//                },
+//                'liker_2_display_name'
+//            )
             ->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('liker_id')
@@ -276,20 +276,20 @@ class PostRepository extends EventDispatchingRepository
                 },
                 'liker_3_id'
             )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select([
-                            config('railforums.author_table_display_name_column_name')
-                        ])
-                        ->from(config('railforums.author_table_name'))
-                        ->limit(1)
-                        ->whereRaw(
-                            config('railforums.author_table_name') .
-                            '.id = liker_3_id'
-                        );
-                },
-                'liker_3_display_name'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//                    return $builder->select([
+//                            config('railforums.author_table_display_name_column_name')
+//                        ])
+//                        ->from(config('railforums.author_table_name'))
+//                        ->limit(1)
+//                        ->whereRaw(
+//                            config('railforums.author_table_name') .
+//                            '.id = liker_3_id'
+//                        );
+//                },
+//                'liker_3_display_name'
+//            )
             ->whereNull(ConfigService::$tablePosts . '.deleted_at');
     }
 

@@ -6,6 +6,9 @@
 
 return array(
 
+    // brand
+    'brand' => 'brand',
+
     // database
     'database_connection_name' => 'mysql',
     'connection_mask_prefix' => 'railforums_',
@@ -40,9 +43,12 @@ return array(
         \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
     ],
 
+    // author database info
+    'author_database_connection' => 'mysql',
     'author_table_name' => 'users',
     'author_table_id_column_name' => 'id',
     'author_table_display_name_column_name' => 'display_name',
+    'author_table_avatar_column_name' => 'avatar_url',
 
     'user_data_mapper_class' => \Railroad\Railforums\DataMappers\UserCloakDataMapper::class,
 

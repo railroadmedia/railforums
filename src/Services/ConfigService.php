@@ -7,6 +7,11 @@ class ConfigService
 	/**
      * @var string
      */
+    public static $brand;
+
+	/**
+     * @var string
+     */
     public static $databaseConnectionName;
     
     /**

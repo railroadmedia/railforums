@@ -4,7 +4,9 @@ namespace Railroad\Railforums\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider;
 use Railroad\Railforums\Commands\CreateSearchIndexes;
-use Railroad\Railforums\Decorators\ThreadDecorator;
+use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Decorators\PostUserDecorator;
+use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\EventListeners\PostEventListener;
 use Railroad\Railforums\Events\PostDeleted;
@@ -60,6 +62,9 @@ class ForumServiceProvider extends EventServiceProvider
      */
     protected function setupConfig()
     {
+        // brand
+        ConfigService::$brand = config('railforums.brand');
+
         // database
         ConfigService::$databaseConnectionName = config('railforums.database_connection_name');
         ConfigService::$connectionMaskPrefix = config('railforums.connection_mask_prefix');
@@ -91,13 +96,34 @@ class ForumServiceProvider extends EventServiceProvider
         ConfigService::$postReportNotificationRecipients = config('railforums.post_report_notification_recipients');
         ConfigService::$postReportNotificationViewPostRoute = config('railforums.post_report_notification_view_post_route');
 
-        // No need for decorators yet
-        // config()->set(
-        //     'resora.decorators.threads',
-        //     array_merge(
-        //         config()->get('resora.decorators.threads', []),
-        //         [ThreadDecorator::class]
-        //     )
-        // );
+        // decorators
+        config()->set(
+            'resora.decorators.threads',
+            array_merge(
+                config()->get('resora.decorators.threads', []),
+                [
+                    ThreadUserDecorator::class,
+                ]
+            )
+        );
+
+        config()->set(
+            'resora.decorators.posts',
+            array_merge(
+                config()->get('resora.decorators.posts', []),
+                [
+                    PostUserDecorator::class,
+                ]
+            )
+        );
+
+        $this->app->singleton(
+            UserCloakDataMapper::class,
+            function ($app) {
+                $className = config('railforums.user_data_mapper_class');
+
+                return new $className();
+            }
+        );
     }
 }

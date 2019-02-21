@@ -280,17 +280,6 @@ class ThreadRepository extends EventDispatchingRepository
             )
             ->selectSub(
                 function (Builder $builder) {
-                    return $builder->select([
-                            config('railforums.author_table_display_name_column_name')
-                        ])
-                        ->from(config('railforums.author_table_name'))
-                        ->whereRaw(config('railforums.author_table_name') . '.id = last_post_user_id')
-                        ->limit(1);
-                },
-                'last_post_user_display_name'
-            )
-            ->selectSub(
-                function (Builder $builder) {
                     return $builder
                         ->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tableThreadReads)
