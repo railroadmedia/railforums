@@ -59,25 +59,29 @@ class PostUserDecorator implements DecoratorInterface
             if (!empty($users[$post['author_id']])) {
                 $user = $users[$post['author_id']];
                 $posts[$postIndex]['author_display_name'] = $user->$displayNameColumnName;
-                $posts[$postIndex]['author_avatar_url'] = $user->$avatarUrlColumnName;
+                $posts[$postIndex]['author_avatar_url'] =
+                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
             }
 
             if (!empty($users[$post['liker_1_id'] ?? null])) {
                 $user = $users[$post['liker_1_id']];
                 $posts[$postIndex]['liker_1_display_name'] = $user->$displayNameColumnName;
-                $posts[$postIndex]['liker_1_avatar_url'] = $user->$avatarUrlColumnName;
+                $posts[$postIndex]['liker_1_avatar_url'] =
+                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
             }
 
             if (!empty($users[$post['liker_2_id'] ?? null])) {
                 $user = $users[$post['liker_2_id']];
                 $posts[$postIndex]['liker_2_display_name'] = $user->$displayNameColumnName;
-                $posts[$postIndex]['liker_2_avatar_url'] = $user->$avatarUrlColumnName;
+                $posts[$postIndex]['liker_2_avatar_url'] =
+                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
             }
 
             if (!empty($users[$post['liker_3_id'] ?? null])) {
                 $user = $users[$post['liker_3_id']];
                 $posts[$postIndex]['liker_3_display_name'] = $user->$displayNameColumnName;
-                $posts[$postIndex]['liker_3_avatar_url'] = $user->$avatarUrlColumnName;
+                $posts[$postIndex]['liker_3_avatar_url'] =
+                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
             }
 
         }

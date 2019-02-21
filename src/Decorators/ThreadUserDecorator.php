@@ -54,7 +54,8 @@ class ThreadUserDecorator implements DecoratorInterface
             if (!empty($users[$thread['author_id']])) {
                 $user = $users[$thread['author_id']];
                 $threads[$threadIndex]['last_post_user_display_name'] = $user->$displayNameColumnName;
-                $threads[$threadIndex]['last_post_user_avatar_url'] = $user->$avatarUrlColumnName;
+                $threads[$threadIndex]['last_post_user_avatar_url'] =
+                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
             }
         }
 
