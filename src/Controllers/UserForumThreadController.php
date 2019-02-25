@@ -8,12 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Repositories\ThreadFollowRepository;
+use Railroad\Railforums\Repositories\ThreadReadRepository;
+use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Requests\ThreadCreateRequest;
 use Railroad\Railforums\Requests\ThreadUpdateRequest;
-use Railroad\Railforums\Repositories\ThreadRepository;
-use Railroad\Railforums\Repositories\ThreadReadRepository;
-use Railroad\Railforums\Repositories\ThreadFollowRepository;
-use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -93,21 +93,28 @@ class UserForumThreadController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()->toDateTimeString();
+        $now = Carbon::now()
+            ->toDateTimeString();
 
-        $threadRead = $this->threadReadRepository->create([
-            'thread_id' => $thread->id,
-            'reader_id' => $this->userCloakDataMapper->getCurrentId(),
-            'read_on' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $threadRead = $this->threadReadRepository->create(
+            [
+                'thread_id' => $thread->id,
+                'reader_id' => $this->userCloakDataMapper->getCurrentId(),
+                'read_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
 
         $message = ['success' => true];
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -126,21 +133,28 @@ class UserForumThreadController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()->toDateTimeString();
+        $now = Carbon::now()
+            ->toDateTimeString();
 
-        $threadFollow = $this->threadFollowRepository->create([
-            'thread_id' => $thread->id,
-            'follower_id' => $this->userCloakDataMapper->getCurrentId(),
-            'followed_on' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $threadFollow = $this->threadFollowRepository->create(
+            [
+                'thread_id' => $thread->id,
+                'follower_id' => $this->userCloakDataMapper->getCurrentId(),
+                'followed_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
 
         $message = ['success' => true];
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -164,8 +178,12 @@ class UserForumThreadController extends Controller
         $message = ['success' => true];
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -177,7 +195,8 @@ class UserForumThreadController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'create-threads');
 
-        $now = Carbon::now()->toDateTimeString();
+        $now = Carbon::now()
+            ->toDateTimeString();
         $authorId = $this->userCloakDataMapper->getCurrentId();
 
         $thread = $this->threadRepository->create(
@@ -191,8 +210,8 @@ class UserForumThreadController extends Controller
                 [
                     'author_id' => $authorId,
                     'slug' => ThreadRepository::sanitizeForSlug(
-                                $request->get('title')
-                            ),
+                        $request->get('title')
+                    ),
                     'state' => ThreadRepository::STATE_PUBLISHED,
                     'published_on' => $now,
                     'created_at' => $now,
@@ -215,12 +234,15 @@ class UserForumThreadController extends Controller
 
         $message = ['success' => true];
 
-        // todo: temporary
-        return redirect()->to('/members/forums/thread/' . $thread->id)->with($message);
+        return redirect()->to('/members/forums/jump-to-thread/' . $thread->id);
 
-        //        return $request->has('redirect') ?
-        //            redirect()->away($request->get('redirect'))->with($message) :
-        //            redirect()->back()->with($message);
+        return $request->has('redirect') ?
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -251,16 +273,23 @@ class UserForumThreadController extends Controller
                     ['title']
                 ),
                 [
-                    'updated_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()
+                        ->toDateTimeString(),
                 ]
             )
         );
 
         $message = ['success' => true];
 
+        return redirect()->to('/members/forums/jump-to-thread/' . $thread->id);
+
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -290,7 +319,11 @@ class UserForumThreadController extends Controller
         $message = ['success' => true];
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 }

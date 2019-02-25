@@ -170,6 +170,8 @@ class UserForumPostController extends Controller
 
         $message = ['success' => true];
 
+        return redirect()->to('/members/forums/jump-to-post/' . $post->id);
+
         return $request->has('redirect') ?
             redirect()->away($request->get('redirect'))->with($message) :
             redirect()->back()->with($message);
@@ -209,6 +211,8 @@ class UserForumPostController extends Controller
         );
 
         $message = ['success' => true];
+
+        return redirect()->to('/members/forums/jump-to-post/' . $post->id);
 
         return $request->has('redirect') ?
             redirect()->away($request->get('redirect'))->with($message) :
