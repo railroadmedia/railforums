@@ -6,14 +6,17 @@ use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Railroad\Resora\Decorators\Decorator;
-use Railroad\Resora\Queries\BaseQuery;
-use Railroad\Resora\Queries\CachedQuery;
-use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Events\ThreadUpdated;
+use Railroad\Railforums\Services\ConfigService;
+use Railroad\Resora\Collections\BaseCollection;
+use Railroad\Resora\Decorators\Decorator;
+use Railroad\Resora\Entities\Entity;
+use Railroad\Resora\Queries\BaseQuery;
+use Railroad\Resora\Queries\CachedQuery;
 
 class ThreadRepository extends EventDispatchingRepository
 {
@@ -25,10 +28,15 @@ class ThreadRepository extends EventDispatchingRepository
      * @var UserCloakDataMapper
      */
     protected $userCloakDataMapper;
+    /**
+     * @var ThreadUserDecorator
+     */
+    private $threadUserDecorator;
 
-    public function __construct()
+    public function __construct(ThreadUserDecorator $threadUserDecorator)
     {
         $this->userCloakDataMapper = app(UserCloakDataMapper::class);
+        $this->threadUserDecorator = $threadUserDecorator;
     }
 
     public function getCreateEvent($entity)
@@ -118,8 +126,7 @@ class ThreadRepository extends EventDispatchingRepository
         if ($followed === true) {
             $query->whereExists(
                 function (Builder $builder) {
-                    return $builder
-                        ->selectRaw('*')
+                    return $builder->selectRaw('*')
                         ->from(ConfigService::$tableThreadFollows)
                         ->limit(1)
                         ->where(
@@ -127,8 +134,7 @@ class ThreadRepository extends EventDispatchingRepository
                             $this->userCloakDataMapper->getCurrentId()
                         )
                         ->whereRaw(
-                            ConfigService::$tableThreads . '.id = ' .
-                            ConfigService::$tableThreadFollows . '.thread_id'
+                            ConfigService::$tableThreads . '.id = ' . ConfigService::$tableThreadFollows . '.thread_id'
                         );
                 }
             );
@@ -165,14 +171,15 @@ class ThreadRepository extends EventDispatchingRepository
         $pinned = false,
         $followed = null
     ) {
-        $query = $this->query()
-            ->selectRaw('COUNT(' . ConfigService::$tableThreads . '.id) as count')
-            ->whereIn(
-                ConfigService::$tableThreads . '.state',
-                self::ACCESSIBLE_STATES
-            )
-            ->where(ConfigService::$tableThreads . '.pinned', $pinned)
-            ->whereNull(ConfigService::$tableThreads . '.deleted_at');
+        $query =
+            $this->query()
+                ->selectRaw('COUNT(' . ConfigService::$tableThreads . '.id) as count')
+                ->whereIn(
+                    ConfigService::$tableThreads . '.state',
+                    self::ACCESSIBLE_STATES
+                )
+                ->where(ConfigService::$tableThreads . '.pinned', $pinned)
+                ->whereNull(ConfigService::$tableThreads . '.deleted_at');
 
         if (!empty($categoryIds)) {
             $query->whereIn(
@@ -190,21 +197,24 @@ class ThreadRepository extends EventDispatchingRepository
                         ConfigService::$tableThreadFollows . '.thread_id',
                         '=',
                         ConfigService::$tableThreads . '.id'
-                    )->on(
-                        ConfigService::$tableThreadFollows . '.follower_id',
-                        '=',
-                        $query->raw($this->userCloakDataMapper->getCurrentId())
-                    );
+                    )
+                        ->on(
+                            ConfigService::$tableThreadFollows . '.follower_id',
+                            '=',
+                            $query->raw($this->userCloakDataMapper->getCurrentId())
+                        );
                 }
             );
 
             if ($followed === true) {
 
-                $query->whereNotNull(ConfigService::$tableThreadFollows.'.id');
+                $query->whereNotNull(ConfigService::$tableThreadFollows . '.id');
 
-            } else if ($followed === false) {
+            } else {
+                if ($followed === false) {
 
-                $query->whereNull(ConfigService::$tableThreadFollows . '.id');
+                    $query->whereNull(ConfigService::$tableThreadFollows . '.id');
+                }
             }
         }
 
@@ -223,12 +233,10 @@ class ThreadRepository extends EventDispatchingRepository
             ->selectSub(
                 function (Builder $builder) {
 
-                    return $builder
-                        ->selectRaw('COUNT(*)')
+                    return $builder->selectRaw('COUNT(*)')
                         ->from(ConfigService::$tablePosts)
                         ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' .
-                            ConfigService::$tableThreads . '.id'
+                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
                         ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->limit(1);
@@ -242,8 +250,7 @@ class ThreadRepository extends EventDispatchingRepository
                         ->from(ConfigService::$tablePosts)
                         ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' .
-                            ConfigService::$tableThreads . '.id'
+                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
                         ->limit(1)
                         ->orderBy('published_on', 'desc');
@@ -256,8 +263,7 @@ class ThreadRepository extends EventDispatchingRepository
                         ->from(ConfigService::$tablePosts)
                         ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' .
-                            ConfigService::$tableThreads . '.id'
+                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
                         ->limit(1)
                         ->orderBy('published_on', 'desc');
@@ -270,8 +276,7 @@ class ThreadRepository extends EventDispatchingRepository
                         ->from(ConfigService::$tablePosts)
                         ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                         ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' .
-                            ConfigService::$tableThreads . '.id'
+                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
                         ->limit(1)
                         ->orderBy('published_on', 'desc');
@@ -280,13 +285,11 @@ class ThreadRepository extends EventDispatchingRepository
             )
             ->selectSub(
                 function (Builder $builder) {
-                    return $builder
-                        ->selectRaw('COUNT(*) > 0')
+                    return $builder->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tableThreadReads)
                         ->where('reader_id', $this->userCloakDataMapper->getCurrentId())
                         ->whereRaw(
-                            ConfigService::$tableThreadReads . '.thread_id = ' .
-                            ConfigService::$tableThreads . '.id'
+                            ConfigService::$tableThreadReads . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
                         ->limit(1);
                 },
@@ -294,13 +297,11 @@ class ThreadRepository extends EventDispatchingRepository
             )
             ->selectSub(
                 function (Builder $builder) {
-                    return $builder
-                        ->selectRaw('COUNT(*) > 0')
+                    return $builder->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tableThreadFollows)
                         ->where('follower_id', $this->userCloakDataMapper->getCurrentId())
                         ->whereRaw(
-                            ConfigService::$tableThreadFollows . '.thread_id = ' .
-                            ConfigService::$tableThreads . '.id'
+                            ConfigService::$tableThreadFollows . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
                         ->limit(1);
                 },
@@ -334,19 +335,12 @@ class ThreadRepository extends EventDispatchingRepository
         $authorsTableKey = config('railforums.author_table_id_column_name');
         $displayNameColumn = config('railforums.author_table_display_name_column_name');
 
-        $query = $this
-            ->baseQuery()
-            ->from(ConfigService::$tableThreads)
-            ->select(ConfigService::$tableThreads . '.*')
-            ->addSelect($authorsTable . '.' . $displayNameColumn)
-            ->join(
-                $authorsTable,
-                $authorsTable . '.' . $authorsTableKey,
-                '=',
-                ConfigService::$tableThreads . '.author_id'
-            )
-            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-            ->orderBy(ConfigService::$tableThreads . '.id');
+        $query =
+            $this->baseQuery()
+                ->from(ConfigService::$tableThreads)
+                ->select(ConfigService::$tableThreads . '.*')
+                ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+                ->orderBy(ConfigService::$tableThreads . '.id');
 
         $instance = $this;
 
@@ -358,7 +352,17 @@ class ThreadRepository extends EventDispatchingRepository
             ) {
 
                 $chunk = [];
-                $now = Carbon::now()->toDateTimeString();
+                $now =
+                    Carbon::now()
+                        ->toDateTimeString();
+
+                $threadEntities = new BaseCollection();
+
+                foreach ($threadsData as $threadData) {
+                    $threadEntities[] = new Entity((array)$threadData);
+                }
+
+                $threadsData = $this->threadUserDecorator->decorate($threadEntities);
 
                 foreach ($threadsData as $threadData) {
 
@@ -369,14 +373,13 @@ class ThreadRepository extends EventDispatchingRepository
                         'thread_id' => $threadData->id,
                         'post_id' => null,
                         'created_at' => $now,
-                        'updated_at' => $now
+                        'updated_at' => $now,
                     ];
 
                     $chunk[] = $searchIndex;
                 }
 
-                $instance
-                    ->baseQuery()
+                $instance->baseQuery()
                     ->from(ConfigService::$tableSearchIndexes)
                     ->insert($chunk);
             }
