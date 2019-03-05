@@ -7,13 +7,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
-use Railroad\Railforums\Requests\ThreadJsonIndexRequest;
-use Railroad\Railforums\Requests\ThreadJsonCreateRequest;
-use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
-use Railroad\Railforums\Repositories\ThreadRepository;
-use Railroad\Railforums\Repositories\ThreadReadRepository;
-use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Repositories\ThreadFollowRepository;
+use Railroad\Railforums\Repositories\ThreadReadRepository;
+use Railroad\Railforums\Repositories\ThreadRepository;
+use Railroad\Railforums\Requests\ThreadJsonCreateRequest;
+use Railroad\Railforums\Requests\ThreadJsonIndexRequest;
+use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -140,13 +140,15 @@ class UserForumThreadJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
-        $threadFollow = $this->threadFollowRepository->read($id);
+        $thread = $this->threadRepository->read($id);
 
-        if (!$threadFollow) {
+        if (empty($thread) || empty($this->userCloakDataMapper->getCurrentId())) {
             throw new NotFoundHttpException();
         }
 
-        $this->threadFollowRepository->destroy($threadFollow->id);
+        $this->threadFollowRepository->query()
+            ->where(['thread_id' => $id, 'follower_id' => $this->userCloakDataMapper->getCurrentId()])
+            ->delete();
 
         return new JsonResponse(null, 204);
     }
