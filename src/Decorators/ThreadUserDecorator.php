@@ -51,8 +51,8 @@ class ThreadUserDecorator implements DecoratorInterface
         $avatarUrlColumnName = config('railforums.author_table_avatar_column_name');
 
         foreach ($threads as $threadIndex => $thread) {
-            if (!empty($users[$thread['author_id']])) {
-                $user = $users[$thread['author_id']];
+            if (!empty($users[$thread['last_post_user_id']])) {
+                $user = $users[$thread['last_post_user_id']];
                 $threads[$threadIndex]['last_post_user_display_name'] = $user->$displayNameColumnName;
                 $threads[$threadIndex]['last_post_user_avatar_url'] =
                     $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
