@@ -60,6 +60,7 @@ Route::delete(
 Route::group(
     [
         'prefix' => 'forums/',
+        'middleware' => config('railcontent.api_middleware',[]),
     ],
     function () {
         // thread api
@@ -150,4 +151,20 @@ Route::group(
             'search',
             \Railroad\Railforums\Controllers\UserForumSearchJsonController::class . '@index'
         )->name('railforums.api.search.index');
+
+        //categories
+        Route::put(
+            'discussions/store',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@store'
+        )->name('railforums.api.discussion.store');
+
+        Route::get(
+            'discussions/show/{id}',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@show'
+        )->name('railforums.api.discussion.show');
+
+        Route::get(
+            'discussions/index',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@index'
+        )->name('railforums.api.discussions.index');
     });
