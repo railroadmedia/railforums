@@ -7,7 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\ThreadReadRepository;
@@ -19,11 +19,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumThreadController extends Controller
 {
-    /**
-     * @var UserCloakDataMapper
-     */
-    protected $userCloakDataMapper;
-
     /**
      * @var ThreadRepository
      */
@@ -50,29 +45,34 @@ class UserForumThreadController extends Controller
     private $permissionService;
 
     /**
+     * @var UserProviderInterface
+     */
+    protected $userProvider;
+
+    /**
      * UserForumThreadController constructor.
      *
-     * @param UserCloakDataMapper $userCloakDataMapper
      * @param ThreadRepository $threadRepository
      * @param ThreadReadRepository $threadReadRepository
      * @param ThreadFollowRepository $threadFollowRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
+     * @param UserProviderInterface $userProvider
      */
     public function __construct(
-        UserCloakDataMapper $userCloakDataMapper,
         ThreadRepository $threadRepository,
         ThreadReadRepository $threadReadRepository,
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
-        PermissionService $permissionService
+        PermissionService $permissionService,
+        UserProviderInterface $userProvider
     ) {
-        $this->userCloakDataMapper = $userCloakDataMapper;
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
         $this->threadFollowRepository = $threadFollowRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
+        $this->userProvider= $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -93,13 +93,14 @@ class UserForumThreadController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()
-            ->toDateTimeString();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
         $threadRead = $this->threadReadRepository->create(
             [
                 'thread_id' => $thread->id,
-                'reader_id' => $this->userCloakDataMapper->getCurrentId(),
+                'reader_id' => $this->userProvider->getCurrentUser()->getId(),
                 'read_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -133,13 +134,14 @@ class UserForumThreadController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()
-            ->toDateTimeString();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
         $threadFollow = $this->threadFollowRepository->create(
             [
                 'thread_id' => $thread->id,
-                'follower_id' => $this->userCloakDataMapper->getCurrentId(),
+                'follower_id' => $this->userProvider->getCurrentUser()->getId(),
                 'followed_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -195,9 +197,10 @@ class UserForumThreadController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'create-threads');
 
-        $now = Carbon::now()
-            ->toDateTimeString();
-        $authorId = $this->userCloakDataMapper->getCurrentId();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
+        $authorId = $this->userProvider->getCurrentUser()->getId();
 
         $thread = $this->threadRepository->create(
             array_merge(

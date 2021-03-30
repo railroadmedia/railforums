@@ -4,16 +4,16 @@ namespace Railroad\Railforums\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\Controller;
 use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
-use Railroad\Railforums\Requests\PostJsonIndexRequest;
-use Railroad\Railforums\Requests\PostJsonCreateRequest;
-use Railroad\Railforums\Requests\PostJsonUpdateRequest;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostLikeRepository;
 use Railroad\Railforums\Repositories\PostReplyRepository;
 use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Requests\PostJsonCreateRequest;
+use Railroad\Railforums\Requests\PostJsonIndexRequest;
+use Railroad\Railforums\Requests\PostJsonUpdateRequest;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -43,31 +43,31 @@ class UserForumPostJsonController extends Controller
     protected $permissionService;
 
     /**
-     * @var UserCloakDataMapper
+     * @var UserProviderInterface
      */
-    protected $userCloakDataMapper;
+    protected $userProvider;
 
     /**
-     * ThreadController constructor.
+     * UserForumPostJsonController constructor.
      *
      * @param PostLikeRepository $postLikeRepository
      * @param PostReplyRepository $postReplyRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
-     * @param UserCloakDataMapper $userCloakDataMapper
+     * @param UserProviderInterface $userProvider
      */
     public function __construct(
         PostLikeRepository $postLikeRepository,
         PostReplyRepository $postReplyRepository,
         PostRepository $postRepository,
         PermissionService $permissionService,
-        UserCloakDataMapper $userCloakDataMapper
+        UserProviderInterface $userProvider
     ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
-        $this->userCloakDataMapper = $userCloakDataMapper;
+        $this->userProvider = $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -87,8 +87,7 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        (new AnonymousNotifiable)
-            ->route(
+        (new AnonymousNotifiable)->route(
                 ConfigService::$postReportNotificationChannel,
                 ConfigService::$postReportNotificationRecipients
             )
@@ -116,15 +115,20 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()->toDateTimeString();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
-        $postLike = $this->postLikeRepository->create([
-            'post_id' => $post->id,
-            'liker_id' => $this->userCloakDataMapper->getCurrentId(),
-            'liked_on' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $postLike = $this->postLikeRepository->create(
+            [
+                'post_id' => $post->id,
+                'liker_id' => $this->userProvider->getCurrentUser()
+                    ->getId(),
+                'liked_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
 
         return response()->json($postLike);
     }
@@ -138,7 +142,10 @@ class UserForumPostJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
-        $postLike = $this->postLikeRepository->query()->where('post_id', $id)->first();
+        $postLike =
+            $this->postLikeRepository->query()
+                ->where('post_id', $id)
+                ->first();
 
         if (!$postLike) {
             throw new NotFoundHttpException();
@@ -158,20 +165,17 @@ class UserForumPostJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'index-posts');
 
-        $amount = $request->get('amount') ?
-                    (int) $request->get('amount') : self::AMOUNT;
-        $page = $request->get('page') ?
-                    (int) $request->get('page') : self::PAGE;
-        $threadId = (int) $request->get('thread_id');
+        $amount = $request->get('amount') ? (int)$request->get('amount') : self::AMOUNT;
+        $page = $request->get('page') ? (int)$request->get('page') : self::PAGE;
+        $threadId = (int)$request->get('thread_id');
 
-        $posts = $this->postRepository
-            ->getDecoratedPosts($amount, $page, $threadId);
+        $posts = $this->postRepository->getDecoratedPosts($amount, $page, $threadId);
 
         $postsCount = $this->postRepository->getPostsCount($threadId);
 
         $response = [
             'posts' => $posts,
-            'count' => $postsCount
+            'count' => $postsCount,
         ];
 
         return response()->json($response);
@@ -192,13 +196,15 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $post = $posts->first()->getArrayCopy();
+        $post =
+            $posts->first()
+                ->getArrayCopy();
 
         $posts = null;
 
-        $post['reply_parents'] = $this->postReplyRepository
-            ->getPostReplyParents($post['id'])
-            ->all();
+        $post['reply_parents'] =
+            $this->postReplyRepository->getPostReplyParents($post['id'])
+                ->all();
 
         return response()->json($post);
     }
@@ -212,23 +218,31 @@ class UserForumPostJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'create-posts');
 
-        $now = Carbon::now()->toDateTimeString();
-        $authorId = $this->userCloakDataMapper->getCurrentId();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
+        $authorId =
+            $this->userProvider->getCurrentUser()
+                ->getId();
 
-        $post = $this->postRepository->create(array_merge(
-            $request->only([
-                'thread_id',
-                'content',
-                'prompting_post_id'
-            ]),
-            [
-                'state' => PostRepository::STATE_PUBLISHED,
-                'author_id' => $authorId,
-                'published_on' => $now,
-                'created_at' => $now,
-                'updated_at' => $now
-            ]
-        ));
+        $post = $this->postRepository->create(
+            array_merge(
+                $request->only(
+                    [
+                        'thread_id',
+                        'content',
+                        'prompting_post_id',
+                    ]
+                ),
+                [
+                    'state' => PostRepository::STATE_PUBLISHED,
+                    'author_id' => $authorId,
+                    'published_on' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            )
+        );
 
         $parentIds = $request->get('parent_ids', []);
 
@@ -238,15 +252,15 @@ class UserForumPostJsonController extends Controller
             foreach ($parentIds as $parentId) {
                 $replies[] = [
                     'child_post_id' => $post->id,
-                    'parent_post_id' => $parentId
+                    'parent_post_id' => $parentId,
                 ];
             }
 
             $this->postReplyRepository->insert($replies);
 
-            $post['reply_parents'] = $this->postReplyRepository
-                ->getPostReplyParents($post['id'])
-                ->all();
+            $post['reply_parents'] =
+                $this->postReplyRepository->getPostReplyParents($post['id'])
+                    ->all();
         }
 
         return response()->json($post);
@@ -280,7 +294,8 @@ class UserForumPostJsonController extends Controller
                     ['content']
                 ),
                 [
-                    'updated_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()
+                        ->toDateTimeString(),
                 ]
             )
         );

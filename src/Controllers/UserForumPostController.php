@@ -7,7 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Requests\PostCreateRequest;
 use Railroad\Railforums\Requests\PostUpdateRequest;
 use Railroad\Railforums\Repositories\PostLikeRepository;
@@ -38,10 +38,11 @@ class UserForumPostController extends Controller
      */
     protected $permissionService;
 
+
     /**
-     * @var UserCloakDataMapper
+     * @var UserProviderInterface
      */
-    protected $userCloakDataMapper;
+    protected $userProvider;
 
     /**
      * UserForumPostController constructor.
@@ -50,20 +51,20 @@ class UserForumPostController extends Controller
      * @param PostReplyRepository $postReplyRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
-     * @param UserCloakDataMapper $userCloakDataMapper
+     * @param UserProviderInterface $userProvider
      */
     public function __construct(
         PostLikeRepository $postLikeRepository,
         PostReplyRepository $postReplyRepository,
         PostRepository $postRepository,
         PermissionService $permissionService,
-        UserCloakDataMapper $userCloakDataMapper
+        UserProviderInterface $userProvider
     ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
-        $this->userCloakDataMapper = $userCloakDataMapper;
+        $this->userProvider = $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -88,7 +89,7 @@ class UserForumPostController extends Controller
 
         $this->postLikeRepository->create([
             'post_id' => $post->id,
-            'liker_id' => $this->userCloakDataMapper->getCurrentId(),
+            'liker_id' => $this->userProvider->getCurrentUser()->getId(),
             'liked_on' => $now,
             'created_at' => $now,
             'updated_at' => $now,
@@ -136,7 +137,7 @@ class UserForumPostController extends Controller
         $this->permissionService->canOrThrow(auth()->id(), 'create-posts');
 
         $now = Carbon::now()->toDateTimeString();
-        $authorId = $this->userCloakDataMapper->getCurrentId();
+        $authorId = $this->userProvider->getCurrentUser()->getId();
 
         $post = $this->postRepository->create(array_merge(
             $request->only([
