@@ -16,7 +16,6 @@
     "guzzlehttp/guzzle": "~6.0",
     "doctrine/dbal": "^2.5",
     "ezyang/htmlpurifier": "^4.10",
-    "railroad/railmap": "dev-master",
     "railroad/railnotifications": "1.0.*",
     "railroad/railsettings": "dev-master",
     "railroad/resora": "^1.0",
