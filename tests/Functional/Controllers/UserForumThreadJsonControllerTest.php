@@ -12,7 +12,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 
     protected function setUp()
     {
-        $this->setDefaultConnection('mysql');
+        $this->setDefaultConnection('testbench');
 
         parent::setUp();
     }
@@ -42,7 +42,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response data
         $response->assertJsonFragment([
             'thread_id' => $thread['id'],
-            'reader_id' => (int) $user->getId()
+            'reader_id' => $user->getId()
         ]);
 
         // assert the thread data was saved in the db

@@ -8,19 +8,21 @@ use Faker\Generator;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use Railroad\Permissions\Providers\PermissionsServiceProvider;
 use Railroad\Permissions\Services\PermissionService;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Providers\ForumServiceProvider;
-use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Repositories\PostRepository;
-use Railroad\Railmap\IdentityMap\IdentityMap;
-use Railroad\Railmap\RailmapServiceProvider;
+use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Services\ConfigService;
-use Railroad\Permissions\Services\ConfigService as PermissionsConfigService;
+use Tests\Fixtures\UserProvider;
+use Railroad\Railmap\IdentityMap\IdentityMap;
 
 class TestCase extends BaseTestCase
 {
@@ -69,9 +71,10 @@ class TestCase extends BaseTestCase
 
         if ($this->enablePermissionServiceMocking) {
 
-            $this->permissionServiceMock = $this->getMockBuilder(PermissionService::class)
-                ->disableOriginalConstructor()
-                ->getMock();
+            $this->permissionServiceMock =
+                $this->getMockBuilder(PermissionService::class)
+                    ->disableOriginalConstructor()
+                    ->getMock();
 
             $this->app->instance(PermissionService::class, $this->permissionServiceMock);
 
@@ -82,26 +85,33 @@ class TestCase extends BaseTestCase
         IdentityMap::empty();
 
         Carbon::setTestNow(Carbon::now());
+
+        $userProvider = new UserProvider();
+
+        $this->app->instance(UserProviderInterface::class, $userProvider);
     }
 
     protected function createUsersTable()
     {
-        $this->app['db']->connection()->getSchemaBuilder()->create(
-            'users',
-            function (Blueprint $table) {
-                $table->increments('id');
-                $table->string('display_name');
-                $table->string('label');
-                $table->string('permission_level');
-                $table->string('avatar_url')->nullable();
-            }
-        );
+        $this->app['db']->connection()
+            ->getSchemaBuilder()
+            ->create(
+                'users',
+                function (Blueprint $table) {
+                    $table->increments('id');
+                    $table->string('display_name');
+                    $table->string('label');
+                    $table->string('permission_level');
+                    $table->string('avatar_url')
+                        ->nullable();
+                }
+            );
     }
 
     /**
      * Define environment setup.
      *
-     * @param  \Illuminate\Foundation\Application $app
+     * @param Application $app
      * @return void
      */
     protected function getEnvironmentSetUp($app)
@@ -115,18 +125,14 @@ class TestCase extends BaseTestCase
 
         $app['config']->set(
             'database.default',
-            config('railforums.connection_mask_prefix') .
-            $this->getDefaultConnection()
+            config('railforums.connection_mask_prefix') . $this->getDefaultConnection()
         );
         $app['config']->set(
             'railforums.database_connection_name',
-            config('railforums.connection_mask_prefix') .
-            $this->getDefaultConnection()
+            config('railforums.connection_mask_prefix') . $this->getDefaultConnection()
         );
         $app['config']->set(
-            'database.connections.' .
-            config('railforums.connection_mask_prefix') .
-            'testbench',
+            'database.connections.' . config('railforums.connection_mask_prefix') . 'testbench',
             [
                 'driver' => 'sqlite',
                 'database' => ':memory:',
@@ -134,27 +140,25 @@ class TestCase extends BaseTestCase
             ]
         );
         $app['config']->set(
-            'database.connections.' .
-            config('railforums.connection_mask_prefix') .
-            'mysql',
+            'database.connections.' . config('railforums.connection_mask_prefix') . 'mysql',
             [
                 'driver' => 'mysql',
                 'host' => 'mysql',
                 'port' => env('MYSQL_PORT', '3306'),
-                'database' => env('MYSQL_DB','railformus_tests'),
+                'database' => env('MYSQL_DB', 'railformus_tests'),
                 'username' => 'root',
                 'password' => 'root',
                 'charset' => 'utf8',
                 'collation' => 'utf8_general_ci',
                 'prefix' => '',
                 'options' => [
-                    \PDO::ATTR_PERSISTENT => true,
-                ]
+                    PDO::ATTR_PERSISTENT => true,
+                ],
             ]
         );
         $app['config']->set(
             'railforums.author_database_connection',
-            config('railforums.connection_mask_prefix') . 'mysql'
+            config('railforums.connection_mask_prefix') . 'testbench'
         );
         $app['config']->set(
             'railforums.author_table_name',
@@ -179,8 +183,7 @@ class TestCase extends BaseTestCase
                 'encoding' => 'UTF-8',
                 'finalize' => true,
                 'settings' => [
-                    'default' => [
-                    ],
+                    'default' => [],
                 ],
             ]
         );
@@ -205,9 +208,9 @@ class TestCase extends BaseTestCase
             'weight' => $this->faker->numberBetween(),
         ];
 
-        $categoryId = $this->databaseManager
-            ->table(ConfigService::$tableCategories)
-            ->insertGetId($category);
+        $categoryId =
+            $this->databaseManager->table(ConfigService::$tableCategories)
+                ->insertGetId($category);
 
         $category['id'] = $categoryId;
 
@@ -223,12 +226,13 @@ class TestCase extends BaseTestCase
             'slug' => strtolower(implode('-', $this->faker->words(5))),
             'state' => ThreadRepository::STATE_PUBLISHED,
             'post_count' => $postCount ?? $this->faker->randomNumber(),
-            'published_on' => Carbon::instance($this->faker->dateTime)->toDateTimeString(),
+            'published_on' => Carbon::instance($this->faker->dateTime)
+                ->toDateTimeString(),
         ];
 
-        $threadId = $this->databaseManager
-            ->table(ConfigService::$tableThreads)
-            ->insertGetId($thread);
+        $threadId =
+            $this->databaseManager->table(ConfigService::$tableThreads)
+                ->insertGetId($thread);
 
         $thread['id'] = $threadId;
 
@@ -243,12 +247,13 @@ class TestCase extends BaseTestCase
             'prompting_post_id' => $this->faker->randomNumber(),
             'content' => $this->faker->sentence(20),
             'state' => PostRepository::STATE_PUBLISHED,
-            'published_on' => Carbon::instance($this->faker->dateTime)->toDateTimeString(),
+            'published_on' => Carbon::instance($this->faker->dateTime)
+                ->toDateTimeString(),
         ];
 
-        $postId = $this->databaseManager
-            ->table(ConfigService::$tablePosts)
-            ->insertGetId($post);
+        $postId =
+            $this->databaseManager->table(ConfigService::$tablePosts)
+                ->insertGetId($post);
 
         $post['id'] = $postId;
 
@@ -287,30 +292,33 @@ class TestCase extends BaseTestCase
     /**
      * We don't want to use mockery so this is a reimplementation of the mockery version.
      *
-     * @param  array|string $events
+     * @param array|string $events
      * @return $this
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function expectsEvents($events)
     {
         $events = is_array($events) ? $events : func_get_args();
 
-        $mock = $this->getMockBuilder(Dispatcher::class)
-            ->setMethods(['fire', 'dispatch'])
-            ->getMockForAbstractClass();
+        $mock =
+            $this->getMockBuilder(Dispatcher::class)
+                ->setMethods(['fire', 'dispatch'])
+                ->getMockForAbstractClass();
 
-        $mock->method('fire')->willReturnCallback(
-            function ($called) {
-                $this->firedEvents[] = $called;
-            }
-        );
+        $mock->method('fire')
+            ->willReturnCallback(
+                function ($called) {
+                    $this->firedEvents[] = $called;
+                }
+            );
 
-        $mock->method('dispatch')->willReturnCallback(
-            function ($called) {
-                $this->firedEvents[] = $called;
-            }
-        );
+        $mock->method('dispatch')
+            ->willReturnCallback(
+                function ($called) {
+                    $this->firedEvents[] = $called;
+                }
+            );
 
         $this->app->instance('events', $mock);
 
@@ -342,7 +350,7 @@ class TestCase extends BaseTestCase
     /**
      * Set database default connection name
      *
-     * @param  string $name
+     * @param string $name
      * @return TestCase
      */
     public function setDefaultConnection($name)
