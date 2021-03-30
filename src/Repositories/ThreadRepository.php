@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
@@ -25,23 +24,21 @@ class ThreadRepository extends EventDispatchingRepository
     const CHUNK_SIZE = 100;
 
     /**
-     * @var UserCloakDataMapper
-     */
-    protected $userCloakDataMapper;
-    /**
      * @var ThreadUserDecorator
      */
     private $threadUserDecorator;
 
     public function __construct(ThreadUserDecorator $threadUserDecorator)
     {
-        $this->userCloakDataMapper = app(UserCloakDataMapper::class);
         $this->threadUserDecorator = $threadUserDecorator;
     }
 
     public function getCreateEvent($entity)
     {
-        return new ThreadCreated($entity->id, $this->userCloakDataMapper->getCurrentId());
+        return new ThreadCreated(
+            $entity->id,
+          auth()->id()
+        );
     }
 
     public function getReadEvent($entity)
@@ -53,7 +50,10 @@ class ThreadRepository extends EventDispatchingRepository
     {
         $id = is_object($entity) ? $entity->id : $entity;
 
-        return new ThreadUpdated($id, $this->userCloakDataMapper->getCurrentId());
+        return new ThreadUpdated(
+            $id,
+            auth()->id()
+        );
     }
 
     public function getDestroyEvent($entity)
@@ -63,7 +63,10 @@ class ThreadRepository extends EventDispatchingRepository
 
     public function getDeleteEvent($id)
     {
-        return new ThreadDeleted($id, $this->userCloakDataMapper->getCurrentId());
+        return new ThreadDeleted(
+            $id,
+            auth()->id()
+        );
     }
 
     /**
@@ -94,7 +97,7 @@ class ThreadRepository extends EventDispatchingRepository
      *
      * @param array $ids
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getDecoratedThreadsByIds($ids)
     {
@@ -112,7 +115,7 @@ class ThreadRepository extends EventDispatchingRepository
      * @param bool $pinned
      * @param bool $followed
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getDecoratedThreads(
         $amount,
@@ -131,7 +134,7 @@ class ThreadRepository extends EventDispatchingRepository
                         ->limit(1)
                         ->where(
                             'follower_id',
-                            $this->userCloakDataMapper->getCurrentId()
+                            auth()->id()
                         )
                         ->whereRaw(
                             ConfigService::$tableThreads . '.id = ' . ConfigService::$tableThreadFollows . '.thread_id'
@@ -201,7 +204,9 @@ class ThreadRepository extends EventDispatchingRepository
                         ->on(
                             ConfigService::$tableThreadFollows . '.follower_id',
                             '=',
-                            $query->raw($this->userCloakDataMapper->getCurrentId())
+                            $query->raw(
+                                auth()->id()
+                            )
                         );
                 }
             );
@@ -224,7 +229,7 @@ class ThreadRepository extends EventDispatchingRepository
     /**
      * Returns a decorated query to retrive threads and associated data
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return Builder
      */
     public function getDecoratedQuery()
     {
@@ -287,7 +292,10 @@ class ThreadRepository extends EventDispatchingRepository
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tableThreadReads)
-                        ->where('reader_id', $this->userCloakDataMapper->getCurrentId())
+                        ->where(
+                            'reader_id',
+                            auth()->id()
+                        )
                         ->whereRaw(
                             ConfigService::$tableThreadReads . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
@@ -299,7 +307,10 @@ class ThreadRepository extends EventDispatchingRepository
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tableThreadFollows)
-                        ->where('follower_id', $this->userCloakDataMapper->getCurrentId())
+                        ->where(
+                            'follower_id',
+                            auth()->id()
+                        )
                         ->whereRaw(
                             ConfigService::$tableThreadFollows . '.thread_id = ' . ConfigService::$tableThreads . '.id'
                         )
