@@ -7,7 +7,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\ThreadReadRepository;
@@ -45,11 +44,6 @@ class UserForumThreadController extends Controller
     private $permissionService;
 
     /**
-     * @var UserProviderInterface
-     */
-    protected $userProvider;
-
-    /**
      * UserForumThreadController constructor.
      *
      * @param ThreadRepository $threadRepository
@@ -57,22 +51,19 @@ class UserForumThreadController extends Controller
      * @param ThreadFollowRepository $threadFollowRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
-     * @param UserProviderInterface $userProvider
      */
     public function __construct(
         ThreadRepository $threadRepository,
         ThreadReadRepository $threadReadRepository,
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
-        PermissionService $permissionService,
-        UserProviderInterface $userProvider
+        PermissionService $permissionService
     ) {
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
         $this->threadFollowRepository = $threadFollowRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
-        $this->userProvider= $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -100,7 +91,7 @@ class UserForumThreadController extends Controller
         $threadRead = $this->threadReadRepository->create(
             [
                 'thread_id' => $thread->id,
-                'reader_id' => $this->userProvider->getCurrentUser()->getId(),
+                'reader_id' => auth()->id(),
                 'read_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -141,7 +132,7 @@ class UserForumThreadController extends Controller
         $threadFollow = $this->threadFollowRepository->create(
             [
                 'thread_id' => $thread->id,
-                'follower_id' => $this->userProvider->getCurrentUser()->getId(),
+                'follower_id' => auth()->id(),
                 'followed_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -200,7 +191,7 @@ class UserForumThreadController extends Controller
         $now =
             Carbon::now()
                 ->toDateTimeString();
-        $authorId = $this->userProvider->getCurrentUser()->getId();
+        $authorId = auth()->id();
 
         $thread = $this->threadRepository->create(
             array_merge(
@@ -235,17 +226,7 @@ class UserForumThreadController extends Controller
             ]
         );
 
-        $message = ['success' => true];
-
         return redirect()->to('/members/forums/jump-to-thread/' . $thread->id);
-
-        return $request->has('redirect') ?
-            redirect()
-                ->away($request->get('redirect'))
-                ->with($message) :
-            redirect()
-                ->back()
-                ->with($message);
     }
 
     /**
@@ -282,17 +263,7 @@ class UserForumThreadController extends Controller
             )
         );
 
-        $message = ['success' => true];
-
         return redirect()->to('/members/forums/jump-to-thread/' . $thread->id);
-
-        return $request->has('redirect') ?
-            redirect()
-                ->away($request->get('redirect'))
-                ->with($message) :
-            redirect()
-                ->back()
-                ->with($message);
     }
 
     /**

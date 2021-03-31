@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\ThreadReadRepository;
@@ -43,11 +42,6 @@ class UserForumThreadJsonController extends Controller
     protected $postRepository;
 
     /**
-     * @var UserProviderInterface
-     */
-    protected $userProvider;
-
-    /**
      * @var PermissionService
      */
     private $permissionService;
@@ -59,7 +53,6 @@ class UserForumThreadJsonController extends Controller
      * @param ThreadReadRepository $threadReadRepository
      * @param ThreadFollowRepository $threadFollowRepository
      * @param PostRepository $postRepository
-     * @param UserProviderInterface $userProvider
      * @param PermissionService $permissionService
      */
     public function __construct(
@@ -67,14 +60,12 @@ class UserForumThreadJsonController extends Controller
         ThreadReadRepository $threadReadRepository,
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
-        UserProviderInterface $userProvider,
         PermissionService $permissionService
     ) {
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
         $this->threadFollowRepository = $threadFollowRepository;
         $this->postRepository = $postRepository;
-        $this->userProvider = $userProvider;
         $this->permissionService = $permissionService;
 
         $this->middleware(ConfigService::$controllerMiddleware);
@@ -97,8 +88,7 @@ class UserForumThreadJsonController extends Controller
 
         $threadRead = $this->threadReadRepository->markRead(
             $thread->id,
-            $this->userProvider->getCurrentUser()
-                ->getId()
+            auth()->id()
         );
 
         return response()->json($threadRead);
@@ -126,8 +116,7 @@ class UserForumThreadJsonController extends Controller
         $threadFollow = $this->threadFollowRepository->create(
             [
                 'thread_id' => $thread->id,
-                'follower_id' => $this->userProvider->getCurrentUser()
-                    ->getId(),
+                'follower_id' => auth()->id(),
                 'followed_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -147,9 +136,7 @@ class UserForumThreadJsonController extends Controller
         $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
         $thread = $this->threadRepository->read($id);
-        $currentUserId =
-            $this->userProvider->getCurrentUser()
-                ->getId();
+        $currentUserId = auth()->id();
 
         if (empty($thread) || empty($currentUserId)) {
             throw new NotFoundHttpException();
@@ -159,7 +146,7 @@ class UserForumThreadJsonController extends Controller
             ->where(
                 [
                     'thread_id' => $id,
-                    'follower_id' => $currentUserId
+                    'follower_id' => $currentUserId,
                 ]
             )
             ->delete();
@@ -183,19 +170,19 @@ class UserForumThreadJsonController extends Controller
         $followed = $request->has('followed') ? (boolean)$request->get('followed') : null;
 
         $threads = $this->threadRepository->getDecoratedThreads(
-                $amount,
-                $page,
-                $categoryIds,
-                $pinned,
-                $followed
-            )
+            $amount,
+            $page,
+            $categoryIds,
+            $pinned,
+            $followed
+        )
             ->toArray();
 
         $threadsCount = $this->threadRepository->getThreadsCount(
-                $categoryIds,
-                $pinned,
-                $followed
-            );
+            $categoryIds,
+            $pinned,
+            $followed
+        );
 
         $response = [
             'threads' => $threads,
@@ -235,9 +222,7 @@ class UserForumThreadJsonController extends Controller
         $now =
             Carbon::now()
                 ->toDateTimeString();
-        $authorId =
-            $this->userProvider->getCurrentUser()
-                ->getId();
+        $authorId = auth()->id();
 
         $thread = $this->threadRepository->create(
             array_merge(

@@ -7,7 +7,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostLikeRepository;
 use Railroad\Railforums\Repositories\PostReplyRepository;
 use Railroad\Railforums\Repositories\PostRepository;
@@ -43,31 +42,23 @@ class UserForumPostJsonController extends Controller
     protected $permissionService;
 
     /**
-     * @var UserProviderInterface
-     */
-    protected $userProvider;
-
-    /**
      * UserForumPostJsonController constructor.
      *
      * @param PostLikeRepository $postLikeRepository
      * @param PostReplyRepository $postReplyRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
-     * @param UserProviderInterface $userProvider
      */
     public function __construct(
         PostLikeRepository $postLikeRepository,
         PostReplyRepository $postReplyRepository,
         PostRepository $postRepository,
-        PermissionService $permissionService,
-        UserProviderInterface $userProvider
+        PermissionService $permissionService
     ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
-        $this->userProvider = $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -122,8 +113,7 @@ class UserForumPostJsonController extends Controller
         $postLike = $this->postLikeRepository->create(
             [
                 'post_id' => $post->id,
-                'liker_id' => $this->userProvider->getCurrentUser()
-                    ->getId(),
+                'liker_id' => auth()->id(),
                 'liked_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -221,9 +211,7 @@ class UserForumPostJsonController extends Controller
         $now =
             Carbon::now()
                 ->toDateTimeString();
-        $authorId =
-            $this->userProvider->getCurrentUser()
-                ->getId();
+        $authorId = auth()->id();
 
         $post = $this->postRepository->create(
             array_merge(

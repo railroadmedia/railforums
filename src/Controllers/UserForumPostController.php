@@ -7,12 +7,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\Contracts\UserProviderInterface;
-use Railroad\Railforums\Requests\PostCreateRequest;
-use Railroad\Railforums\Requests\PostUpdateRequest;
 use Railroad\Railforums\Repositories\PostLikeRepository;
 use Railroad\Railforums\Repositories\PostReplyRepository;
 use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Requests\PostCreateRequest;
+use Railroad\Railforums\Requests\PostUpdateRequest;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -38,12 +37,6 @@ class UserForumPostController extends Controller
      */
     protected $permissionService;
 
-
-    /**
-     * @var UserProviderInterface
-     */
-    protected $userProvider;
-
     /**
      * UserForumPostController constructor.
      *
@@ -51,20 +44,17 @@ class UserForumPostController extends Controller
      * @param PostReplyRepository $postReplyRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
-     * @param UserProviderInterface $userProvider
      */
     public function __construct(
         PostLikeRepository $postLikeRepository,
         PostReplyRepository $postReplyRepository,
         PostRepository $postRepository,
-        PermissionService $permissionService,
-        UserProviderInterface $userProvider
+        PermissionService $permissionService
     ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
-        $this->userProvider = $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -85,21 +75,29 @@ class UserForumPostController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $now = Carbon::now()->toDateTimeString();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
-        $this->postLikeRepository->create([
-            'post_id' => $post->id,
-            'liker_id' => $this->userProvider->getCurrentUser()->getId(),
-            'liked_on' => $now,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        $this->postLikeRepository->create(
+            [
+                'post_id' => $post->id,
+                'liker_id' => auth()->id(),
+                'liked_on' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        );
 
         $message = ['success' => true];
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -123,8 +121,12 @@ class UserForumPostController extends Controller
         $message = ['success' => true];
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
@@ -136,23 +138,29 @@ class UserForumPostController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'create-posts');
 
-        $now = Carbon::now()->toDateTimeString();
-        $authorId = $this->userProvider->getCurrentUser()->getId();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
+        $authorId = auth()->id();
 
-        $post = $this->postRepository->create(array_merge(
-            $request->only([
-                'thread_id',
-                'content',
-                'prompting_post_id'
-            ]),
-            [
-                'state' => PostRepository::STATE_PUBLISHED,
-                'author_id' => $authorId,
-                'published_on' => $now,
-                'created_at' => $now,
-                'updated_at' => $now
-            ]
-        ));
+        $post = $this->postRepository->create(
+            array_merge(
+                $request->only(
+                    [
+                        'thread_id',
+                        'content',
+                        'prompting_post_id',
+                    ]
+                ),
+                [
+                    'state' => PostRepository::STATE_PUBLISHED,
+                    'author_id' => $authorId,
+                    'published_on' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            )
+        );
 
         $parentIds = $request->get('parent_ids', []);
 
@@ -162,7 +170,7 @@ class UserForumPostController extends Controller
             foreach ($parentIds as $parentId) {
                 $replies[] = [
                     'child_post_id' => $post->id,
-                    'parent_post_id' => $parentId
+                    'parent_post_id' => $parentId,
                 ];
             }
 
@@ -172,10 +180,6 @@ class UserForumPostController extends Controller
         $message = ['success' => true];
 
         return redirect()->to('/members/forums/jump-to-post/' . $post->id);
-
-        return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
     }
 
     /**
@@ -206,7 +210,8 @@ class UserForumPostController extends Controller
                     ['content']
                 ),
                 [
-                    'updated_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()
+                        ->toDateTimeString(),
                 ]
             )
         );
@@ -216,7 +221,11 @@ class UserForumPostController extends Controller
         return redirect()->to('/members/forums/jump-to-post/' . $post->id);
 
         return $request->has('redirect') ?
-            redirect()->away($request->get('redirect'))->with($message) :
-            redirect()->back()->with($message);
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 }
