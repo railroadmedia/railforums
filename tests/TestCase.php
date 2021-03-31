@@ -14,15 +14,11 @@ use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use Railroad\Permissions\Providers\PermissionsServiceProvider;
 use Railroad\Permissions\Services\PermissionService;
-use Railroad\Railforums\Contracts\UserProviderInterface;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
-use Railroad\Railforums\Entities\UserCloak;
 use Railroad\Railforums\Providers\ForumServiceProvider;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Services\ConfigService;
-use Tests\Fixtures\UserProvider;
-use Railroad\Railmap\IdentityMap\IdentityMap;
+use Tests\Resources\Models\User;
 
 class TestCase extends BaseTestCase
 {
@@ -60,14 +56,12 @@ class TestCase extends BaseTestCase
         }
 
         parent::setUp();
+        $this->faker = $this->app->make(Generator::class);
+        $this->databaseManager = $this->app->make(DatabaseManager::class);
 
         $this->artisan('migrate:fresh', []);
         $this->createUsersTable();
         $this->artisan('cache:clear', []);
-
-        $this->faker = $this->app->make(Generator::class);
-        $this->databaseManager = $this->app->make(DatabaseManager::class);
-        $this->userCloakDataMapper = $this->app->make(UserCloakDataMapper::class);
 
         if ($this->enablePermissionServiceMocking) {
 
@@ -82,13 +76,7 @@ class TestCase extends BaseTestCase
             $this->app->register(PermissionsServiceProvider::class);
         }
 
-        IdentityMap::empty();
-
         Carbon::setTestNow(Carbon::now());
-
-        $userProvider = new UserProvider();
-
-        $this->app->instance(UserProviderInterface::class, $userProvider);
     }
 
     protected function createUsersTable()
@@ -96,7 +84,7 @@ class TestCase extends BaseTestCase
         $this->app['db']->connection()
             ->getSchemaBuilder()
             ->create(
-                'users',
+                config('railforums.author_table_name'),
                 function (Blueprint $table) {
                     $table->increments('id');
                     $table->string('display_name');
@@ -158,7 +146,7 @@ class TestCase extends BaseTestCase
         );
         $app['config']->set(
             'railforums.author_database_connection',
-            config('railforums.connection_mask_prefix') . 'testbench'
+            config('railforums.connection_mask_prefix') . $this->getDefaultConnection()
         );
         $app['config']->set(
             'railforums.author_table_name',
@@ -358,5 +346,58 @@ class TestCase extends BaseTestCase
         $this->defaultConnection = $name;
 
         return $this;
+    }
+
+    /**
+     * Set the currently logged in user for the application.
+     *
+     * @param Authenticatable $user
+     * @param string|null $driver
+     * @return $this
+     */
+    public function actingAs($user = null, $driver = null)
+    {
+        if (!$user) {
+            $user = $this->fakeUser();
+        }
+
+        //  $this->withHeader('Authorization', "Bearer " . $user['token']);
+
+        parent::actingAs($user);
+
+        //$this->authManager->guard()->onceUsingId($user['id']);
+
+        request()->setUserResolver(
+            function () use ($user) {
+                return User::query()
+                    ->find($user['id']);
+            }
+        );
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function fakeUser()
+    {
+        $userId =
+            $this->databaseManager->connection()
+                ->query()
+                ->from('users')
+                ->insertGetId(
+                    [
+                        'display_name' => $this->faker->word,
+                        'label' => $this->faker->word,
+                        'permission_level' => $this->faker->word,
+                    ]
+                );
+
+        $user =
+            User::query()
+                ->find($userId);
+
+        return $user;
     }
 }

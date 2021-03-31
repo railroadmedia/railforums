@@ -8,7 +8,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Services\ConfigService;
 
 class SearchIndexRepository extends RepositoryBase
@@ -27,10 +26,6 @@ class SearchIndexRepository extends RepositoryBase
      */
     protected $threadRepository;
 
-    /**
-     * @var UserCloakDataMapper
-     */
-    protected $userCloakDataMapper;
 
     public function __construct(
         PostRepository $postRepository,
@@ -38,7 +33,6 @@ class SearchIndexRepository extends RepositoryBase
     ) {
         $this->postRepository = $postRepository;
         $this->threadRepository = $threadRepository;
-        $this->userCloakDataMapper = app(UserCloakDataMapper::class);
     }
 
     /**

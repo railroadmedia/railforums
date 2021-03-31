@@ -5,7 +5,6 @@ namespace Railroad\Railforums\Repositories;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Decorators\PostUserDecorator;
 use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Events\PostCreated;
@@ -26,10 +25,6 @@ class PostRepository extends EventDispatchingRepository
     const CHUNK_SIZE = 100;
 
     /**
-     * @var UserCloakDataMapper
-     */
-    protected $userCloakDataMapper;
-    /**
      * @var PostUserDecorator
      */
     private $postUserDecorator;
@@ -46,14 +41,13 @@ class PostRepository extends EventDispatchingRepository
      */
     public function __construct(PostUserDecorator $postUserDecorator, ThreadUserDecorator $threadUserDecorator)
     {
-        $this->userCloakDataMapper = app(UserCloakDataMapper::class);
         $this->postUserDecorator = $postUserDecorator;
         $this->threadUserDecorator = $threadUserDecorator;
     }
 
     public function getCreateEvent($entity)
     {
-        return new PostCreated($entity->id, $this->userCloakDataMapper->getCurrentId());
+        return new PostCreated($entity->id, auth()->id());
     }
 
     public function getReadEvent($entity)
@@ -65,7 +59,7 @@ class PostRepository extends EventDispatchingRepository
     {
         $id = is_object($entity) ? $entity->id : $entity;
 
-        return new PostUpdated($id, $this->userCloakDataMapper->getCurrentId());
+        return new PostUpdated($id, auth()->id());
     }
 
     public function getDestroyEvent($entity)
@@ -75,7 +69,7 @@ class PostRepository extends EventDispatchingRepository
 
     public function getDeleteEvent($id)
     {
-        return new PostDeleted($id, $this->userCloakDataMapper->getCurrentId());
+        return new PostDeleted($id, auth()->id());
     }
 
     /**
@@ -217,7 +211,7 @@ class PostRepository extends EventDispatchingRepository
                             ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
                         )
                         ->whereRaw(
-                            ConfigService::$tablePostLikes . '.liker_id = ' . $this->userCloakDataMapper->getCurrentId()
+                            ConfigService::$tablePostLikes . '.liker_id = ' . auth()->id()
                         );
                 },
                 'is_liked_by_viewer'

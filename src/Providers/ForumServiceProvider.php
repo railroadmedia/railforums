@@ -117,13 +117,13 @@ class ForumServiceProvider extends EventServiceProvider
             )
         );
 
-        $this->app->singleton(
-            UserCloakDataMapper::class,
-            function ($app) {
-                $className = config('railforums.user_data_mapper_class');
-
-                return new $className();
-            }
-        );
+//        $this->app->singleton(
+//            UserCloakDataMapper::class,
+//            function ($app) {
+//                $className = config('railforums.user_data_mapper_class');
+//
+//                return new $className();
+//            }
+//        );
     }
 }

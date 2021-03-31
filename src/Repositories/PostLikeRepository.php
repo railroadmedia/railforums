@@ -2,23 +2,12 @@
 
 namespace Railroad\Railforums\Repositories;
 
-use Railroad\Resora\Queries\CachedQuery;
-use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\Events\PostLiked;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
+use Railroad\Railforums\Services\ConfigService;
+use Railroad\Resora\Queries\CachedQuery;
 
 class PostLikeRepository extends EventDispatchingRepository
 {
-    /**
-     * @var UserCloakDataMapper
-     */
-    protected $userCloakDataMapper;
-
-    public function __construct()
-    {
-        $this->userCloakDataMapper = app(UserCloakDataMapper::class);
-    }
-
     /**
      * @return CachedQuery|$this
      */
@@ -34,7 +23,7 @@ class PostLikeRepository extends EventDispatchingRepository
 
     public function getCreateEvent($entity)
     {
-        return new PostLiked($entity->post_id, $this->userCloakDataMapper->getCurrentId());
+        return new PostLiked($entity->post_id, auth()->id());
     }
 
     public function getReadEvent($entity)
