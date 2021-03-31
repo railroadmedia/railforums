@@ -17,19 +17,19 @@ class PostEventListenerTest extends TestCase
 
     public function test_post_delete_event()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $postOne */
-        $postOne = $this->fakePost($thread['id'], $user->getId());
+        $postOne = $this->fakePost($thread['id'], $user['id']);
 
         /** @var array $postTwo */
-        $postTwo = $this->fakePost($thread['id'], $user->getId());
+        $postTwo = $this->fakePost($thread['id'], $user['id']);
 
         $postRepository = $this->app->make(PostRepository::class);
 

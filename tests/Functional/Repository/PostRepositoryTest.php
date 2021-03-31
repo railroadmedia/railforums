@@ -22,18 +22,18 @@ class PostRepositoryTest extends TestCase
 
     public function test_post_create_event()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $postData = [
             'content' => $this->faker->sentence(),
             'thread_id' => $thread['id'],
-            'author_id' => $user->getId(),
+            'author_id' => $user['id'],
             'state' => PostRepository::STATE_PUBLISHED
         ];
 
@@ -51,16 +51,16 @@ class PostRepositoryTest extends TestCase
 
     public function test_post_update_event()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $newContent = $this->faker->sentence();
 
@@ -78,16 +78,16 @@ class PostRepositoryTest extends TestCase
 
     public function test_post_delete_event()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $newContent = $this->faker->sentence();
 

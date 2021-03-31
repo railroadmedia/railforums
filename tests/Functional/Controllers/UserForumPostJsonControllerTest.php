@@ -15,7 +15,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     protected function setUp()
     {
-        $this->setDefaultConnection('mysql');
+       // $this->setDefaultConnection('mysql');
 
         parent::setUp();
     }
@@ -24,20 +24,20 @@ class UserForumPostJsonControllerTest extends TestCase
     {
         Notification::fake();
 
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/report/' . $post['id']
         );
@@ -63,7 +63,7 @@ class UserForumPostJsonControllerTest extends TestCase
     {
         Notification::fake();
 
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -80,7 +80,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to report-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/report/' . $post['id']
         );
@@ -106,9 +106,9 @@ class UserForumPostJsonControllerTest extends TestCase
     {
         Notification::fake();
 
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/report/' . rand(0, 32767)
         );
@@ -129,20 +129,20 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_like_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/like/' . $post['id']
         );
@@ -153,7 +153,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response data
         $this->assertArraySubset(
             [
-                'liker_id' => $user->getId(),
+                'liker_id' => $user['id'],
                 'post_id' => $post['id']
             ],
             $response->decodeResponseJson()
@@ -164,14 +164,14 @@ class UserForumPostJsonControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_like_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -188,7 +188,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to like-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/like/' . $post['id']
         );
@@ -201,19 +201,19 @@ class UserForumPostJsonControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_like_not_exists()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
         $postId = rand(0, 32767);
 
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/like/' . $postId
         );
@@ -226,29 +226,29 @@ class UserForumPostJsonControllerTest extends TestCase
             'forum_post_likes',
             [
                 'post_id' => $postId,
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_unlike_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $user->getId(),
+            'liker_id' => $user['id'],
             'liked_on' => $dateTime,
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
@@ -262,13 +262,13 @@ class UserForumPostJsonControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             self::API_PREFIX . '/post/unlike/' . $post['id']
         );
@@ -281,14 +281,14 @@ class UserForumPostJsonControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_unlike_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -305,7 +305,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $user->getId(),
+            'liker_id' => $user['id'],
             'liked_on' => $dateTime,
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
@@ -319,7 +319,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to like-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             self::API_PREFIX . '/post/unlike/' . $post['id']
         );
@@ -332,19 +332,18 @@ class UserForumPostJsonControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_unlike_not_exists()
     {
-        $this->fakeCurrentUserCloak();
         $postId = rand(0, 32767);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs()->call(
             'DELETE',
             self::API_PREFIX . '/post/unlike/' . $postId
         );
@@ -355,29 +354,29 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_index_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $threadOne */
-        $threadOne = $this->fakeThread($category['id'], $user->getId());
+        $threadOne = $this->fakeThread($category['id'], $user['id']);
 
         $posts = [];
 
         for ($i=0; $i < 20; $i++) {
             /** @var array $post */
-            $post = $this->fakePost($threadOne['id'], $user->getId());
+            $post = $this->fakePost($threadOne['id'], $user['id']);
 
             $posts[$post['id']] = $post;
         }
 
         /** @var array $threadTwo */
-        $threadTwo = $this->fakeThread($category['id'], $user->getId());
+        $threadTwo = $this->fakeThread($category['id'], $user['id']);
 
         for ($i=0; $i < 10; $i++) {
             /** @var array $post */
-            $post = $this->fakePost($threadTwo['id'], $user->getId());
+            $post = $this->fakePost($threadTwo['id'], $user['id']);
 
             $posts[$post['id']] = $post;
         }
@@ -390,7 +389,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'GET',
             self::API_PREFIX . '/post/index',
             $payload
@@ -417,20 +416,20 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_show_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'GET',
             self::API_PREFIX . '/post/show/' . $post['id']
         );
@@ -447,7 +446,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_show_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -464,7 +463,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to show-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'GET',
             self::API_PREFIX . '/post/show/' . $post['id']
         );
@@ -476,30 +475,30 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_show_with_replies()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $postsMap = []; // holds the posts, keys are posts id's
 
         /** @var array $postOne */
-        $postOne = $this->fakePost($thread['id'], $user->getId());
+        $postOne = $this->fakePost($thread['id'], $user['id']);
         $postsMap[$postOne['id']] = $postOne;
 
         /** @var array $postTwo */
-        $postTwo = $this->fakePost($thread['id'], $user->getId());
+        $postTwo = $this->fakePost($thread['id'], $user['id']);
         $postsMap[$postTwo['id']] = $postTwo;
 
         /** @var array $postThree */
-        $postThree = $this->fakePost($thread['id'], $user->getId());
+        $postThree = $this->fakePost($thread['id'], $user['id']);
         $postsMap[$postThree['id']] = $postThree;
 
         /** @var array $postFour */
-        $postFour = $this->fakePost($thread['id'], $user->getId());
+        $postFour = $this->fakePost($thread['id'], $user['id']);
 
         $repliesMap = []; // holds the replies, keys are parent_post_id's
 
@@ -540,7 +539,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'GET',
             self::API_PREFIX . '/post/show/' . $postFour['id']
         );
@@ -592,22 +591,22 @@ class UserForumPostJsonControllerTest extends TestCase
     public function test_post_show_recent_likes()
     {
         // 1st most recent liker
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $now = Carbon::now()->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $user->getId(),
+            'liker_id' => $user['id'],
             'liked_on' => $now,
             'created_at' => $now,
             'updated_at' => $now
@@ -618,13 +617,13 @@ class UserForumPostJsonControllerTest extends TestCase
             ->insertGetId($postLike);
 
         // 3rd most recent liker
-        $otherUserOne = $this->fakeUserCloak();
+        $otherUserOne = $this->fakeUser();
 
         $fiveMinutesAgo = Carbon::parse("-5 minutes")->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $otherUserOne->getId(),
+            'liker_id' => $otherUserOne['id'],
             'liked_on' => $fiveMinutesAgo,
             'created_at' => $fiveMinutesAgo,
             'updated_at' => $fiveMinutesAgo
@@ -635,13 +634,13 @@ class UserForumPostJsonControllerTest extends TestCase
             ->insertGetId($postLike);
 
         // 2nd most recent liker
-        $otherUserTwo = $this->fakeUserCloak();
+        $otherUserTwo = $this->fakeUser();
 
         $oneMinuteAgo = Carbon::parse("-1 minutes")->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $otherUserTwo->getId(),
+            'liker_id' => $otherUserTwo['id'],
             'liked_on' => $oneMinuteAgo,
             'created_at' => $oneMinuteAgo,
             'updated_at' => $oneMinuteAgo
@@ -652,13 +651,13 @@ class UserForumPostJsonControllerTest extends TestCase
             ->insertGetId($postLike);
 
         // 4th most recent liker
-        $otherUserThree = $this->fakeUserCloak();
+        $otherUserThree = $this->fakeUser();
 
         $tenMinutesAgo = Carbon::parse("-10 minutes")->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $otherUserThree->getId(),
+            'liker_id' => $otherUserThree['id'],
             'liked_on' => $tenMinutesAgo,
             'created_at' => $tenMinutesAgo,
             'updated_at' => $tenMinutesAgo
@@ -669,13 +668,13 @@ class UserForumPostJsonControllerTest extends TestCase
             ->insertGetId($postLike);
 
         // 5th most recent liker
-        $otherUserFour = $this->fakeUserCloak();
+        $otherUserFour = $this->fakeUser();
 
         $twentyMinutesAgo = Carbon::parse("-20 minutes")->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $otherUserFour->getId(),
+            'liker_id' => $otherUserFour['id'],
             'liked_on' => $twentyMinutesAgo,
             'created_at' => $twentyMinutesAgo,
             'updated_at' => $twentyMinutesAgo
@@ -687,7 +686,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'GET',
             self::API_PREFIX . '/post/show/' . $post['id']
         );
@@ -701,27 +700,27 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->assertEquals($postResponse['like_count'], 5);
 
         // assert 1st recent liker id
-        $this->assertEquals($postResponse['liker_1_id'], $user->getId());
+        $this->assertEquals($postResponse['liker_1_id'], $user['id']);
 
         // assert 1st recent liker display name
-        $this->assertEquals($postResponse['liker_1_display_name'], $user->getDisplayName());
+        $this->assertEquals($postResponse['liker_1_display_name'], $user['display_name']);
 
         // assert 2nd recent liker id
-        $this->assertEquals($postResponse['liker_2_id'], $otherUserTwo->getId());
+        $this->assertEquals($postResponse['liker_2_id'], $otherUserTwo['id']);
 
         // assert 2nd recent liker display name
-        $this->assertEquals($postResponse['liker_2_display_name'], $otherUserTwo->getDisplayName());
+        $this->assertEquals($postResponse['liker_2_display_name'], $otherUserTwo['display_name']);
 
         // assert 3rd recent liker id
-        $this->assertEquals($postResponse['liker_3_id'], $otherUserOne->getId());
+        $this->assertEquals($postResponse['liker_3_id'], $otherUserOne['id']);
 
         // assert 3rd recent liker display name
-        $this->assertEquals($postResponse['liker_3_display_name'], $otherUserOne->getDisplayName());
+        $this->assertEquals($postResponse['liker_3_display_name'], $otherUserOne['display_name']);
     }
 
     public function test_post_show_not_exists()
     {
-        $response = $this->call(
+        $response = $this->actingAs()->call(
             'GET',
             self::API_PREFIX . '/post/show/' . rand(0, 32767)
         );
@@ -732,13 +731,13 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_store_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $postData = [
             'content' => $this->faker->sentence(),
@@ -747,7 +746,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/store',
             $postData
@@ -766,15 +765,15 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response data
-        $response->assertJsonFragment([
+        $this->assertArraySubset([
             'content' => $postData['content'],
             'thread_id' => $postData['thread_id']
-        ]);
+        ], $response->decodeResponseJson());
     }
 
     public function test_post_store_without_permission()
     {
-         $user = $this->fakeCurrentUserCloak();
+         $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -793,7 +792,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to create-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/store',
             $postData
@@ -814,20 +813,20 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_store_with_replies()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $postOne */
-        $postOne = $this->fakePost($thread['id'], $user->getId());
+        $postOne = $this->fakePost($thread['id'], $user['id']);
         /** @var array $postTwo */
-        $postTwo = $this->fakePost($thread['id'], $user->getId());
+        $postTwo = $this->fakePost($thread['id'], $user['id']);
         /** @var array $postThree */
-        $postThree = $this->fakePost($thread['id'], $user->getId());
+        $postThree = $this->fakePost($thread['id'], $user['id']);
 
         $postData = [
             'content' => $this->faker->sentence(),
@@ -841,7 +840,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             self::API_PREFIX . '/post/store',
             $postData
@@ -860,10 +859,10 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response data
-        $response->assertJsonFragment([
+        $this->assertArraySubset([
             'content' => $postData['content'],
             'thread_id' => $postData['thread_id']
-        ]);
+        ], $response->decodeResponseJson());
 
         $postResponse = $response->decodeResponseJson();
 
@@ -921,8 +920,6 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_update_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
-
         /** @var array $category */
         $category = $this->fakeCategory();
 
@@ -960,24 +957,24 @@ class UserForumPostJsonControllerTest extends TestCase
         );
 
         // assert response data
-        $response->assertJsonFragment([
+        $this->assertArraySubset([
             'content' => $newContent,
             'id' => $post['id']
-        ]);
+        ], $response->decodeResponseJson());
     }
 
     public function test_post_update_validation_fail()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $response = $this->call(
             'PATCH',
@@ -999,7 +996,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_update_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -1018,7 +1015,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to update-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PATCH',
             self::API_PREFIX . '/post/update/' . $post['id'],
             ['content' => $newContent]
@@ -1039,8 +1036,6 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_update_not_found()
     {
-        $this->fakeCurrentUserCloak();
-
         $newContent = $this->faker->sentence();
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
@@ -1048,7 +1043,7 @@ class UserForumPostJsonControllerTest extends TestCase
             ->method('columns')
             ->willReturn(['content' => $newContent]);
 
-        $response = $this->call(
+        $response = $this->actingAs()->call(
             'PATCH',
             self::API_PREFIX . '/post/update/' . rand(0, 32767),
             ['content' => $newContent]
@@ -1060,7 +1055,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_delete_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -1075,7 +1070,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             self::API_PREFIX . '/post/delete/' . $post['id']
         );
@@ -1094,8 +1089,6 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_delete_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
-
         /** @var array $category */
         $category = $this->fakeCategory();
 
@@ -1111,7 +1104,7 @@ class UserForumPostJsonControllerTest extends TestCase
             new NotAllowedException('You are not allowed to delete-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs()->call(
             'DELETE',
             self::API_PREFIX . '/post/delete/' . $post['id']
         );

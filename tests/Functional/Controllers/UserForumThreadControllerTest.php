@@ -10,26 +10,26 @@ class UserForumThreadControllerTest extends TestCase
 {
     protected function setUp()
     {
-        $this->setDefaultConnection('mysql');
+       // $this->setDefaultConnection('mysql');
 
         parent::setUp();
     }
 
     public function test_thread_read_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $this->fakePost($thread['id'], $user->getId());
+        $this->fakePost($thread['id'], $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/read/' . $thread['id']
         );
@@ -42,14 +42,14 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadReads,
             [
                 'thread_id' => $thread['id'],
-                'reader_id' => $user->getId()
+                'reader_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_read_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -65,7 +65,7 @@ class UserForumThreadControllerTest extends TestCase
             new NotAllowedException('You are not allowed to read-threads')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/read/' . $thread['id']
         );
@@ -78,20 +78,20 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadReads,
             [
                 'thread_id' => $thread['id'],
-                'reader_id' => $user->getId()
+                'reader_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_read_not_exists()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         $threadId = rand(0, 32767);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/read/' . $threadId
         );
@@ -104,26 +104,26 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadReads,
             [
                 'thread_id' => $threadId,
-                'reader_id' => $user->getId()
+                'reader_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_follow_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $this->fakePost($thread['id'], $user->getId());
+        $this->fakePost($thread['id'], $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/follow/' . $thread['id']
         );
@@ -136,14 +136,14 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadFollows,
             [
                 'thread_id' => $thread['id'],
-                'follower_id' => $user->getId()
+                'follower_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_follow_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -159,7 +159,7 @@ class UserForumThreadControllerTest extends TestCase
             new NotAllowedException('You are not allowed to follow-threads')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/follow/' . $thread['id']
         );
@@ -172,17 +172,17 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadFollows,
             [
                 'thread_id' => $thread['id'],
-                'follower_id' => $user->getId()
+                'follower_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_follow_not_exists()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
         $threadId = rand(0, 32767);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/follow/' . $threadId
         );
@@ -195,22 +195,22 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadFollows,
             [
                 'thread_id' => $threadId,
-                'follower_id' => $user->getId()
+                'follower_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_unfollow_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
-        $thread = $this->fakeThread(null, $user->getId());
+        $thread = $this->fakeThread(null, $user['id']);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
         $threadFollow = [
             'thread_id' => $thread['id'],
-            'follower_id' => $user->getId(),
+            'follower_id' => $user['id'],
             'followed_on' => $dateTime,
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
@@ -224,13 +224,13 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadFollows,
             [
                 'thread_id' => $thread['id'],
-                'follower_id' => $user->getId()
+                'follower_id' => $user['id']
             ]
         );
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             '/thread/unfollow/' . $thread['id']
         );
@@ -243,14 +243,14 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadFollows,
             [
                 'thread_id' => $thread['id'],
-                'follower_id' => $user->getId()
+                'follower_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_unfollow_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         $otherUserId = rand(2, 32767);
 
@@ -260,7 +260,7 @@ class UserForumThreadControllerTest extends TestCase
 
         $threadFollow = [
             'thread_id' => $thread['id'],
-            'follower_id' => $user->getId(),
+            'follower_id' => $user['id'],
             'followed_on' => $dateTime,
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
@@ -274,7 +274,7 @@ class UserForumThreadControllerTest extends TestCase
             new NotAllowedException('You are not allowed to follow-threads')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             '/thread/unfollow/' . $thread['id']
         );
@@ -287,14 +287,13 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadFollows,
             [
                 'thread_id' => $thread['id'],
-                'follower_id' => $user->getId()
+                'follower_id' => $user['id']
             ]
         );
     }
 
     public function test_thread_unfollow_not_exists()
     {
-        $this->fakeCurrentUserCloak();
         $threadFollowId = rand(0, 32767);
 
         $response = $this->call(
@@ -308,7 +307,7 @@ class UserForumThreadControllerTest extends TestCase
 
     public function test_thread_store_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -321,7 +320,7 @@ class UserForumThreadControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/store',
             $threadData
@@ -333,7 +332,7 @@ class UserForumThreadControllerTest extends TestCase
             [
                 'title' => $threadData['title'],
                 'category_id' => $category['id'],
-                'author_id' => $user->getId()
+                'author_id' => $user['id']
             ]
         );
 
@@ -342,17 +341,14 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tablePosts,
             [
                 'content' => $threadData['first_post_content'],
-                'author_id' => $user->getId()
+                'author_id' => $user['id']
             ]
         );
-
-        // assert the session has the success message
-        $response->assertSessionHas('success', true);
     }
 
     public function test_thread_store_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -367,7 +363,7 @@ class UserForumThreadControllerTest extends TestCase
             new NotAllowedException('You are not allowed to create-threads')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/thread/store',
             $threadData
@@ -382,7 +378,7 @@ class UserForumThreadControllerTest extends TestCase
             [
                 'title' => $threadData['title'],
                 'category_id' => $category['id'],
-                'author_id' => $user->getId()
+                'author_id' => $user['id']
             ]
         );
 
@@ -391,7 +387,7 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tablePosts,
             [
                 'content' => $threadData['first_post_content'],
-                'author_id' => $user->getId()
+                'author_id' => $user['id']
             ]
         );
     }
@@ -412,13 +408,13 @@ class UserForumThreadControllerTest extends TestCase
 
     public function test_thread_update_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $newTitle = $this->faker->sentence();
 
@@ -427,7 +423,7 @@ class UserForumThreadControllerTest extends TestCase
             ->method('columns')
             ->willReturn(['title' => $newTitle]);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PATCH',
             '/thread/update/' . $thread['id'],
             ['title' => $newTitle]
@@ -441,15 +437,10 @@ class UserForumThreadControllerTest extends TestCase
                 'title' => $newTitle
             ]
         );
-
-        // assert the session has the success message
-        $response->assertSessionHas('success', true);
     }
 
     public function test_thread_update_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
-
         /** @var array $category */
         $category = $this->fakeCategory();
 
@@ -483,12 +474,12 @@ class UserForumThreadControllerTest extends TestCase
 
     public function test_thread_update_validation_fail()
     {
-        $user = $this->fakeCurrentUserCloak();
-        $thread = $this->fakeThread(null, $user->getId());
+        $user = $this->fakeUser();
+        $thread = $this->fakeThread(null, $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PATCH',
             '/thread/update/' . $thread['id'],
             ['title' => '']
@@ -522,19 +513,19 @@ class UserForumThreadControllerTest extends TestCase
 
     public function test_thread_delete_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $this->fakePost($thread['id'], $user->getId());
+        $this->fakePost($thread['id'], $user['id']);
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             '/thread/delete/' . $thread['id']
         );
@@ -547,7 +538,7 @@ class UserForumThreadControllerTest extends TestCase
             ConfigService::$tableThreadReads,
             [
                 'thread_id' => $thread['id'],
-                'reader_id' => $user->getId()
+                'reader_id' => $user['id']
             ]
         );
     }

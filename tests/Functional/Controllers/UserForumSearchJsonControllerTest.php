@@ -16,9 +16,9 @@ class UserForumSearchJsonControllerTest extends TestCase
     protected function getRandomWordsFromSentence($sentence, $count = 5)
     {
         $words = array_filter(
-            // splits sentence into words array
+        // splits sentence into words array
             str_word_count($sentence, 1),
-            function($word) {
+            function ($word) {
                 // this filters out small words ignored in search
                 return strlen($word) > 5;
             }
@@ -31,15 +31,13 @@ class UserForumSearchJsonControllerTest extends TestCase
 
     public function test_search_index()
     {
-        $this->fakeCurrentUserCloak();
-
-        $author = $this->fakeUserCloak();
+        $author = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $author->getId());
+        $thread = $this->fakeThread($category['id'], $author['id']);
 
         $posts = [];
         $authors = [$author];
@@ -49,12 +47,12 @@ class UserForumSearchJsonControllerTest extends TestCase
         for ($i = 0; $i < $postCount; $i++) {
 
             if ($i % 3 == 0) {
-                $author = $this->fakeUserCloak();
+                $author = $this->fakeUser();
                 /** @var array $thread */
-                $thread = $this->fakeThread($category['id'], $author->getId());
+                $thread = $this->fakeThread($category['id'], $author['id']);
             }
 
-            $posts[] = $this->fakePost($thread['id'], $author->getId());
+            $posts[] = $this->fakePost($thread['id'], $author['id']);
         }
 
         $page = 1;
@@ -64,13 +62,19 @@ class UserForumSearchJsonControllerTest extends TestCase
         // this selects some random words from post content, to assert it later as first result
         $term = $this->getRandomWordsFromSentence($topSearchResult['content']);
 
-        $this->artisan('command:createSearchIndexes');
+        $this->artisan('command:createForumSearchIndexes');
 
-        $response = $this->call('GET', self::API_PREFIX . '/search', [
-            'page' => $page,
-            'limit' => $limit,
-            'term' => $term
-        ]);
+        $response =
+            $this->actingAs($this->fakeUser())
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/search',
+                    [
+                        'page' => $page,
+                        'limit' => $limit,
+                        'term' => $term,
+                    ]
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());

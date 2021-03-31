@@ -15,20 +15,20 @@ class UserForumPostControllerTest extends TestCase
 
     public function test_post_like_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/post/like/' . $post['id']
         );
@@ -41,14 +41,14 @@ class UserForumPostControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_like_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -65,7 +65,7 @@ class UserForumPostControllerTest extends TestCase
             new NotAllowedException('You are not allowed to like-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/post/like/' . $post['id']
         );
@@ -78,19 +78,19 @@ class UserForumPostControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_like_not_exists()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
         $postId = rand(0, 32767);
 
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/post/like/' . $postId
         );
@@ -103,29 +103,29 @@ class UserForumPostControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $postId,
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_unlike_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $user->getId(),
+            'liker_id' => $user['id'],
             'liked_on' => $dateTime,
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
@@ -139,13 +139,13 @@ class UserForumPostControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
 
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             '/post/unlike/' . $post['id']
         );
@@ -158,14 +158,14 @@ class UserForumPostControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_unlike_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -182,7 +182,7 @@ class UserForumPostControllerTest extends TestCase
 
         $postLike = [
             'post_id' => $post['id'],
-            'liker_id' => $user->getId(),
+            'liker_id' => $user['id'],
             'liked_on' => $dateTime,
             'created_at' => $dateTime,
             'updated_at' => $dateTime,
@@ -196,7 +196,7 @@ class UserForumPostControllerTest extends TestCase
             new NotAllowedException('You are not allowed to like-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'DELETE',
             '/post/unlike/' . $post['id']
         );
@@ -209,20 +209,20 @@ class UserForumPostControllerTest extends TestCase
             ConfigService::$tablePostLikes,
             [
                 'post_id' => $post['id'],
-                'liker_id' => $user->getId()
+                'liker_id' => $user['id']
             ]
         );
     }
 
     public function test_post_store_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         $postData = [
             'content' => $this->faker->sentence(),
@@ -231,7 +231,7 @@ class UserForumPostControllerTest extends TestCase
 
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/post/store',
             $postData
@@ -245,14 +245,11 @@ class UserForumPostControllerTest extends TestCase
                 'thread_id' => $thread['id']
             ]
         );
-
-        // assert the session has the success message
-        $response->assertSessionHas('success', true);
     }
 
     public function test_post_store_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -271,7 +268,7 @@ class UserForumPostControllerTest extends TestCase
             new NotAllowedException('You are not allowed to like-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PUT',
             '/post/store',
             $postData
@@ -292,11 +289,9 @@ class UserForumPostControllerTest extends TestCase
 
     public function test_post_store_validation_fail()
     {
-        $this->fakeCurrentUserCloak();
-
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs()->call(
             'PUT',
             '/post/store',
             []
@@ -310,16 +305,16 @@ class UserForumPostControllerTest extends TestCase
 
     public function test_post_update_with_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $newContent = $this->faker->sentence();
 
@@ -328,7 +323,7 @@ class UserForumPostControllerTest extends TestCase
             ->method('columns')
             ->willReturn(['content' => $newContent]);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PATCH',
             '/post/update/' . $post['id'],
             ['content' => $newContent]
@@ -342,14 +337,11 @@ class UserForumPostControllerTest extends TestCase
                 'content' => $newContent
             ]
         );
-
-        // assert the session has the success message
-        $response->assertSessionHas('success', true);
     }
 
     public function test_post_update_without_permission()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -368,7 +360,7 @@ class UserForumPostControllerTest extends TestCase
             new NotAllowedException('You are not allowed to like-posts')
         );
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PATCH',
             '/post/update/' . $post['id'],
             ['content' => $newContent]
@@ -389,20 +381,20 @@ class UserForumPostControllerTest extends TestCase
 
     public function test_post_update_validation_fail()
     {
-        $user = $this->fakeCurrentUserCloak();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $user->getId());
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
         /** @var array $post */
-        $post = $this->fakePost($thread['id'], $user->getId());
+        $post = $this->fakePost($thread['id'], $user['id']);
 
         $this->permissionServiceMock->method('can')->willReturn(true);
 
-        $response = $this->call(
+        $response = $this->actingAs($user)->call(
             'PATCH',
             '/post/update/' . $post['id'],
             []
@@ -417,8 +409,6 @@ class UserForumPostControllerTest extends TestCase
 
     public function test_post_update_not_found()
     {
-        $this->fakeCurrentUserCloak();
-
         $newContent = $this->faker->sentence();
 
         $this->permissionServiceMock->method('can')->willReturn(true);
@@ -426,7 +416,7 @@ class UserForumPostControllerTest extends TestCase
             ->method('columns')
             ->willReturn(['content' => $newContent]);
 
-        $response = $this->call(
+        $response = $this->actingAs()->call(
             'PATCH',
             '/post/update/' . rand(0, 32767),
             ['content' => $newContent]
