@@ -100,4 +100,21 @@ class CategoryRepository extends RepositoryBase
             ->whereIn(ConfigService::$tableCategories . '.id', $ids)
             ->get();
     }
+
+    /**
+     * @param $string
+     *
+     * @return string
+     */
+    public static function sanitizeForSlug($string)
+    {
+        return strtolower(
+            preg_replace(
+                '/(\-)+/',
+                '-',
+                str_replace(' ', '-', preg_replace('/[^ \w]+/', '', str_replace('&', 'and', trim($string))))
+            )
+        );
+    }
+
 }
