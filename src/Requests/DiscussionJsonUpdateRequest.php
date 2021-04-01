@@ -2,7 +2,7 @@
 
 namespace Railroad\Railforums\Requests;
 
-class DiscussionJsonCreateRequest extends FormRequest
+class DiscussionJsonUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,7 @@ class DiscussionJsonCreateRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' =>'required|string|max:255',
+            'title' =>'min:1|string|max:255',
             'topic' =>'nullable|string|max:255',
             'description' => 'nullable|string',
             'weight' => 'nullable|numeric'

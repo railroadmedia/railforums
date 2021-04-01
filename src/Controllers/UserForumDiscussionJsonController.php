@@ -10,6 +10,7 @@ use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\CategoryRepository;
 use Railroad\Railforums\Requests\DiscussionJsonCreateRequest;
 use Railroad\Railforums\Requests\DiscussionJsonIndexRequest;
+use Railroad\Railforums\Requests\DiscussionJsonUpdateRequest;
 use Railroad\Railforums\Responses\JsonPaginatedResponse;
 
 class UserForumDiscussionJsonController extends Controller
@@ -41,24 +42,25 @@ class UserForumDiscussionJsonController extends Controller
     /**
      * @param DiscussionJsonIndexRequest $request
      * @return JsonPaginatedResponse
+     * @throws NotAllowedException
      */
     public function index(DiscussionJsonIndexRequest $request)
     {
-        $this->permissionService->canOrThrow(auth()->id(), 'index-categories');
+        $this->permissionService->canOrThrow(auth()->id(), 'index-discussions');
 
-        $amount = $request->get('limit', 10);
+        $amount = $request->get('amount', 10);
         $page = $request->get('page', 1);
 
-        $categories = $this->categoryRepository->getDecoratedCategories(
-                $amount,
-                $page
-            )
+        $discussions = $this->categoryRepository->getDecoratedCategories(
+            $amount,
+            $page
+        )
             ->toArray();
 
-        $categoriesCount = $this->categoryRepository->getCategoriesCount();
+        $discussionsCount = $this->categoryRepository->getCategoriesCount();
 
         return new JsonPaginatedResponse(
-            $categories, $categoriesCount, null, 200
+            $discussions, $discussionsCount, null, 200
         );
     }
 
@@ -66,18 +68,16 @@ class UserForumDiscussionJsonController extends Controller
      * @param $id
      * @return JsonResponse
      * @throws NotAllowedException
+     * @throws \Throwable
      */
     public function show($id)
     {
-         $this->permissionService->canOrThrow(auth()->id(), 'show-categories');
+        $this->permissionService->canOrThrow(auth()->id(), 'show-discussions');
 
-        $categories = $this->categoryRepository->getDecoratedCategoriesByIds([$id]);
+        $discussions = $this->categoryRepository->getDecoratedCategoriesByIds([$id]);
+        throw_if(!$discussions || $discussions->isEmpty(), new NotFoundHttpException('Discussion not found'));
 
-        if (!$categories || $categories->isEmpty()) {
-            return response()->json('Discussion not found', 404);
-        }
-
-        return response()->json($categories->first());
+        return response()->json($discussions->first());
     }
 
     /**
@@ -99,7 +99,8 @@ class UserForumDiscussionJsonController extends Controller
                     [
                         'title',
                         'description',
-                        'weight'
+                        'weight',
+                        'topic',
                     ]
                 ),
                 [
@@ -107,14 +108,67 @@ class UserForumDiscussionJsonController extends Controller
                     'slug' => CategoryRepository::sanitizeForSlug(
                         $request->get('title')
                     ),
-                     'created_at' => $now,
+                    'created_at' => $now,
                 ]
             )
         );
 
-        $categories = $this->categoryRepository->getDecoratedCategoriesByIds([$discussion->id]);
+        $discussions = $this->categoryRepository->getDecoratedCategoriesByIds([$discussion->id]);
 
-        return response()->json($categories->first());
+        return response()->json($discussions->first());
     }
 
+    /**
+     * @param DiscussionJsonUpdateRequest $request
+     * @param $id
+     * @return JsonResponse
+     * @throws NotAllowedException
+     * @throws \Throwable
+     */
+    public function update(DiscussionJsonUpdateRequest $request, $id)
+    {
+        $this->permissionService->canOrThrow(auth()->id(), 'update-discussions');
+
+        $discussion = $this->categoryRepository->read($id);
+        throw_if(!$discussion, new NotFoundHttpException());
+
+        $discussion = $this->categoryRepository->update(
+            $id,
+            array_merge(
+                $this->permissionService->columns(
+                    auth()->id(),
+                    'update-discussions',
+                    $request->all(),
+                    ['title']
+                ),
+                [
+                    'updated_at' => Carbon::now()
+                        ->toDateTimeString(),
+                ]
+            )
+        );
+
+        $discussions = $this->categoryRepository->getDecoratedThreadsByIds([$discussion->id]);
+
+        return response()->json($discussions->first());
+    }
+
+    /**
+     * @param $id
+     * @return JsonResponse
+     * @throws NotAllowedException
+     * @throws \Throwable
+     */
+    public function delete($id)
+    {
+        $this->permissionService->canOrThrow(auth()->id(), 'delete-discussions');
+
+        $discussion = $this->categoryRepository->read($id);
+        throw_if(!$discussion, new NotFoundHttpException());
+
+        $result = $this->categoryRepository->delete($id);
+        throw_if(!$result, new NotFoundHttpException());
+
+        return new JsonResponse(null, 204);
+    }
 }
