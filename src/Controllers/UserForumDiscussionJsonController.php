@@ -12,6 +12,7 @@ use Railroad\Railforums\Requests\DiscussionJsonCreateRequest;
 use Railroad\Railforums\Requests\DiscussionJsonIndexRequest;
 use Railroad\Railforums\Requests\DiscussionJsonUpdateRequest;
 use Railroad\Railforums\Responses\JsonPaginatedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumDiscussionJsonController extends Controller
 {
