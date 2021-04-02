@@ -194,6 +194,8 @@ class TestCase extends BaseTestCase
             'slug' => strtolower(implode('-', $this->faker->words(5))),
             'description' => $this->faker->sentence(20),
             'weight' => $this->faker->numberBetween(),
+            'topic' => $this->faker->text,
+            'brand' => config('railforums.brand')
         ];
 
         $categoryId =
