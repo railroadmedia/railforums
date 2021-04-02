@@ -3,12 +3,28 @@
 namespace Railroad\Railforums\Repositories;
 
 use Illuminate\Database\Query\Builder;
+use Railroad\Railforums\Decorators\DiscussionDecorator;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
 
 class CategoryRepository extends RepositoryBase
 {
+    /**
+     * @var DiscussionDecorator
+     */
+    private $discussionDecorator;
+
+    /**
+     * CategoryRepository constructor.
+     *
+     * @param DiscussionDecorator $discussionDecorator
+     */
+    public function __construct(DiscussionDecorator $discussionDecorator)
+    {
+        $this->discussionDecorator = $discussionDecorator;
+    }
+
     /**
      * @return CachedQuery|$this
      */
@@ -35,13 +51,15 @@ class CategoryRepository extends RepositoryBase
             $this->getDecoratedQuery()
                 ->limit($amount)
                 ->skip($amount * ($page - 1))
-                ->orderByRaw('created_at desc, title asc')
+                ->orderByRaw('created_at desc')
                 ->where(
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
                 );
 
-        return $query->get();
+        $discussions = $query->get();
+
+        return $this->discussionDecorator->decorate($discussions);
     }
 
     /**
@@ -71,18 +89,20 @@ class CategoryRepository extends RepositoryBase
         return $this->query()
             ->select(ConfigService::$tableCategories . '.*')
             ->selectSub(
-                function (Builder $builder) {
+                            function (Builder $builder) {
 
-                    return $builder->selectRaw('COUNT(*)')
-                        ->from(ConfigService::$tableThreads)
-                        ->whereRaw(
-                            ConfigService::$tableThreads . '.category_id = ' . ConfigService::$tableCategories . '.id'
+                                return $builder->selectRaw('COUNT(*)')
+                                    ->from(ConfigService::$tablePosts)
+                                    ->whereRaw(
+                                        ConfigService::$tablePosts . '.thread_id IN (SELECT '.ConfigService::$tableThreads . '.id'.' FROM '.ConfigService::$tableThreads.'
+                                        WHERE  '.ConfigService::$tableThreads . '.category_id =  ' . ConfigService::$tableCategories . '.id'.'
+                                         ) '
+                                    )
+                                    ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+                                    ->limit(1);
+                            },
+                            'post_count'
                         )
-                        ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-                        ->limit(1);
-                },
-                'thread_count'
-            )
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
     }
 
