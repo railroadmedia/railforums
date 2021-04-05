@@ -1,4 +1,18 @@
 <?php
+//discussions
+Route::put(
+    'discussion/store',
+    \Railroad\Railforums\Controllers\UserForumDiscussionController::class . '@store'
+)->name('railforums.discussion.store');
+Route::patch(
+    'discussion/update/{id}',
+    \Railroad\Railforums\Controllers\UserForumDiscussionController::class . '@update'
+)->name('railforums.discussion.update');
+Route::delete(
+    'discussion/delete/{id}',
+    \Railroad\Railforums\Controllers\UserForumDiscussionController::class . '@delete'
+)->name('railforums.discussion.delete');
+
 // threads
 Route::put(
     'thread/store',
@@ -165,6 +179,17 @@ Route::group(
             'discussions/index',
             \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@index'
         )->name('railforums.api.discussions.index');
+
+        Route::patch(
+            'discussions/update/{id}',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@update'
+        )->name('railforums.api.discussions.update');
+
+        Route::delete(
+            'discussions/delete/{id}',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@delete'
+        )->name('railforums.api.discussions.delete');
+
     });
 
 // -----------------------
@@ -277,5 +302,15 @@ Route::group(
         Route::get(
             'discussions/index',
             \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@index'
+        );
+
+        Route::patch(
+            'discussions/update/{id}',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@update'
+        );
+
+        Route::delete(
+            'discussions/delete/{id}',
+            \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@delete'
         );
     });
