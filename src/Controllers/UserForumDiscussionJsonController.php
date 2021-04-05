@@ -149,7 +149,7 @@ class UserForumDiscussionJsonController extends Controller
             )
         );
 
-        $discussions = $this->categoryRepository->getDecoratedThreadsByIds([$discussion->id]);
+        $discussions = $this->categoryRepository->getDecoratedCategoriesByIds([$discussion->id]);
 
         return response()->json($discussions->first());
     }

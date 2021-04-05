@@ -229,14 +229,16 @@ class TestCase extends BaseTestCase
         return $thread;
     }
 
-    protected function fakePost($threadId = null, $authorId = null)
+    protected function fakePost($threadId = null, $authorId = null, $content = null,  $updatedAt = null)
     {
         $post = [
             'thread_id' => $threadId ?? $this->faker->randomNumber(),
             'author_id' => $authorId ?? $this->faker->randomNumber(),
             'prompting_post_id' => $this->faker->randomNumber(),
-            'content' => $this->faker->sentence(20),
+            'content' => $content ?? $this->faker->sentence(20),
             'state' => PostRepository::STATE_PUBLISHED,
+            'updated_at' => $updatedAt ?? Carbon::instance($this->faker->dateTime)
+                    ->toDateTimeString(),
             'published_on' => Carbon::instance($this->faker->dateTime)
                 ->toDateTimeString(),
         ];
@@ -363,11 +365,7 @@ class TestCase extends BaseTestCase
             $user = $this->fakeUser();
         }
 
-        //  $this->withHeader('Authorization', "Bearer " . $user['token']);
-
         parent::actingAs($user);
-
-        //$this->authManager->guard()->onceUsingId($user['id']);
 
         request()->setUserResolver(
             function () use ($user) {

@@ -6,9 +6,8 @@ use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Decorators\DiscussionDecorator;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Queries\CachedQuery;
-use Railroad\Resora\Repositories\RepositoryBase;
 
-class CategoryRepository extends RepositoryBase
+class CategoryRepository extends EventDispatchingRepository
 {
     /**
      * @var DiscussionDecorator
@@ -137,4 +136,28 @@ class CategoryRepository extends RepositoryBase
         );
     }
 
+    public function getCreateEvent($entity)
+    {
+        return null;
+    }
+
+    public function getReadEvent($entity)
+    {
+        return null;
+    }
+
+    public function getUpdateEvent($entity)
+    {
+        return null;
+    }
+
+    public function getDestroyEvent($entity)
+    {
+        return null;
+    }
+
+    public function getDeleteEvent($entity)
+    {
+        return null;
+    }
 }
