@@ -87,24 +87,8 @@ class CategoryRepository extends EventDispatchingRepository
     {
         return $this->query()
             ->select(ConfigService::$tableCategories . '.*')
-            ->selectSub(
-                            function (Builder $builder) {
-
-                                return $builder->selectRaw('COUNT(*)')
-                                    ->from(ConfigService::$tablePosts)
-                                    ->whereRaw(
-                                        ConfigService::$tablePosts . '.thread_id IN (SELECT '.ConfigService::$tableThreads . '.id'.' FROM '.ConfigService::$tableThreads.'
-                                        WHERE  '.ConfigService::$tableThreads . '.category_id =  ' . ConfigService::$tableCategories . '.id'.'
-                                         ) '
-                                    )
-                                    ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                                    ->limit(1);
-                            },
-                            'post_count'
-                        )
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
     }
-
 
     /**
      * Returns the categories and associated data
