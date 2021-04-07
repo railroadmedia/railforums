@@ -234,7 +234,8 @@ class ThreadRepository extends EventDispatchingRepository
     public function getDecoratedQuery()
     {
         return $this->query()
-            ->select(ConfigService::$tableThreads . '.*')
+            ->select(ConfigService::$tableThreads . '.*', ConfigService::$tableCategories.'.slug as category_slug')
+            ->join(ConfigService::$tableCategories,ConfigService::$tableThreads . '.category_id','=',ConfigService::$tableCategories.'.id' )
             ->selectSub(
                 function (Builder $builder) {
 
