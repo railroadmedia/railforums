@@ -25,6 +25,7 @@ return [
         'post_reports' => 'post_reports',
         'post_replies' => 'post_replies',
         'search_indexes' => 'search_indexes',
+        'user_signatures' => 'user_signatures',
     ],
 
     // host does the db migrations, clients do not

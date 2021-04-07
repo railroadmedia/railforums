@@ -81,6 +81,7 @@ class ForumServiceProvider extends EventServiceProvider
         ConfigService::$tablePostReports = ConfigService::$tablePrefix . config('railforums.tables.post_reports');
         ConfigService::$tablePostReplies = ConfigService::$tablePrefix . config('railforums.tables.post_replies');
         ConfigService::$tableSearchIndexes = ConfigService::$tablePrefix . config('railforums.tables.search_indexes');
+        ConfigService::$tableUserSignatures = ConfigService::$tablePrefix. config('railforums.tables.user_signatures');
 
         // author table
         ConfigService::$authorTableName = config('railforums.author_table_name');

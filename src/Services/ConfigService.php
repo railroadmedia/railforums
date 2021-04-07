@@ -90,6 +90,11 @@ class ConfigService
     public static $tableSearchIndexes;
 
     /**
+     * @var string
+     */
+    public static $tableUserSignatures;
+
+    /**
      * @var array
      */
     public static $controllerMiddleware;

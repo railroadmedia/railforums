@@ -313,4 +313,19 @@ Route::group(
             'discussions/delete/{id}',
             \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@delete'
         );
+
+        //user signatures
+        Route::put(
+            'signature/store',
+            \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@store'
+        );
+        Route::patch(
+            'signature/update/{id}',
+            \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@update'
+        );
+        Route::delete(
+            'signature/delete/{id}',
+            \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@delete'
+        );
+
     });
