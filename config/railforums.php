@@ -120,4 +120,7 @@ return [
             'create-threads',
         ],
     ],
+
+    //topics
+    'topics' => []
 ];
