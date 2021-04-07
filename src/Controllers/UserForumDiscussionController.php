@@ -70,20 +70,13 @@ class UserForumDiscussionController extends Controller
                     'slug' => CategoryRepository::sanitizeForSlug(
                         $request->get('title')
                     ),
+                    'topic' => config('railforums.topics')[$request->get('topic')] ?? null,
                     'created_at' => $now,
                 ]
             )
         );
 
-        $message = ['success' => true];
-
-        return $request->has('redirect') ?
-            redirect()
-                ->away($request->get('redirect'))
-                ->with($message) :
-            redirect()
-                ->back()
-                ->with($message);
+        return redirect()->to('/members/forums');
     }
 
     /**
