@@ -38,7 +38,6 @@ class DiscussionDecorator implements DecoratorInterface
                     ->first();
 
             $discussion['post_count'] = $posts->post_count;
-            $discussion['url'] = url()->route('forums.thread.list', [$discussion['slug'],$discussion['id'] ]);
 
             $latestPosts =
                 $this->databaseManager->connection(config('railforums.database_connection'))

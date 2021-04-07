@@ -38,23 +38,23 @@ class CategoryRepository extends EventDispatchingRepository
     }
 
     /**
-     * @param $amount
-     * @param $page
      * @return mixed
      */
-    public function getDecoratedCategories(
-        $amount,
-        $page
-    ) {
+    public function getDecoratedCategories($amount = null, $page = null)
+    {
         $query =
             $this->getDecoratedQuery()
-                ->limit($amount)
-                ->skip($amount * ($page - 1))
                 ->orderByRaw('created_at desc')
                 ->where(
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
                 );
+
+        if ($amount) {
+            $query =
+                $query->limit($amount)
+                    ->skip($amount * ($page - 1));
+        }
 
         $discussions = $query->get();
 

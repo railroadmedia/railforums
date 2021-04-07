@@ -49,20 +49,11 @@ class UserForumDiscussionJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'index-discussions');
 
-        $amount = $request->get('amount', 10);
-        $page = $request->get('page', 1);
+        $discussions =
+            $this->categoryRepository->getDecoratedCategories()
+                ->toArray();
 
-        $discussions = $this->categoryRepository->getDecoratedCategories(
-            $amount,
-            $page
-        )
-            ->toArray();
-
-        $discussionsCount = $this->categoryRepository->getCategoriesCount();
-
-        return new JsonPaginatedResponse(
-            $discussions, $discussionsCount, null, 200
-        );
+        return response()->json($discussions);
     }
 
     /**
