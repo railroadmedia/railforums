@@ -3,17 +3,17 @@
 namespace Railroad\Railforums\Controllers;
 
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Exceptions\NotAllowedException;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\UserSignaturesRepository;
-use Railroad\Railforums\Requests\SignatureJsonCreateRequest;
+use Railroad\Railforums\Requests\SignatureCreateRequest;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
-class UserForumSignaturesJsonController extends Controller
+class UserForumSignaturesController extends Controller
 {
     /**
      * @var UserSignaturesRepository
@@ -26,7 +26,7 @@ class UserForumSignaturesJsonController extends Controller
     private $permissionService;
 
     /**
-     * UserForumSignaturesJsonController constructor.
+     * UserForumSignaturesController constructor.
      *
      * @param PermissionService $permissionService
      * @param UserSignaturesRepository $userSignaturesRepository
@@ -40,11 +40,11 @@ class UserForumSignaturesJsonController extends Controller
     }
 
     /**
-     * @param SignatureJsonCreateRequest $request
-     * @return JsonResponse
+     * @param SignatureCreateRequest $request
+     * @return RedirectResponse
      * @throws NotAllowedException
      */
-    public function store(SignatureJsonCreateRequest $request)
+    public function store(SignatureCreateRequest $request)
     {
         $this->permissionService->canOrThrow(auth()->id(), 'create-user-signature');
 
@@ -67,13 +67,21 @@ class UserForumSignaturesJsonController extends Controller
             )
         );
 
-        return response()->json($signature);
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
      * @param Request $request
      * @param $id
-     * @return JsonResponse
+     * @return RedirectResponse
      * @throws NotAllowedException
      * @throws Throwable
      */
@@ -93,18 +101,26 @@ class UserForumSignaturesJsonController extends Controller
                 'updated_at' => Carbon::now()
                     ->toDateTimeString(),
             ]
-
         );
 
-        return response()->json($signature);
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 
     /**
+     * @param Request $request
      * @param $id
-     * @return JsonResponse
+     * @return RedirectResponse
      * @throws Throwable
      */
-    public function delete($id)
+    public function delete(Request $request, $id)
     {
         $signature = $this->userSignaturesRepository->read($id);
         throw_if(!$signature, new NotFoundHttpException());
@@ -116,6 +132,14 @@ class UserForumSignaturesJsonController extends Controller
         $result = $this->userSignaturesRepository->destroy($id);
         throw_if(!$result, new NotFoundHttpException());
 
-        return new JsonResponse(null, 204);
+        $message = ['success' => true];
+
+        return $request->has('redirect') ?
+            redirect()
+                ->away($request->get('redirect'))
+                ->with($message) :
+            redirect()
+                ->back()
+                ->with($message);
     }
 }

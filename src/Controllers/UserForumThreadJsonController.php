@@ -13,6 +13,7 @@ use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Requests\ThreadJsonCreateRequest;
 use Railroad\Railforums\Requests\ThreadJsonIndexRequest;
 use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
+use Railroad\Railforums\Responses\JsonPaginatedResponse;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -184,12 +185,9 @@ class UserForumThreadJsonController extends Controller
             $followed
         );
 
-        $response = [
-            'threads' => $threads,
-            'count' => $threadsCount,
-        ];
-
-        return response()->json($response);
+        return new JsonPaginatedResponse(
+            $threads, $threadsCount, null, 200
+        );
     }
 
     /**

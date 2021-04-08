@@ -40,6 +40,7 @@ class ForumServiceProvider extends EventServiceProvider
         }
 
         $this->loadRoutesFrom(__DIR__ . '/../../routes/routes.php');
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
 
         $this->commands([
             CreateSearchIndexes::class

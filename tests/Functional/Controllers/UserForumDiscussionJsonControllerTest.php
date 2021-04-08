@@ -17,7 +17,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         parent::setUp();
     }
 
-    public function test_discussions_index_with_permission()
+    public function test_discussions_index_with_permission_and_pagination()
     {
         $discussions = [];
         $user = $this->fakeUser();
@@ -83,6 +83,73 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         $this->assertEquals(count($results['results']), $payload['amount']);
 
         // assert reponse entities have the requested category
+        foreach ($results['results'] as $index => $category) {
+            $this->assertEquals($category['id'], $discussions[$index]['id']);
+            $this->assertEquals($category['title'], $discussions[$index]['title']);
+            $this->assertEquals($category['latest_post']['id'], $latestPost[$category['id']]['id']);
+        }
+    }
+
+    public function test_discussions_index_with_permission_without_pagination()
+    {
+        $discussions = [];
+        $user = $this->fakeUser();
+
+        for ($i = 0; $i < 20; $i++) {
+            /** @var array $category */
+            $category = $this->fakeCategory();
+
+            $discussions[] = $category;
+
+            $thread1 = $this->fakeThread($category['id'], rand(1, 7));
+            $this->fakeThread($category['id'], rand(10, 15));
+
+            $this->fakePost(
+                $thread1['id'],
+                rand(2, 5),
+                'post 1',
+                Carbon::now()
+                    ->subDays(10)
+                    ->toDateTimeString()
+            );
+            $this->fakePost(
+                $thread1['id'],
+                rand(2, 5),
+                'post 1',
+                Carbon::now()
+                    ->subDays(1)
+                    ->toDateTimeString()
+            );
+            $latestPost[$category['id']] =
+                $this->fakePost(
+                    $thread1['id'],
+                    $user['id'],
+                    'post 2',
+                    Carbon::now()
+                        ->toDateTimeString()
+                );
+        }
+
+        $discussions =
+            collect($discussions)
+                ->sortBy('created_at')
+                ->toArray();
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+        $response = $this->call(
+            'GET',
+            self::API_PREFIX . '/discussions/index'
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        $this->assertEquals(count($results['results']), count($discussions));
+
+        // assert response entities have the requested category
         foreach ($results['results'] as $index => $category) {
             $this->assertEquals($category['id'], $discussions[$index]['id']);
             $this->assertEquals($category['title'], $discussions[$index]['title']);

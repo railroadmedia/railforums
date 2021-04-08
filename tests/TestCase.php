@@ -252,6 +252,23 @@ class TestCase extends BaseTestCase
         return $post;
     }
 
+    protected function fakeSignature($userId = null)
+    {
+         $signature = [
+            'signature' => $this->faker->sentence(20),
+            'user_id' => $userId ?? $this->faker->randomNumber(),
+            'brand' => config('railforums.brand')
+        ];
+
+        $signatureId =
+            $this->databaseManager->table(ConfigService::$tableUserSignatures)
+                ->insertGetId($signature);
+
+        $signature['id'] = $signatureId;
+
+        return $signature;
+    }
+
     /**
      * @return UserCloak
      */
