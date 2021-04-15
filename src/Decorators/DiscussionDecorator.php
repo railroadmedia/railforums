@@ -3,8 +3,8 @@
 namespace Railroad\Railforums\Decorators;
 
 use Illuminate\Database\DatabaseManager;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Services\ConfigService;
-use Railroad\Resora\Collections\BaseCollection;
 use Railroad\Resora\Decorators\DecoratorInterface;
 
 class DiscussionDecorator implements DecoratorInterface
@@ -14,9 +14,15 @@ class DiscussionDecorator implements DecoratorInterface
      */
     private $databaseManager;
 
-    public function __construct(DatabaseManager $databaseManager)
+    /**
+     * @var UserProviderInterface
+     */
+    private $userProvider;
+
+    public function __construct(DatabaseManager $databaseManager, UserProviderInterface $userProvider)
     {
         $this->databaseManager = $databaseManager;
+        $this->userProvider = $userProvider;
     }
 
     /**
@@ -57,21 +63,7 @@ class DiscussionDecorator implements DecoratorInterface
                     ->first();
 
             if ($latestPosts) {
-                $user =
-                    $this->databaseManager->connection(config('railforums.author_database_connection'))
-                        ->table(config('railforums.author_table_name'))
-                        ->select(
-                            [
-                                config('railforums.author_table_id_column_name'),
-                                config('railforums.author_table_display_name_column_name'),
-                                config('railforums.author_table_avatar_column_name'),
-                            ]
-                        )
-                        ->where(config('railforums.author_table_id_column_name'), $latestPosts->author_id)
-                        ->first();
-
-                $displayNameColumnName = config('railforums.author_table_display_name_column_name');
-                $avatarUrlColumnName = config('railforums.author_table_avatar_column_name');
+                $user = $this->userProvider->getUser($latestPosts->author_id);
 
                 $discussion['latest_post']['id'] = $latestPosts->post_id;
                 $discussion['latest_post']['created_at'] = $latestPosts->last_post_created_at;
@@ -79,9 +71,12 @@ class DiscussionDecorator implements DecoratorInterface
                 $discussion['latest_post']['thread_title'] = $latestPosts->title;
                 $discussion['latest_post']['author_id'] = $latestPosts->author_id;
 
-                $discussion['latest_post']['author_display_name'] = $user->$displayNameColumnName;
+                $discussion['latest_post']['author_display_name'] = $user->getDisplayName();
                 $discussion['latest_post']['author_avatar_url'] =
-                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
+                    $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
+
+                $discussion['access_level'] = $this->userProvider->getUserAccessLevel($latestPosts->author_id);
+
             }
         }
 

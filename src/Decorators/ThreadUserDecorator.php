@@ -3,6 +3,7 @@
 namespace Railroad\Railforums\Decorators;
 
 use Illuminate\Database\DatabaseManager;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Resora\Collections\BaseCollection;
 use Railroad\Resora\Decorators\DecoratorInterface;
 
@@ -13,9 +14,15 @@ class ThreadUserDecorator implements DecoratorInterface
      */
     private $databaseManager;
 
-    public function __construct(DatabaseManager $databaseManager)
+    /**
+     * @var UserProviderInterface
+     */
+    private $userProvider;
+
+    public function __construct(DatabaseManager $databaseManager, UserProviderInterface $userProvider)
     {
         $this->databaseManager = $databaseManager;
+        $this->userProvider = $userProvider;
     }
 
     /**
@@ -33,29 +40,18 @@ class ThreadUserDecorator implements DecoratorInterface
 
         $userIds = array_unique($userIds);
 
-        $users =
-            $this->databaseManager->connection(config('railforums.author_database_connection'))
-                ->table(config('railforums.author_table_name'))
-                ->select(
-                    [
-                        config('railforums.author_table_id_column_name'),
-                        config('railforums.author_table_display_name_column_name'),
-                        config('railforums.author_table_avatar_column_name'),
-                    ]
-                )
-                ->whereIn(config('railforums.author_table_id_column_name'), $userIds)
-                ->get()
-                ->keyBy(config('railforums.author_table_id_column_name'));
-
-        $displayNameColumnName = config('railforums.author_table_display_name_column_name');
-        $avatarUrlColumnName = config('railforums.author_table_avatar_column_name');
+        $users = $this->userProvider->getUsersByIds($userIds);
 
         foreach ($threads as $threadIndex => $thread) {
-            if (!empty($thread['last_post_user_id']) && !empty($users[$thread['last_post_user_id']])) {
+            if (!empty($thread['last_post_user_id']) && (!empty($users[$thread['last_post_user_id']]))) {
+
                 $user = $users[$thread['last_post_user_id']];
-                $threads[$threadIndex]['last_post_user_display_name'] = $user->$displayNameColumnName;
+
+                $threads[$threadIndex]['last_post_user_display_name'] = $user->getDisplayName();
                 $threads[$threadIndex]['last_post_user_avatar_url'] =
-                    $user->$avatarUrlColumnName ?? config('railforums.author_default_avatar_url');
+                    $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
+                $threads[$threadIndex]['access_level'] =
+                    $this->userProvider->getUserAccessLevel($thread['last_post_user_id']);
             }
         }
 

@@ -92,6 +92,7 @@ class TestCase extends BaseTestCase
                     $table->string('permission_level');
                     $table->string('avatar_url')
                         ->nullable();
+                    $table->dateTime('created_at');
                 }
             );
     }
@@ -408,6 +409,7 @@ class TestCase extends BaseTestCase
                         'display_name' => $this->faker->word,
                         'label' => $this->faker->word,
                         'permission_level' => $this->faker->word,
+                        'created_at' => Carbon::now(),
                     ]
                 );
 

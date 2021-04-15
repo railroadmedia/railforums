@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Events\ThreadUpdated;
@@ -22,16 +21,6 @@ class ThreadRepository extends EventDispatchingRepository
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 100;
-
-    /**
-     * @var ThreadUserDecorator
-     */
-    private $threadUserDecorator;
-
-    public function __construct(ThreadUserDecorator $threadUserDecorator)
-    {
-        $this->threadUserDecorator = $threadUserDecorator;
-    }
 
     public function getCreateEvent($entity)
     {

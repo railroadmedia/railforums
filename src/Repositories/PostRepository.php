@@ -24,27 +24,6 @@ class PostRepository extends EventDispatchingRepository
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 100;
 
-    /**
-     * @var PostUserDecorator
-     */
-    private $postUserDecorator;
-    /**
-     * @var ThreadUserDecorator
-     */
-    private $threadUserDecorator;
-
-    /**
-     * PostRepository constructor.
-     *
-     * @param PostUserDecorator $postUserDecorator
-     * @param ThreadUserDecorator $threadUserDecorator
-     */
-    public function __construct(PostUserDecorator $postUserDecorator, ThreadUserDecorator $threadUserDecorator)
-    {
-        $this->postUserDecorator = $postUserDecorator;
-        $this->threadUserDecorator = $threadUserDecorator;
-    }
-
     public function getCreateEvent($entity)
     {
         return new PostCreated($entity->id, auth()->id());
