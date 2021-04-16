@@ -76,7 +76,9 @@ class UserForumDiscussionController extends Controller
             )
         );
 
-        return redirect()->to('/members/forums');
+        $message = ['success' => true];
+
+        return redirect()->to('/members/forums')->with($message);
     }
 
     /**
@@ -110,13 +112,7 @@ class UserForumDiscussionController extends Controller
 
         $message = ['success' => true];
 
-        return $request->has('redirect') ?
-            redirect()
-                ->away($request->get('redirect'))
-                ->with($message) :
-            redirect()
-                ->back()
-                ->with($message);
+        return redirect()->to('/members/forums')->with($message);
     }
 
     /**
