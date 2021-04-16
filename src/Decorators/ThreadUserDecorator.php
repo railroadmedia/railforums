@@ -43,6 +43,8 @@ class ThreadUserDecorator implements DecoratorInterface
         $users = $this->userProvider->getUsersByIds($userIds);
 
         foreach ($threads as $threadIndex => $thread) {
+            $threads[$threadIndex]['author_display_name'] = (isset($users[$thread['author_id']]))?$users[$thread['author_id']]->getDisplayName():'';
+
             if (!empty($thread['last_post_user_id']) && (!empty($users[$thread['last_post_user_id']]))) {
 
                 $user = $users[$thread['last_post_user_id']];
