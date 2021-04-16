@@ -5,8 +5,6 @@ namespace Railroad\Railforums\Repositories;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
-use Railroad\Railforums\Decorators\PostUserDecorator;
-use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Events\PostCreated;
 use Railroad\Railforums\Events\PostDeleted;
 use Railroad\Railforums\Events\PostUpdated;
@@ -23,6 +21,21 @@ class PostRepository extends EventDispatchingRepository
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 100;
+
+    //    /**
+    //     * @var UserProviderInterface
+    //     */
+    //    private $userProvider;
+
+    //    /**
+    //     * PostRepository constructor.
+    //     *
+    //     * @param UserProviderInterface $userProvider
+    //     */
+    //    public function __construct(UserProviderInterface $userProvider)
+    //    {
+    //        $this->userProvider = $userProvider;
+    //    }
 
     public function getCreateEvent($entity)
     {
@@ -101,7 +114,7 @@ class PostRepository extends EventDispatchingRepository
      * @param int $page
      * @param int $threadId
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getDecoratedPosts($amount, $page, $threadId)
     {
@@ -122,7 +135,7 @@ class PostRepository extends EventDispatchingRepository
      *
      * @param array $ids
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getDecoratedPostsByIds($ids)
     {
@@ -136,7 +149,7 @@ class PostRepository extends EventDispatchingRepository
      *
      * @param int $id
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getAllPostIdsInThread($id)
     {
@@ -154,7 +167,7 @@ class PostRepository extends EventDispatchingRepository
     /**
      * Returns a decorated query to retrive posts and associated data
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return Builder
      */
     public function getDecoratedQuery()
     {
@@ -280,10 +293,6 @@ class PostRepository extends EventDispatchingRepository
      */
     public function createSearchIndexes()
     {
-        $authorsTable = config('railforums.author_table_name');
-        $authorsTableKey = config('railforums.author_table_id_column_name');
-        $displayNameColumn = config('railforums.author_table_display_name_column_name');
-
         $query =
             $this->baseQuery()
                 ->from(ConfigService::$tablePosts)
@@ -296,7 +305,6 @@ class PostRepository extends EventDispatchingRepository
         $query->chunk(
             self::CHUNK_SIZE,
             function (Collection $postsData) use (
-                $displayNameColumn,
                 $instance
             ) {
 
@@ -311,14 +319,14 @@ class PostRepository extends EventDispatchingRepository
                     $postEntities[] = new Entity((array)$postData);
                 }
 
-                $postsData = $this->postUserDecorator->decorate($postEntities);
+                $postsData = self::decorate($postEntities);
 
                 foreach ($postsData as $postData) {
 
                     $searchIndex = [
                         'high_value' => $this->getFilteredPostContent($postData->content),
                         'medium_value' => null,
-                        'low_value' => $postData->{$displayNameColumn},
+                        'low_value' => $postData->author_display_name,
                         'thread_id' => $postData->thread_id,
                         'post_id' => $postData->id,
                         'created_at' => $now,

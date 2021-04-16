@@ -332,10 +332,6 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function createSearchIndexes()
     {
-        $authorsTable = config('railforums.author_table_name');
-        $authorsTableKey = config('railforums.author_table_id_column_name');
-        $displayNameColumn = config('railforums.author_table_display_name_column_name');
-
         $query =
             $this->baseQuery()
                 ->from(ConfigService::$tableThreads)
@@ -348,7 +344,6 @@ class ThreadRepository extends EventDispatchingRepository
         $query->chunk(
             self::CHUNK_SIZE,
             function (Collection $threadsData) use (
-                $displayNameColumn,
                 $instance
             ) {
 
@@ -363,14 +358,14 @@ class ThreadRepository extends EventDispatchingRepository
                     $threadEntities[] = new Entity((array)$threadData);
                 }
 
-                $threadsData = $this->threadUserDecorator->decorate($threadEntities);
+                $threadsData = self::decorate($threadEntities);
 
                 foreach ($threadsData as $threadData) {
 
                     $searchIndex = [
                         'high_value' => null,
                         'medium_value' => $threadData->title,
-                        'low_value' => $threadData->{$displayNameColumn},
+                        'low_value' => $threadData->author_display_name ?? '',
                         'thread_id' => $threadData->id,
                         'post_id' => null,
                         'created_at' => $now,
