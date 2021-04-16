@@ -29,100 +29,118 @@
       - [Request Example](#request-example-4)
       - [Request Parameters](#request-parameters-4)
       - [Response Example](#response-example-4)
-    + [Store Thread - JSON controller](#store-thread---json-controller)
-      - [Permission required `create-threads`](#permission-required--create-threads--1)
+    + [Delete Thread - form controller](#delete-thread---form-controller)
+      - [Permission required `delete-threads`](#permission-required--delete-threads-)
       - [Request Example](#request-example-5)
       - [Request Parameters](#request-parameters-5)
       - [Response Example](#response-example-5)
-    + [Update Thread - JSON controller](#update-thread---json-controller)
-      - [Permission required `update-threads`](#permission-required--update-threads--1)
+    + [Store Thread - JSON controller](#store-thread---json-controller)
+      - [Permission required `create-threads`](#permission-required--create-threads--1)
       - [Request Example](#request-example-6)
       - [Request Parameters](#request-parameters-6)
       - [Response Example](#response-example-6)
-    + [Mark Thread as read - JSON controller](#mark-thread-as-read---json-controller)
-      - [Permission required `read-threads`](#permission-required--read-threads--1)
+    + [Update Thread - JSON controller](#update-thread---json-controller)
+      - [Permission required `update-threads`](#permission-required--update-threads--1)
       - [Request Example](#request-example-7)
       - [Request Parameters](#request-parameters-7)
       - [Response Example](#response-example-7)
-    + [Follow Thread - JSON controller](#follow-thread---json-controller)
-      - [Permission required `follow-threads`](#permission-required--follow-threads--2)
+    + [Mark Thread as read - JSON controller](#mark-thread-as-read---json-controller)
+      - [Permission required `read-threads`](#permission-required--read-threads--1)
       - [Request Example](#request-example-8)
       - [Request Parameters](#request-parameters-8)
       - [Response Example](#response-example-8)
-    + [Unfollow Thread - JSON controller](#unfollow-thread---json-controller)
-      - [Permission required `follow-threads`](#permission-required--follow-threads--3)
+    + [Follow Thread - JSON controller](#follow-thread---json-controller)
+      - [Permission required `follow-threads`](#permission-required--follow-threads--2)
       - [Request Example](#request-example-9)
       - [Request Parameters](#request-parameters-9)
       - [Response Example](#response-example-9)
-    + [Index Thread - JSON controller](#index-thread---json-controller)
-      - [Permission required `index-threads`](#permission-required--index-threads-)
+    + [Unfollow Thread - JSON controller](#unfollow-thread---json-controller)
+      - [Permission required `follow-threads`](#permission-required--follow-threads--3)
       - [Request Example](#request-example-10)
       - [Request Parameters](#request-parameters-10)
       - [Response Example](#response-example-10)
-    + [Show Thread - JSON controller](#show-thread---json-controller)
-      - [Permission required `show-threads`](#permission-required--show-threads-)
+    + [Index Thread - JSON controller](#index-thread---json-controller)
+      - [Permission required `index-threads`](#permission-required--index-threads-)
       - [Request Example](#request-example-11)
       - [Request Parameters](#request-parameters-11)
       - [Response Example](#response-example-11)
-    + [Delete Thread - JSON controller](#delete-thread---json-controller)
-      - [Permission required `delete-threads`](#permission-required--delete-threads-)
+    + [Show Thread - JSON controller](#show-thread---json-controller)
+      - [Permission required `show-threads`](#permission-required--show-threads-)
       - [Request Example](#request-example-12)
       - [Request Parameters](#request-parameters-12)
       - [Response Example](#response-example-12)
-    + [Store Post - forms controller](#store-post---forms-controller)
-      - [Permission required `create-posts`](#permission-required--create-posts-)
+    + [Delete Thread - JSON controller](#delete-thread---json-controller)
+      - [Permission required `delete-threads`](#permission-required--delete-threads--1)
       - [Request Example](#request-example-13)
       - [Request Parameters](#request-parameters-13)
       - [Response Example](#response-example-13)
-    + [Update Post - forms controller](#update-post---forms-controller)
+    + [Store Post - forms controller](#store-post---forms-controller)
+      - [Permission required `create-posts`](#permission-required--create-posts-)
       - [Request Example](#request-example-14)
-      - [Permission required `update-posts`](#permission-required--update-posts-)
       - [Request Parameters](#request-parameters-14)
       - [Response Example](#response-example-14)
-    + [Like Post - forms controller](#like-post---forms-controller)
-      - [Permission required `like-posts`](#permission-required--like-posts-)
+    + [Update Post - forms controller](#update-post---forms-controller)
       - [Request Example](#request-example-15)
+      - [Permission required `update-posts`](#permission-required--update-posts-)
       - [Request Parameters](#request-parameters-15)
       - [Response Example](#response-example-15)
-    + [Unlike Post - forms controller](#unlike-post---forms-controller)
-      - [Permission required `like-posts`](#permission-required--like-posts--1)
+    + [Like Post - forms controller](#like-post---forms-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts-)
       - [Request Example](#request-example-16)
       - [Request Parameters](#request-parameters-16)
       - [Response Example](#response-example-16)
-    + [Store Post - JSON controller](#store-post---json-controller)
-      - [Permission required `create-posts`](#permission-required--create-posts--1)
+    + [Unlike Post - forms controller](#unlike-post---forms-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts--1)
       - [Request Example](#request-example-17)
       - [Request Parameters](#request-parameters-17)
       - [Response Example](#response-example-17)
-    + [Update Post - JSON controller](#update-post---json-controller)
+    + [Store Post - JSON controller](#store-post---json-controller)
+      - [Permission required `create-posts`](#permission-required--create-posts--1)
       - [Request Example](#request-example-18)
-      - [Permission required `update-posts`](#permission-required--update-posts--1)
       - [Request Parameters](#request-parameters-18)
       - [Response Example](#response-example-18)
-    + [Like Post - JSON controller](#like-post---json-controller)
-      - [Permission required `like-posts`](#permission-required--like-posts--2)
+    + [Update Post - JSON controller](#update-post---json-controller)
       - [Request Example](#request-example-19)
+      - [Permission required `update-posts`](#permission-required--update-posts--1)
       - [Request Parameters](#request-parameters-19)
       - [Response Example](#response-example-19)
-    + [Unlike Post - JSON controller](#unlike-post---json-controller)
-      - [Permission required `like-posts`](#permission-required--like-posts--3)
+    + [Like Post - JSON controller](#like-post---json-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts--2)
       - [Request Example](#request-example-20)
       - [Request Parameters](#request-parameters-20)
       - [Response Example](#response-example-20)
-    + [Index Post - JSON controller](#index-post---json-controller)
-      - [Permission required `index-posts`](#permission-required--index-posts-)
+    + [Unlike Post - JSON controller](#unlike-post---json-controller)
+      - [Permission required `like-posts`](#permission-required--like-posts--3)
       - [Request Example](#request-example-21)
       - [Request Parameters](#request-parameters-21)
       - [Response Example](#response-example-21)
-    + [Show Post - JSON controller](#show-post---json-controller)
-      - [Permission required `show-posts`](#permission-required--show-posts-)
+    + [Index Post - JSON controller](#index-post---json-controller)
+      - [Permission required `index-posts`](#permission-required--index-posts-)
       - [Request Example](#request-example-22)
       - [Request Parameters](#request-parameters-22)
       - [Response Example](#response-example-22)
-    + [Search Posts and/or Threads - JSON controller](#search-posts-and-or-threads---json-controller)
+    + [Show Post - JSON controller](#show-post---json-controller)
+      - [Permission required `show-posts`](#permission-required--show-posts-)
       - [Request Example](#request-example-23)
       - [Request Parameters](#request-parameters-23)
       - [Response Example](#response-example-23)
+    + [Search Posts and/or Threads - JSON controller](#search-posts-and-or-threads---json-controller)
+      - [Request Example](#request-example-24)
+      - [Request Parameters](#request-parameters-24)
+      - [Response Example](#response-example-24)
+    + [Store Discussion - forms controller](#store-discussion---forms-controller)
+      - [Permission required `create-discussions`](#permission-required--create-discussions-)
+      - [Request Example](#request-example-25)
+      - [Request Parameters](#request-parameters-25)
+      - [Response Example](#response-example-25)
+    + [Update Discussion - forms controller](#update-discussion---forms-controller)
+      - [Permission required `update-discussions`](#permission-required--update-discussions-)
+      - [Request Example](#request-example-26)
+      - [Request Parameters](#request-parameters-26)
+      - [Response Example](#response-example-26)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 
 ## Install
 With composer command
@@ -1590,3 +1608,75 @@ $.ajax({
   "filter_options": null
 }
 ```
+
+### Store Discussion - forms controller
+
+```
+PUT /discussion/store
+```
+
+#### Permission required `create-discussions`
+
+#### Request Example
+
+```
+<form action="/discussion/store" method="POST">
+  <input name="_method" type="hidden" value="PUT">
+
+  <input name="title" type="text" required maxlength="255">
+  <input name="description" type="text">
+  <input name="topic" type="text">
+</form>
+```
+
+#### Request Parameters
+
+| path\|query\|body | key                | required | default            | description\|notes             |
+| ----------------- | ------------------ | -------- | ------------------ | ------------------------------ |
+| body              | _method            | yes      |                    | Set HTTP method verb to PUT    |
+| body              | title              | yes      |                    | Discussion title                   |
+| body              | description        | no       |                    | Discussion description             |
+
+
+#### Response Example
+
+``` 302 ```
+Redirects to forums index url.\
+Session has either success key set to true or error bag with validation errors.\
+``` 403 ``` when user does not have permission to create discussion
+
+### Update Discussion - forms controller
+
+```
+PATCH /discussion/update/{id}
+```
+
+#### Permission required `update-discussions`
+
+#### Request Example
+
+```
+<form action="/discussion/update/{id}" method="POST">
+  <input name="_method" type="hidden" value="PATCH">
+
+  <input name="title" type="text" required maxlength="255">
+</form>
+```
+
+#### Request Parameters
+
+| path\|query\|body | key            | required | default            | description\|notes             |
+| ----------------- | -------------- | -------- | ------------------ | ------------------------------ |
+| path              | {id}           | yes      |                    | The discussion id to update        |
+| body              | _method        | yes      |                    | Set HTTP method verb to PATCH  |
+| body              | title          |  no      |                    | New discussion title               |
+| body              | topic          |  no      |                    | New discussion topic               |
+| body              | description    |  no      |                    | New discussion description               |
+
+#### Response Example
+
+``` 302 ```
+Redirects to forum index URL. \
+Session has either success key set to true or error bag with validation errors.\
+``` 403 ``` when user does not have permission to update discussion\
+``` 404 ``` when specified discussion does not exist
