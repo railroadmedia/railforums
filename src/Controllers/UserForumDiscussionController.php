@@ -62,7 +62,7 @@ class UserForumDiscussionController extends Controller
                         'title',
                         'description',
                         'weight',
-                        'topic',
+                        'icon',
                     ]
                 ),
                 [
@@ -101,7 +101,7 @@ class UserForumDiscussionController extends Controller
                     auth()->id(),
                     'update-discussions',
                     $request->all(),
-                    ['title', 'description', 'topic']
+                    ['title', 'description', 'icon']
                 ),
                 [
                     'updated_at' => Carbon::now()

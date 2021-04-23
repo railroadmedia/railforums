@@ -95,7 +95,7 @@ class UserForumDiscussionJsonController extends Controller
                         'title',
                         'description',
                         'weight',
-                        'topic',
+                        'icon',
                     ]
                 ),
                 [
