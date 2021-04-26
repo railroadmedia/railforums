@@ -698,24 +698,6 @@ class UserForumPostJsonControllerTest extends TestCase
 
         // assert reponse like count
         $this->assertEquals($postResponse['like_count'], 5);
-
-        // assert 1st recent liker id
-        $this->assertEquals($postResponse['liker_1_id'], $user['id']);
-
-        // assert 1st recent liker display name
-        $this->assertEquals($postResponse['liker_1_display_name'], $user['display_name']);
-
-        // assert 2nd recent liker id
-        $this->assertEquals($postResponse['liker_2_id'], $otherUserTwo['id']);
-
-        // assert 2nd recent liker display name
-        $this->assertEquals($postResponse['liker_2_display_name'], $otherUserTwo['display_name']);
-
-        // assert 3rd recent liker id
-        $this->assertEquals($postResponse['liker_3_id'], $otherUserOne['id']);
-
-        // assert 3rd recent liker display name
-        $this->assertEquals($postResponse['liker_3_display_name'], $otherUserOne['display_name']);
     }
 
     public function test_post_show_not_exists()

@@ -14,10 +14,12 @@ use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use Railroad\Permissions\Providers\PermissionsServiceProvider;
 use Railroad\Permissions\Services\PermissionService;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Providers\ForumServiceProvider;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Services\ConfigService;
+use Tests\Fixtures\UserProvider;
 use Tests\Resources\Models\User;
 
 class TestCase extends BaseTestCase
@@ -77,6 +79,10 @@ class TestCase extends BaseTestCase
         }
 
         Carbon::setTestNow(Carbon::now());
+
+        $userProvider = new UserProvider();
+
+        $this->app->instance(UserProviderInterface::class, $userProvider);
     }
 
     protected function createUsersTable()
@@ -195,7 +201,6 @@ class TestCase extends BaseTestCase
             'slug' => strtolower(implode('-', $this->faker->words(5))),
             'description' => $this->faker->sentence(20),
             'weight' => $this->faker->numberBetween(),
-            'topic' => $this->faker->text,
             'brand' => config('railforums.brand')
         ];
 

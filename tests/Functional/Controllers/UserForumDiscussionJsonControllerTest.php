@@ -28,12 +28,12 @@ class UserForumDiscussionJsonControllerTest extends TestCase
 
             $discussions[] = $category;
 
-            $thread1 = $this->fakeThread($category['id'], rand(1, 7));
-            $this->fakeThread($category['id'], rand(10, 15));
+            $thread1 = $this->fakeThread($category['id'], $this->fakeUser()['id']);
+            $this->fakeThread($category['id'], $this->fakeUser()['id']);
 
             $this->fakePost(
                 $thread1['id'],
-                rand(2, 5),
+                $this->fakeUser()['id'],
                 'post 1',
                 Carbon::now()
                     ->subDays(10)
@@ -41,7 +41,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
             );
             $this->fakePost(
                 $thread1['id'],
-                rand(2, 5),
+                $this->fakeUser()['id'],
                 'post 1',
                 Carbon::now()
                     ->subDays(1)
@@ -203,8 +203,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         $this->assertArraySubset(
             [
                 'title' => $category['title'],
-                'description' => $category['description'],
-                'topic' => $category['topic'],
+                'description' => $category['description']
             ],
             $response->decodeResponseJson()
         );
@@ -315,8 +314,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
 
         $categoryData = [
             'title' => $this->faker->sentence(),
-            'description' => $this->faker->paragraph(),
-            'topic' => $this->faker->text,
+            'description' => $this->faker->paragraph()
         ];
 
         $this->permissionServiceMock->method('canOrThrow')
@@ -335,8 +333,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
             ConfigService::$tableCategories,
             [
                 'title' => $categoryData['title'],
-                'description' => $categoryData['description'],
-                'topic' => $categoryData['topic'],
+                'description' => $categoryData['description']
             ]
         );
     }
@@ -347,8 +344,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
 
         $categoryData = [
             'title' => $this->faker->sentence(),
-            'description' => $this->faker->paragraph(),
-            'topic' => $this->faker->text,
+            'description' => $this->faker->paragraph()
         ];
 
         $this->permissionServiceMock->method('canOrThrow')

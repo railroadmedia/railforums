@@ -14,26 +14,28 @@ class ChangePostTextCollationForEmojiSupport extends Migration
      */
     public function up()
     {
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePosts,
-                function ($table) {
+        if (config()->get('database.default') != 'railforums_testbench') {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(
+                    ConfigService::$tablePosts,
+                    function ($table) {
 
-                    DB::connection(ConfigService::$databaseConnectionName)
-                        ->statement(
-                            'ALTER TABLE ' .
-                            ConfigService::$tablePosts .
-                            ' MODIFY content TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
-                        );
+                        DB::connection(ConfigService::$databaseConnectionName)
+                            ->statement(
+                                'ALTER TABLE ' .
+                                ConfigService::$tablePosts .
+                                ' MODIFY content TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
+                            );
 
-                    DB::connection(ConfigService::$databaseConnectionName)
-                        ->statement(
-                            'ALTER TABLE ' .
-                            ConfigService::$tableThreads .
-                            ' MODIFY title TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
-                        );
-                }
-            );
+                        DB::connection(ConfigService::$databaseConnectionName)
+                            ->statement(
+                                'ALTER TABLE ' .
+                                ConfigService::$tableThreads .
+                                ' MODIFY title TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
+                            );
+                    }
+                );
+        }
     }
 
     /**
@@ -43,25 +45,27 @@ class ChangePostTextCollationForEmojiSupport extends Migration
      */
     public function down()
     {
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePosts,
-                function ($table) {
+        if (config()->get('database.default') != 'railforums_testbench') {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(
+                    ConfigService::$tablePosts,
+                    function ($table) {
 
-                    DB::connection(ConfigService::$databaseConnectionName)
-                        ->statement(
-                            'ALTER TABLE ' .
-                            ConfigService::$tablePosts .
-                            ' MODIFY content TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci;'
-                        );
+                        DB::connection(ConfigService::$databaseConnectionName)
+                            ->statement(
+                                'ALTER TABLE ' .
+                                ConfigService::$tablePosts .
+                                ' MODIFY content TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci;'
+                            );
 
-                    DB::connection(ConfigService::$databaseConnectionName)
-                        ->statement(
-                            'ALTER TABLE ' .
-                            ConfigService::$tableThreads .
-                            ' MODIFY title TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci;'
-                        );
-                }
-            );
+                        DB::connection(ConfigService::$databaseConnectionName)
+                            ->statement(
+                                'ALTER TABLE ' .
+                                ConfigService::$tableThreads .
+                                ' MODIFY title TEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci;'
+                            );
+                    }
+                );
+        }
     }
 }
