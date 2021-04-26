@@ -33,16 +33,9 @@ class PostUserDecorator implements DecoratorInterface
      */
     public function decorate($posts)
     {
-        $userIds = array_merge(
+        $userIds =
             $posts->pluck('author_id')
-                ->toArray(),
-            $posts->pluck('liker_1_id')
-                ->toArray(),
-            $posts->pluck('liker_2_id')
-                ->toArray(),
-            $posts->pluck('liker_3_id')
-                ->toArray()
-        );
+                ->toArray();
 
         $userIds = array_unique($userIds);
 
@@ -71,30 +64,6 @@ class PostUserDecorator implements DecoratorInterface
                 $posts[$postIndex]['author_days_as_member'] =
                     Carbon::parse($user->getCreatedAt())
                         ->diffInDays(Carbon::now());
-            }
-
-            if (!empty($users[$post['liker_1_id'] ?? null])) {
-                $user = $users[$post['liker_1_id']];
-                $posts[$postIndex]['liker_1_display_name'] = $user->getDisplayName();
-                $posts[$postIndex]['liker_1_avatar_url'] =
-                    $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
-                $posts[$postIndex]['liker_1_total_posts'] = $userPosts[$post['liker_1_id']] ?? 0;
-            }
-
-            if (!empty($users[$post['liker_2_id'] ?? null])) {
-                $user = $users[$post['liker_2_id']];
-                $posts[$postIndex]['liker_2_display_name'] = $user->getDisplayName();
-                $posts[$postIndex]['liker_2_avatar_url'] =
-                    $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
-                $posts[$postIndex]['liker_2_total_posts'] = $userPosts[$post['liker_2_id']] ?? 0;
-            }
-
-            if (!empty($users[$post['liker_3_id'] ?? null])) {
-                $user = $users[$post['liker_3_id']];
-                $posts[$postIndex]['liker_3_display_name'] = $user->getDisplayName();
-                $posts[$postIndex]['liker_3_avatar_url'] =
-                    $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
-                $posts[$postIndex]['liker_3_total_posts'] = $userPosts[$post['liker_3_id']] ?? 0;
             }
         }
 

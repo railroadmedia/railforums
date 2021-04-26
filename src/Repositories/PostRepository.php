@@ -172,17 +172,7 @@ class PostRepository extends EventDispatchingRepository
     public function getDecoratedQuery()
     {
         return $this->query()
-            ->select(ConfigService::$tablePosts . '.*')//            ->selectSub(
-            //                function (Builder $builder) {
-            //                    return $builder->select([
-            //                            config('railforums.author_table_display_name_column_name')
-            //                        ])
-            //                        ->from(config('railforums.author_table_name'))
-            //                        ->whereRaw(config('railforums.author_table_name') . '.id = author_id')
-            //                        ->limit(1);
-            //                },
-            //                'author_display_name'
-            //            )
+            ->select(ConfigService::$tablePosts . '.*')
             ->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*)')
@@ -208,83 +198,6 @@ class PostRepository extends EventDispatchingRepository
                 },
                 'is_liked_by_viewer'
             )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->selectRaw('liker_id')
-                        ->from(ConfigService::$tablePostLikes)
-                        ->limit(1)
-                        ->whereRaw(
-                            ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
-                        )
-                        ->orderBy('liked_on', 'desc');
-                },
-                'liker_1_id'
-            )//            ->selectSub(
-            //                function (Builder $builder) {
-            //                    return $builder->select([
-            //                            config('railforums.author_table_display_name_column_name')
-            //                        ])
-            //                        ->from(config('railforums.author_table_name'))
-            //                        ->limit(1)
-            //                        ->whereRaw(
-            //                            config('railforums.author_table_name') .
-            //                            '.id = liker_1_id'
-            //                        );
-            //                },
-            //                'liker_1_display_name'
-            //            )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->selectRaw('liker_id')
-                        ->from(ConfigService::$tablePostLikes)
-                        ->limit(1)
-                        ->skip(1)
-                        ->whereRaw(
-                            ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
-                        )
-                        ->orderBy('liked_on', 'desc');
-                },
-                'liker_2_id'
-            )//            ->selectSub(
-            //                function (Builder $builder) {
-            //                    return $builder->select([
-            //                            config('railforums.author_table_display_name_column_name')
-            //                        ])
-            //                        ->from(config('railforums.author_table_name'))
-            //                        ->limit(1)
-            //                        ->whereRaw(
-            //                            config('railforums.author_table_name') .
-            //                            '.id = liker_2_id'
-            //                        );
-            //                },
-            //                'liker_2_display_name'
-            //            )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->selectRaw('liker_id')
-                        ->from(ConfigService::$tablePostLikes)
-                        ->limit(1)
-                        ->skip(2)
-                        ->whereRaw(
-                            ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
-                        )
-                        ->orderBy('liked_on', 'desc');
-                },
-                'liker_3_id'
-            )//            ->selectSub(
-            //                function (Builder $builder) {
-            //                    return $builder->select([
-            //                            config('railforums.author_table_display_name_column_name')
-            //                        ])
-            //                        ->from(config('railforums.author_table_name'))
-            //                        ->limit(1)
-            //                        ->whereRaw(
-            //                            config('railforums.author_table_name') .
-            //                            '.id = liker_3_id'
-            //                        );
-            //                },
-            //                'liker_3_display_name'
-            //            )
             ->whereNull(ConfigService::$tablePosts . '.deleted_at');
     }
 
