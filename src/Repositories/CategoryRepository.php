@@ -44,7 +44,7 @@ class CategoryRepository extends EventDispatchingRepository
     {
         $query =
             $this->getDecoratedQuery()
-                ->orderByRaw('created_at desc')
+                ->orderByRaw('weight asc')
                 ->where(
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
@@ -99,9 +99,9 @@ class CategoryRepository extends EventDispatchingRepository
      */
     public function getDecoratedCategoriesByIds($ids)
     {
-        return $this->getDecoratedQuery()
+        return $this->discussionDecorator->decorate($this->getDecoratedQuery()
             ->whereIn(ConfigService::$tableCategories . '.id', $ids)
-            ->get();
+            ->get());
     }
 
     /**
