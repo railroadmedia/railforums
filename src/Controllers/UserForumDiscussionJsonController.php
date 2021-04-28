@@ -2,12 +2,14 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Exceptions\NotAllowedException;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\CategoryRepository;
+use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Requests\DiscussionJsonCreateRequest;
 use Railroad\Railforums\Requests\DiscussionJsonIndexRequest;
 use Railroad\Railforums\Requests\DiscussionJsonUpdateRequest;
@@ -22,6 +24,11 @@ class UserForumDiscussionJsonController extends Controller
     protected $categoryRepository;
 
     /**
+     * @var ThreadRepository
+     */
+    protected $threadRepository;
+
+    /**
      * @var PermissionService
      */
     private $permissionService;
@@ -34,10 +41,12 @@ class UserForumDiscussionJsonController extends Controller
      */
     public function __construct(
         PermissionService $permissionService,
-        CategoryRepository $categoryRepository
+        CategoryRepository $categoryRepository,
+        ThreadRepository $threadRepository
     ) {
         $this->permissionService = $permissionService;
         $this->categoryRepository = $categoryRepository;
+        $this->threadRepository = $threadRepository;
     }
 
     /**
@@ -65,14 +74,42 @@ class UserForumDiscussionJsonController extends Controller
      * @throws NotAllowedException
      * @throws \Throwable
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
         $this->permissionService->canOrThrow(auth()->id(), 'show-discussions');
 
-        $discussions = $this->categoryRepository->getDecoratedCategoriesByIds([$id]);
-        throw_if(!$discussions || $discussions->isEmpty(), new NotFoundHttpException('Discussion not found'));
+        $discussion =
+            $this->categoryRepository->getDecoratedCategoriesByIds([$id])
+                ->first();
 
-        return response()->json($discussions->first());
+        throw_if(!$discussion, new NotFoundHttpException('Discussion not found'));
+
+        $amount = $request->get('amount', 20);
+        $page = $request->get('page', 1);
+        $categoryIds = [$id];
+
+        $threads = $this->threadRepository->getDecoratedThreads(
+            $amount,
+            $page,
+            $categoryIds
+        )
+            ->keyBy('id');
+
+        $pinnedThreads = $this->threadRepository->getDecoratedThreads(
+            $amount,
+            $page,
+            $categoryIds,
+            true,
+            1
+        )
+            ->keyBy('id');
+
+        $discussion['threads'] = $pinnedThreads->merge($threads);
+        $discussion['thread_count'] = $this->threadRepository->getThreadsCount(
+            $categoryIds
+        );
+
+        return response()->json($discussion);
     }
 
     /**
