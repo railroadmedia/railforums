@@ -32,6 +32,7 @@ class DiscussionDecorator implements DecoratorInterface
     public function decorate($discussions)
     {
         foreach ($discussions as $discussion) {
+            $discussion['mobile_app_url'] = url()->route('railforums.mobile-app.show.discussion', [$discussion['id']]);
             $posts =
                 $this->databaseManager->connection(config('railforums.database_connection'))
                     ->table(ConfigService::$tablePosts . ' as p')
@@ -73,9 +74,6 @@ class DiscussionDecorator implements DecoratorInterface
                 $discussion['latest_post']['author_display_name'] = $user->getDisplayName();
                 $discussion['latest_post']['author_avatar_url'] =
                     $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
-
-                $discussion['access_level'] = $this->userProvider->getUserAccessLevel($latestPosts->author_id);
-
             }
         }
 
