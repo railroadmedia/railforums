@@ -23,7 +23,6 @@ class DiscussionJsonCreateRequest extends FormRequest
     {
         return [
             'title' =>'required|string|max:255',
-            'topic' =>'nullable|string|max:255',
             'description' => 'nullable|string',
             'weight' => 'nullable|numeric'
         ];

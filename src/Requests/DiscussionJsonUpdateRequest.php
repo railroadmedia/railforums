@@ -23,7 +23,6 @@ class DiscussionJsonUpdateRequest extends FormRequest
     {
         return [
             'title' =>'min:1|string|max:255',
-            'topic' =>'nullable|string|max:255',
             'description' => 'nullable|string',
             'weight' => 'nullable|numeric'
         ];
