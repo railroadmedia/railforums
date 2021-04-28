@@ -15,7 +15,7 @@ Route::group(
         Route::get(
             'thread/show/{id}',
             \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@show'
-        );
+        )->name('railforums.mobile-app.show.thread');
 
         Route::put(
             'thread/store',
@@ -104,7 +104,7 @@ Route::group(
         Route::get(
             'discussions/show/{id}',
             \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@show'
-        );
+        )->name('railforums.mobile-app.show.discussion');
 
         Route::get(
             'discussions/index',

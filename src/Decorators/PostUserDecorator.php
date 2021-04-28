@@ -60,14 +60,19 @@ class PostUserDecorator implements DecoratorInterface
 
         $users = $this->userProvider->getUsersByIds($userIds);
 
-        $signatures =   $this->databaseManager->connection(config('railforums.database_connection'))
-            ->table(ConfigService::$tableUserSignatures)
-            ->select('user_id', 'signature')
-            ->whereIn(ConfigService::$tableUserSignatures . '.user_id', $userIds)
-            ->where('brand', config('railforums.brand'))
-            ->groupBy('user_id')
-            ->get()
-            ->toArray();
+        $usersAccessLevel = $this->userProvider->getUsersAccessLevel($userIds);
+
+        $usersXp = $this->userProvider->getUsersXPAndRank($userIds);
+
+        $signatures =
+            $this->databaseManager->connection(config('railforums.database_connection'))
+                ->table(ConfigService::$tableUserSignatures)
+                ->select('user_id', 'signature')
+                ->whereIn(ConfigService::$tableUserSignatures . '.user_id', $userIds)
+                ->where('brand', config('railforums.brand'))
+                ->groupBy('user_id')
+                ->get()
+                ->toArray();
 
         $userSignatures = array_combine(array_column($signatures, 'user_id'), array_column($signatures, 'signature'));
 
@@ -85,6 +90,12 @@ class PostUserDecorator implements DecoratorInterface
                     Carbon::parse($user->getCreatedAt())
                         ->diffInDays(Carbon::now());
                 $posts[$postIndex]['author_signature'] = $userSignatures[$post['author_id']] ?? null;
+                $posts[$postIndex]['author_access_level'] = $usersAccessLevel[$post['author_id']] ?? null;
+                $posts[$postIndex]['author_xp'] =
+                    (array_key_exists($post['author_id'], $usersXp)) ? $usersXp[$post['author_id']]['xp'] : 0;
+                $posts[$postIndex]['author_xp_rank'] =
+                    (array_key_exists($post['author_id'], $usersXp)) ? $usersXp[$post['author_id']]['xp_rank'] :
+                        'Pianote Member';
             }
         }
 

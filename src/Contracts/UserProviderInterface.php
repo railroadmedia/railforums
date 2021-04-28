@@ -18,8 +18,20 @@ interface UserProviderInterface
 
     /**
      * @param array $userIds
-     * @return mixed
+     * @return array
      */
-    public function getUsersByIds(array $userIds);
+    public function getUsersByIds(array $userIds):array;
+
+    /**
+     * @param array $userIds
+     * @return array
+     */
+    public function getUsersAccessLevel(array $userIds):array;
+
+    /**
+     * @param array $userIds
+     * @return array
+     */
+    public function getUsersXPAndRank(array $userIds):array;
 
 }
