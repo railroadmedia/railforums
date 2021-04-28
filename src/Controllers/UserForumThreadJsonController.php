@@ -4,6 +4,7 @@ namespace Railroad\Railforums\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\PostRepository;
@@ -195,17 +196,22 @@ class UserForumThreadJsonController extends Controller
      *
      * @return JsonResponse
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
-        $this->permissionService->canOrThrow(auth()->id(), 'show-threads');
+        //$this->permissionService->canOrThrow(auth()->id(), 'show-threads');
 
-        $threads = $this->threadRepository->getDecoratedThreadsByIds([$id]);
+        $thread = $this->threadRepository->getDecoratedThreadsByIds([$id])->first();
 
-        if (!$threads || $threads->isEmpty()) {
+        if (!$thread) {
             throw new NotFoundHttpException();
         }
 
-        return response()->json($threads->first());
+        $amount = $request->get('amount', 20);
+        $page = $request->get('page', 1);
+
+        $thread['posts'] = $this->postRepository->getDecoratedPosts($amount, $page, $id);
+
+        return response()->json($thread);
     }
 
     /**
