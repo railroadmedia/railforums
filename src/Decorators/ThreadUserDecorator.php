@@ -43,22 +43,18 @@ class ThreadUserDecorator implements DecoratorInterface
         $users = $this->userProvider->getUsersByIds($userIds);
 
         foreach ($threads as $threadIndex => $thread) {
-            
-            $threads[$threadIndex]['mobile_app_url'] =  url()->route('railforums.mobile-app.show.thread', [$thread['id']]);
+
+            $threads[$threadIndex]['mobile_app_url'] =
+                url()->route('railforums.mobile-app.show.thread', [$thread['id']]);
 
             $threads[$threadIndex]['author_display_name'] =
                 (isset($users[$thread['author_id']])) ? $users[$thread['author_id']]->getDisplayName() : '';
 
-            if (!empty($thread['last_post_user_id']) && (!empty($users[$thread['last_post_user_id']]))) {
+            $threads[$threadIndex]['author_avatar_url'] =
+                $users[$thread['author_id']]->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
 
-                $user = $users[$thread['last_post_user_id']];
-
-                $threads[$threadIndex]['last_post_user_display_name'] = $user->getDisplayName();
-                $threads[$threadIndex]['last_post_user_avatar_url'] =
-                    $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
-                $threads[$threadIndex]['access_level'] =
-                    $this->userProvider->getUserAccessLevel($thread['last_post_user_id']);
-            }
+            $threads[$threadIndex]['author_access_level'] =
+                $this->userProvider->getUserAccessLevel($thread['author_id']);
         }
 
         return $threads;
