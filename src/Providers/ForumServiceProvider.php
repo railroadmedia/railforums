@@ -4,7 +4,6 @@ namespace Railroad\Railforums\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider;
 use Railroad\Railforums\Commands\CreateSearchIndexes;
-use Railroad\Railforums\DataMappers\UserCloakDataMapper;
 use Railroad\Railforums\Decorators\PostUserDecorator;
 use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\Services\ConfigService;

@@ -138,6 +138,12 @@
       - [Request Example](#request-example-26)
       - [Request Parameters](#request-parameters-26)
       - [Response Example](#response-example-26)
+  * [Mobile endpoints](#mobile-endpoints)
+    + [Index Discussions(Topics)](#index-discussions-topics-)
+      - [Permission required `index-discussions`](#permission-required--index-discussions-)
+      - [Request Example](#request-example-27)
+      - [Request Parameters](#request-parameters-27)
+      - [Response Example](#response-example-27)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -1680,3 +1686,170 @@ Redirects to forum index URL. \
 Session has either success key set to true or error bag with validation errors.\
 ``` 403 ``` when user does not have permission to update discussion\
 ``` 404 ``` when specified discussion does not exist
+
+
+## Mobile endpoints
+
+### Index Discussions(Topics) 
+
+```
+GET /forums/api/discussions/index
+```
+
+#### Permission required `index-discussions`
+
+#### Request Example
+
+```
+$.ajax({
+    url: '/forums/api/discussions/index',
+    type: 'get',
+    data: {amount: 2, page: 1},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key          | required | default | description\|notes                           |
+| ----------------- | ------------ | -------- | ------- | -------------------------------------------- |
+| query             | amount       | no       | 10      | The amount of discussions to return              |
+| query             | page         | no       | 1       | The page of discussions to return                |
+
+
+#### Response Example
+
+` 200 OK `
+```json
+{
+    "status": "ok",
+    "code": 200,
+    "page": 1,
+    "limit": 10,
+    "total_results": 7,
+    "results": [
+        {
+            "id": 1,
+            "title": "General Piano Discussion",
+            "slug": "general-piano-discussion",
+            "description": "Repellendus qui facere et eaque voluptatem sint ad vel. Architecto quia a nemo tenetur aspernatur aliquid. Laborum consequuntur sed dolor et. Consectetur natus est enim maiores aspernatur. Vel ea aliquam ab laboriosam qui dolores quas.",
+            "weight": 1,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-piano",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/1",
+            "post_count": 35874,
+            "latest_post": {
+                "id": 36624,
+                "created_at": "2021-03-04 19:05:19",
+                "thread_title": "Show Us Your Workspaces!",
+                "author_id": 421390,
+                "author_display_name": "Paul J.",
+                "author_avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/421390_1613116848632-1613116847-421390.jpg"
+            }
+        },
+        {
+            "id": 2,
+            "title": "Pianote Member Discussion",
+            "slug": "pianote-member-discussion",
+            "description": "Nostrum dignissimos magnam ut animi. Quidem pariatur dolorem qui maiores aspernatur. Quo atque et culpa enim ducimus.",
+            "weight": 2,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-users",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/2",
+            "post_count": 0
+        },
+        {
+            "id": 3,
+            "title": "Pianote Packs Discussion",
+            "slug": "pianote-packs-discussion",
+            "description": "Ea at molestias ut. Voluptates quo sapiente explicabo aliquid accusantium est omnis dolorem. Ducimus amet dolores atque nihil excepturi doloremque in. Voluptatem veritatis non qui ut iste quasi itaque.",
+            "weight": 3,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-cube",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/3",
+            "post_count": 0
+        },
+        {
+            "id": 4,
+            "title": "Student Progress Discussion",
+            "slug": "student-progress-discussion",
+            "description": "Delectus aspernatur sint ratione non soluta occaecati earum nihil. Ut distinctio omnis velit officia ullam veniam repellendus ducimus. Autem cupiditate inventore sit harum ut. Aperiam et est ipsam id facere et.",
+            "weight": 4,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-signal-3",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/4",
+            "post_count": 0
+        },
+        {
+            "id": 5,
+            "title": "Off-Topic Discussion",
+            "slug": "offtopic-discussion",
+            "description": "Fuga totam esse doloremque. Unde ducimus libero omnis sequi tempore voluptas ut repudiandae. Autem rem quos sequi consequatur.",
+            "weight": 5,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-comments",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/5",
+            "post_count": 0
+        },
+        {
+            "id": 6,
+            "title": "Website Feedback & Update Log",
+            "slug": "website-feedback-and-update-log",
+            "description": "Et aliquam et praesentium reprehenderit. Cum blanditiis eligendi et adipisci ullam dolorum cumque. Dolorem doloribus dignissimos dicta. Illum qui a dolores.",
+            "weight": 6,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-browser",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/6",
+            "post_count": 0
+        },
+        {
+            "id": 7,
+            "title": "Pianote Mod Forum",
+            "slug": "pianote-mod-forum",
+            "description": "Et dolores error sed molestias hic ex ex. Reiciendis aliquam est eum vel modi accusamus.",
+            "weight": 7,
+            "created_at": "2021-05-05 07:11:18",
+            "updated_at": null,
+            "deleted_at": null,
+            "brand": "pianote",
+            "topic": null,
+            "icon": "fa-user-shield",
+            "mobile_app_url": "http://staging.pianote.com/forums/api/discussions/show/7",
+            "post_count": 0
+        }
+    ],
+    "filter_options": null
+}
+```
+
+``` 404 ``` when user does not have permission to index discussions
