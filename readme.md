@@ -144,6 +144,11 @@
       - [Request Example](#request-example-27)
       - [Request Parameters](#request-parameters-27)
       - [Response Example](#response-example-27)
+    + [Index Threads](#index-threads)
+      - [Permission required `index-threads`](#permission-required--index-threads--1)
+      - [Request Example](#request-example-28)
+      - [Request Parameters](#request-parameters-28)
+      - [Response Example](#response-example-28)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -1853,3 +1858,141 @@ $.ajax({
 ```
 
 ``` 404 ``` when user does not have permission to index discussions
+
+
+### Index Threads
+
+```
+GET /forums/api/thread/index
+```
+
+#### Permission required `index-threads`
+
+#### Request Example
+
+```
+$.ajax({
+    url: '/forums/api/thread/index',
+    type: 'get',
+    data: {amount: 2, page: 1, followed: true},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key          | required | default | description\|notes                           |
+| ----------------- | ------------ | -------- | ------- | -------------------------------------------- |
+| query             | amount       | no       | 10      | The amount of threads to return              |
+| query             | page         | no       | 1       | The page of threads to return                |
+| query             | category_ids | no       | null    | The category id (topic) of threads to return |
+| query             | pinned       | no       | null    | Boolean, the type of threads to return       |
+| query             | followed     | no       | null    | Boolean, the type of threads to return       |
+
+#### Response Example
+
+` 200 OK `
+```json
+{
+    "status": "ok",
+    "code": 200,
+    "page": 1,
+    "limit": 10,
+    "total_results": 3,
+    "results": [
+        {
+            "id": 1886,
+            "category_id": 1,
+            "author_id": 412470,
+            "title": "Show Us Your Workspaces!",
+            "slug": "show-us-your-workspaces",
+            "pinned": 0,
+            "locked": 0,
+            "state": "published",
+            "post_count": 60,
+            "last_post_id": 36625,
+            "published_on": "2021-01-26 02:43:27",
+            "created_at": "2021-01-26 02:43:27",
+            "updated_at": "2021-01-26 02:43:27",
+            "deleted_at": null,
+            "version_master_id": null,
+            "version_saved_at": null,
+            "category_slug": "general-piano-discussion",
+            "category": "General Piano Discussion",
+            "last_post_published_on": "2021-03-04 19:04:10",
+            "last_post_user_id": 405877,
+            "is_read": 1,
+            "is_followed": 1,
+            "mobile_app_url": "http://staging.pianote.com/forums/api/thread/show/1886",
+            "author_display_name": "Mark Nicholson",
+            "author_avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/412470_1610337691197-1610337692-412470.jpg",
+            "author_access_level": "piano"
+        },
+        {
+            "id": 2017,
+            "category_id": 1,
+            "author_id": 424755,
+            "title": "Help dont know where to start!",
+            "slug": "help-dont-know-where-to-start",
+            "pinned": 0,
+            "locked": 0,
+            "state": "published",
+            "post_count": 11,
+            "last_post_id": 36622,
+            "published_on": "2021-02-27 15:17:19",
+            "created_at": "2021-02-27 15:17:19",
+            "updated_at": "2021-02-27 15:17:19",
+            "deleted_at": null,
+            "version_master_id": null,
+            "version_saved_at": null,
+            "category_slug": "general-piano-discussion",
+            "category": "General Piano Discussion",
+            "last_post_published_on": "2021-03-04 18:45:21",
+            "last_post_user_id": 421390,
+            "is_read": 1,
+            "is_followed": 1,
+            "mobile_app_url": "http://staging.pianote.com/forums/api/thread/show/2017",
+            "author_display_name": "lesleycatnursey",
+            "author_avatar_url": "https://s3.amazonaws.com/pianote/defaults/avatar.png",
+            "author_access_level": "piano"
+        },
+        {
+            "id": 2030,
+            "category_id": 1,
+            "author_id": 417888,
+            "title": "Foundations books",
+            "slug": "foundations-books",
+            "pinned": 0,
+            "locked": 0,
+            "state": "published",
+            "post_count": 3,
+            "last_post_id": 36619,
+            "published_on": "2021-03-04 09:18:27",
+            "created_at": "2021-03-04 09:18:27",
+            "updated_at": "2021-03-04 09:18:27",
+            "deleted_at": null,
+            "version_master_id": null,
+            "version_saved_at": null,
+            "category_slug": "general-piano-discussion",
+            "category": "General Piano Discussion",
+            "last_post_published_on": "2021-03-04 17:36:27",
+            "last_post_user_id": 417888,
+            "is_read": 1,
+            "is_followed": 1,
+            "mobile_app_url": "http://staging.pianote.com/forums/api/thread/show/2030",
+            "author_display_name": "Wayne Pevy",
+            "author_avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/avatar-1614881481-417888.jpg",
+            "author_access_level": "piano"
+        }
+    ],
+    "filter_options": null
+}
+```
+
+``` 404 ``` when user does not have permission to index threads
