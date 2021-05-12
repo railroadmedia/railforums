@@ -87,15 +87,14 @@ class UserForumSignaturesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $signature = $this->userSignaturesRepository->read($id);
-        throw_if(!$signature, new NotFoundHttpException());
+        $oldSignature = $this->userSignaturesRepository->getUserSignature($id);
 
-        if ($signature['user_id'] != auth()->id()) {
+        if ($oldSignature && $oldSignature['user_id'] != auth()->id()) {
             $this->permissionService->canOrThrow(auth()->id(), 'update-user-signature');
         }
 
-        $signature = $this->userSignaturesRepository->update(
-            $id,
+        $signature = $this->userSignaturesRepository->updateOrCreate(
+            ['id' => $oldSignature['id']],
             [
                 'signature' => $request->get('signature'),
                 'updated_at' => Carbon::now()

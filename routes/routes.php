@@ -70,22 +70,31 @@ Route::delete(
     \Railroad\Railforums\Controllers\UserForumPostController::class . '@unlike'
 )->name('railforums.post.unlike');
 
-//user signatures
-Route::put(
-    'signature/store',
-    \Railroad\Railforums\Controllers\UserForumSignaturesController::class . '@store'
-)->name('railforums.signature.store');
+Route::group(
+    [
+        'middleware' => config('railforums.route_middleware_logged_in_groups',[]),
+    ],
+    function () {
+        //user signatures
+        Route::put(
+            'signature/store',
+            \Railroad\Railforums\Controllers\UserForumSignaturesController::class . '@store'
+        )
+            ->name('railforums.signature.store');
 
 Route::patch(
     'signature/update/{id}',
     \Railroad\Railforums\Controllers\UserForumSignaturesController::class . '@update'
-)->name('railforums.signature.update');
+)
+    ->name('railforums.signature.update');
 
 Route::delete(
     'signature/delete/{id}',
     \Railroad\Railforums\Controllers\UserForumSignaturesController::class . '@delete'
-)->name('railforums.discussions.delete');
-
+)
+    ->name('railforums.discussions.delete');
+    }
+);
 
 Route::group(
     [
