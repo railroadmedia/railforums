@@ -99,6 +99,8 @@ class UserForumSignaturesController extends Controller
                 'signature' => $request->get('signature'),
                 'updated_at' => Carbon::now()
                     ->toDateTimeString(),
+                'brand' => config('railforums.brand'),
+                'user_id' => auth()->id(),
             ]
         );
 
