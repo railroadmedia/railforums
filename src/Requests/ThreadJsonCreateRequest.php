@@ -2,6 +2,8 @@
 
 namespace Railroad\Railforums\Requests;
 
+use Railroad\Railforums\Services\ConfigService;
+
 class ThreadJsonCreateRequest extends FormRequest
 {
     /**
@@ -24,7 +26,7 @@ class ThreadJsonCreateRequest extends FormRequest
         return [
             'title' =>'required|string|max:255',
             'first_post_content' => 'required|string',
-            'category_id' => 'required|numeric|exists:forum_categories,id'
+            'category_id' => 'required|numeric|exists:'.ConfigService::$tableCategories.',id'
         ];
     }
 }
