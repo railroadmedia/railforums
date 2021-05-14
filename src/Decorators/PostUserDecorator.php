@@ -70,7 +70,7 @@ class PostUserDecorator implements DecoratorInterface
                 ->select('user_id', 'signature')
                 ->whereIn(ConfigService::$tableUserSignatures . '.user_id', $userIds)
                 ->where('brand', config('railforums.brand'))
-                ->groupBy('user_id')
+                //->groupBy('user_id')
                 ->get()
                 ->toArray();
 
