@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\Decorators;
 
+use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
 use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Services\ConfigService;
@@ -67,6 +68,9 @@ class DiscussionDecorator implements DecoratorInterface
 
                 $discussion['latest_post']['id'] = $latestPosts->post_id;
                 $discussion['latest_post']['created_at'] = $latestPosts->last_post_created_at;
+
+                $discussion['latest_post']['created_at_diff'] = Carbon::parse($latestPosts->last_post_created_at)->diffForHumans();
+
 
                 $discussion['latest_post']['thread_title'] = $latestPosts->title;
                 $discussion['latest_post']['author_id'] = $latestPosts->author_id;
