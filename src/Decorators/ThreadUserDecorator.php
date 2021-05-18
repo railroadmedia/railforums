@@ -58,7 +58,7 @@ class ThreadUserDecorator implements DecoratorInterface
                 $this->userProvider->getUserAccessLevel($thread['author_id']);
             $threads[$threadIndex]['published_on_formatted'] = Carbon::parse($thread['published_on'])->format('M d, Y');
 
-            if ($threads[$threadIndex]['last_post_id']) {
+            if (array_key_exists('last_post_id', $threads[$threadIndex])) {
                 $threads[$threadIndex]['latest_post']['id'] = $threads[$threadIndex]['last_post_id'];
                 $threads[$threadIndex]['latest_post']['created_at'] = $threads[$threadIndex]['last_post_published_on'];
                 $threads[$threadIndex]['latest_post']['created_at_diff'] = Carbon::parse($threads[$threadIndex]['last_post_published_on'])->diffForHumans();
