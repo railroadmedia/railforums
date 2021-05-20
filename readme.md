@@ -2400,13 +2400,293 @@ $.ajax({
 
 ### Create Thread
 
-### Update Thread
+```
+PUT /forums/api/thread/store
+```
 
+#### Permission required `create-threads`
+
+#### Request Example
+
+```
+$.ajax({
+    url: '/forums/api/thread/store',
+    type: 'put'
+  	data: {title: 'Thread title', first_post_content: 'Lorem ipsum ...', category_id:1} 
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key                | required | default            | description\|notes             |
+| ----------------- | ------------------ | -------- | ------------------ | ------------------------------ |
+| body              | title              | yes      |                    | Thread title                   |
+| body              | first_post_content | yes      |                    | First post content             |
+| body              | category_id        | yes      |         | The category (topic) id this thread belongs to |
+
+#### Response Example
+
+`200 OK`
+```json
+{
+  "id": 1,
+  "category_id": 1,
+  "author_id": 1,
+  "title": "Consectetur officia hic possimus iure et minima minima ut.",
+  "slug": "consectetur-officia-hic-possimus-iure-et-minima-minima-ut",
+  "pinned": 0,
+  "locked": 0,
+  "state": "published",
+  "post_count": 1,
+  "published_on": "2018-07-05 09:29:54",
+  "created_at": "2018-07-05 09:29:54",
+  "updated_at": "2018-07-05 09:29:54",
+  "deleted_at": null,
+  "last_post_published_on": "2018-07-05 09:29:54",
+  "last_post_id": 1,
+  "last_post_user_id": 1,
+  "last_post_user_display_name": "lee.wehner1",
+  "is_read": 0,
+  "is_followed": 0
+}
+```
+``` 404 ``` when user does not have permission to create threads
+
+```402``` validation errors
+```
+{
+  "status": "error",
+  "code": 422,
+  "total_results": 0,
+  "results": [],
+  "errors": [
+    {
+      "source": "title",
+      "detail": "The title field is required."
+    },
+    {
+      "source": "first_post_content",
+      "detail": "The first post content field is required."
+    },
+    {
+      "source": "category_id",
+      "detail": "The category id field is required."
+    }
+  ]
+}
+```
+
+### Update Thread
+```
+PATCH /forums/api/thread/update/{id}
+```
+
+#### Permission required `update-threads`
+
+#### Request Example
+
+```
+var title = 'Consectetur officia hic possimus iure et minima minima ut.';
+var threadId = 1;
+
+$.ajax({
+    url: '/forums/api/thread/update/' + threadId,
+    type: 'patch',
+    data: {title: title},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key    | required | default | description\|notes      |
+| ----------------- | ------ | -------- | ------- | ----------------------- |
+| path              | {id}   | yes      |         | The thread id to update |
+| body              | title  | yes      |         | New thread title        |
+
+#### Response Example
+
+` 200 OK`
+```
+{
+  "id": 1,
+  "category_id": 1,
+  "author_id": 1,
+  "title": "Consectetur officia hic possimus iure et minima minima ut.",
+  "slug": "consectetur-officia-hic-possimus-iure-et-minima-minima-ut",
+  "pinned": 0,
+  "locked": 0,
+  "state": "published",
+  "post_count": 1,
+  "published_on": "2018-07-05 09:29:54",
+  "created_at": "2018-07-05 09:29:54",
+  "updated_at": "2018-07-05 09:29:54",
+  "deleted_at": null,
+  "last_post_published_on": "2018-07-05 09:29:54",
+  "last_post_id": 1,
+  "last_post_user_id": 1,
+  "last_post_user_display_name": "lee.wehner1",
+  "is_read": 0,
+  "is_followed": 0
+}
+```
+```404``` when user does not have permission to update the thread
+```404``` when the specified thread id is not found
+```402``` validation error
+```
+{
+  "status": "error",
+  "code": 422,
+  "total_results": 0,
+  "results": [],
+  "errors": [
+    {
+      "source": "title",
+      "detail": "The title must be at least 1 characters."
+    }
+  ]
+}
+```
 ### Follow Thread
+```
+PUT /forums/api/thread/follow/{id}
+```
+
+#### Permission required `follow-threads`
+
+#### Request Example
+
+```
+var threadId = 1;
+
+$.ajax({
+    url: '/forums/thread/follow/' + threadId,
+    type: 'put',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes      |
+| ----------------- | ---- | -------- | ------- | ----------------------- |
+| path              | {id} | yes      |         | The thread id to follow |
+
+#### Response Example
+
+` 200 OK`
+```
+{
+  "id": 1,
+  "thread_id": 1,
+  "reader_id": 1,
+  "read_on": "2018-07-05 11:58:39",
+  "created_at": "2018-07-05 11:58:39",
+  "updated_at": "2018-07-05 11:58:39"
+}
+```
+``` 404 ``` when user does not have permission to follow threads
+``` 404 ``` when specified thread does not exist
+
 
 ### Unfollow Thread
 
-### Pin Thread
+```
+DELETE /forums/api/thread/unfollow/{id}
+```
+
+#### Permission required `follow-threads`
+
+#### Request Example
+
+```
+var threadId = 1;
+
+$.ajax({
+    url: '/forums/api/thread/unfollow/' + threadId,
+    type: 'delete',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes        |
+| ----------------- | ---- | -------- | ------- | ------------------------- |
+| path              | {id} | yes      |         | The thread id to unfollow |
+
+#### Response Example
+
+``` 204 ``` No content\
+``` 404 ``` when user does not have permission to follow threads\
+``` 404 ``` when specified thread does not exist
+
+### Delete Thread - form controller
+
+```
+DELETE /forums/api/thread/delete/{id}
+```
+
+#### Permission required `delete-threads`
+
+#### Request Example
+
+```
+var threadId = 1;
+
+$.ajax({
+url: '/forums/api/thread/delete/' + threadId,
+type: 'delete',
+data: {},
+dataType: 'json',
+success: function(response) {
+// handle success
+},
+error: function(response) {
+// handle error
+}
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes        |
+| ----------------- | ---- | -------- | ------- | ------------------------- |
+| path              | {id} | yes      |         | The thread id to delete |
+
+#### Response Example
+
+``` 204 ``` No content\
+``` 404 ``` when user does not have permission to delete threads\
+``` 404 ``` when specified thread does not exist
+
 
 ### Create Post
 
@@ -2415,6 +2695,8 @@ $.ajax({
 ### Report Post
 
 ### Like Post
+
+
 
 ### Search
 
