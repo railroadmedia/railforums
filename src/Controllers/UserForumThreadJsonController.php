@@ -105,9 +105,9 @@ class UserForumThreadJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
-        $thread = $this->threadRepository->read($id);
+        $thread = $this->threadRepository->getDecoratedThreadsByIds([$id]);
 
-        if (!$thread) {
+        if (empty($thread)) {
             throw new NotFoundHttpException();
         }
 
@@ -117,7 +117,7 @@ class UserForumThreadJsonController extends Controller
 
         $threadFollow = $this->threadFollowRepository->create(
             [
-                'thread_id' => $thread->id,
+                'thread_id' => $id,
                 'follower_id' => auth()->id(),
                 'followed_on' => $now,
                 'created_at' => $now,
@@ -137,7 +137,7 @@ class UserForumThreadJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
-        $thread = $this->threadRepository->read($id);
+        $thread = $this->threadRepository->getDecoratedThreadsByIds([$id]);
         $currentUserId = auth()->id();
 
         if (empty($thread) || empty($currentUserId)) {
