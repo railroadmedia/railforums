@@ -1,3 +1,4 @@
+
 - [Install](#install)
 - [Configure](#configure)
 - [API Reference](#api-reference)
@@ -179,8 +180,24 @@
   * [Create Post](#create-post)
   * [Update Post](#update-post)
   * [Report Post](#report-post)
+    + [Permission required `report-posts`](#permission-required--report-posts-)
+    + [Request Example](#request-example-35)
+    + [Request Parameters](#request-parameters-35)
+    + [Response Example](#response-example-35)
   * [Like Post](#like-post)
+    + [Permission required `like-posts`](#permission-required--like-posts--4)
+    + [Request Example](#request-example-36)
+    + [Request Parameters](#request-parameters-36)
+    + [Response Example](#response-example-36)
+  * [Unlike Post - JSON controller](#unlike-post---json-controller-1)
+    + [Permission required `like-posts`](#permission-required--like-posts--5)
+    + [Request Example](#request-example-37)
+    + [Request Parameters](#request-parameters-37)
+    + [Response Example](#response-example-37)
   * [Search](#search)
+    + [Request Example](#request-example-38)
+    + [Request Parameters](#request-parameters-38)
+    + [Response Example](#response-example-38)
   * [Forum Rules](#forum-rules)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
@@ -2713,12 +2730,313 @@ error: function(response) {
 ### Update Post
 
 ### Report Post
+```
+PUT /forums/api/post/report/{id}
+```
+
+#### Permission required `report-posts`
+
+#### Request Example
+
+```
+var postId = 1;
+
+$.ajax({
+    url: '/forums/api/post/report/' + postId,
+    type: 'put',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes           |
+| ----------------- | ---- | -------- | ------- | ---------------------------- |
+| path              | {id} | yes      |         | The post id to report |
+
+#### Response Example
+
+``` 204 ``` No content
+```404``` when user does not have permission to report posts
+``` 404 ``` when specified post does not exist
+
 
 ### Like Post
+```
+PUT /forums/api/post/like/{id}
+```
 
+#### Permission required `like-posts`
+
+#### Request Example
+
+```
+var postId = 1;
+
+$.ajax({
+    url: '/forums/api/post/like/' + postId,
+    type: 'put',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes           |
+| ----------------- | ---- | -------- | ------- | ---------------------------- |
+| path              | {id} | yes      |         | The post id to mark as liked |
+
+#### Response Example
+
+`200 OK`
+```
+{
+  "id": 1,
+  "post_id": 1,
+  "liker_id": 1,
+  "liked_on": "2018-07-06 07:15:02",
+  "created_at": "2018-07-06 07:15:02",
+  "updated_at": "2018-07-06 07:15:02"
+}
+```
+```404``` when user does not have permission to like posts
+``` 404 ``` when specified post does not exist
+
+### Unlike Post - JSON controller
+```
+DELETE /forums/api/post/unlike/{id}
+```
+
+#### Permission required `like-posts`
+
+#### Request Example
+
+```
+var postId = 1;
+
+$.ajax({
+    url: '/forums/api/post/unlike/' + postId,
+    type: 'delete',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes             |
+| ----------------- | ---- | -------- | ------- | ------------------------------ |
+| path              | {id} | yes      |         | The post id to mark as unliked |
+
+#### Response Example
+
+``` 204 ``` No content
+``` 404 ``` when user does not have permission to like posts
+``` 404 ``` when specified post does not exist
 
 
 ### Search
+```
+GET /forums/api/search
+```
+
+#### Request Example
+
+```
+var term = 'similique quidem dolorum suscipit eligendi';
+
+$.ajax({
+    url: '/forums/api/search',
+    type: 'put',
+    data: {term: term, page: 1, limit: 2},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key   | required | default | description\|notes                                   |
+| ----------------- | ----- | -------- | ------- | ---------------------------------------------------- |
+| query             | term  | no       | null    | The term(s) to search for                            |
+| query             | page  | no       | 1       | The page of results to return                        |
+| query             | limit | no       | 10      | The amount of results to return                      |
+| query             | sort  | no       | score   | The column to sort results by                        |
+
+#### Response Example
+
+` 200 OK `
+```json
+{
+    "status": "ok",
+    "code": 200,
+    "page": 1,
+    "limit": "2",
+    "total_results": 7705,
+    "results": [
+        {
+            "id": 854,
+            "thread_id": 45,
+            "author_id": 151730,
+            "prompting_post_id": null,
+            "content": "<p>This is a suggestion, I think and in my opinion what to look-out for and be mindful of.  The <span style=\"text-decoration:underline;\"><strong>advantages and disadvantages</strong></span> will be more apperant when you have out-lived the use of the model of keyboard you are stuck with. You will find short-comings. For example,  external speaks to the Synthesized keyboard, most do come with speakers and some dont come with external speaks as they are more a MIDI instrutment. It is an attachment and additional cost-based item to enhance your keyboard. It lacks the speakers to hear your own playing. The head phone is an additional cost if you want to hear your self play the keyboard, while you are playing it. Hearing yourself play in real-time. </p>\n<p> </p>\n<p><span style=\"text-decoration:underline;\"><strong>Synthesized Keyboard versus Piano Keyboard (Ascoutic)</strong></span></p>\n<p>1: <strong>Price point</strong> for a Synthesized keyboard it is affordable, you get to start playing the piano on a budget.</p>\n<p>2: <strong>Keyboard length</strong> is more available on Synthesized keyboard, 25, 32, 37, 49. 61, and 88 keys. Personally, I learned it the hard way. I found out from a 61 keyboard that a normal Piano keyboard is 88 keys. lol. 8 Octaves as opposed 6 Octaves. The octaves will be important if you are playing up and down the length of the keyboard. As a beginner I still prefer 8 Octaves and 88 keys, So this is a choice-desicion. There is a <strong>sliding scale on cost</strong> to this.</p>\n<p>3: With synthesized keyboards, when you <strong>out-grown your keyboard</strong> you will have to change for those extra features you never had.</p>\n<p>4: Synthesized keyboard especially for a piano voicing, it is a <strong>sampled sound of an ascoutic Piano</strong> sound. Quality is close but not as close as the real thing: Grand Piano.</p>\n<p>5: <strong>Space over Ascoustic Piano</strong>, less space requirements, You can fit it on a table top or an x- stand.</p>\n<p>6: Synthesized keyboard comes with a number of <strong>voicing</strong>: instruments - Organ, E Piano, Guitar, etc</p>\n<p>7: Synthesized keyboard, they are more users (I think) then Ascoustic Piano users. Hence, there are common knowledge of  features on how to use the keyboard. It is a computer effectively. The Brand, for example Yamaha have Yamaha schools for you to go to and learn-off the Piano you have. Synthesized Piano Keyboard. You dont necessary have to own a keyboard until you experience what choices you have and what to look for.</p>\n<p>8: <strong>Touch, Feel and Responsiveness</strong> on a Grand Piano over Synthesized keyboard is very apparent. The keyboard keys on most synthesized keyboard come as a feature. It is a cost- based feature. Like weighted keys, graded hammer keys and semi-weighted keys you will find out the difference when you start to play the keyboard. You want weighted keys even though it is electronic like flicking a switch for a note sounding.</p>\n<p> </p>\n<p>I understand you want something of good sound quality. If that is the case than a Grand Piano really sounds good. It is ascoutic, It is not synthesized and the sound is from striking on real strings. It is not sampled. An upright piano is close. At least you do not have to tune-up your piano with an electronic synthesized keyboard. They just burn-out.</p>\n<p> </p>\n<p>Jordan did a video on this very question but I cant find it now and reference it now on here. I was going to post a link to it.</p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>",
+            "state": "published",
+            "published_on": "2018-02-17 12:25:25",
+            "edited_on": "2018-02-17 13:00:20",
+            "created_at": "2018-02-17 12:25:25",
+            "updated_at": "2018-02-17 13:00:20",
+            "deleted_at": null,
+            "version_master_id": null,
+            "version_saved_at": null,
+            "like_count": 0,
+            "is_liked_by_viewer": 0,
+            "author": {
+                "display_name": "ReynoldUK",
+                "avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/1367_avatar_1517174437.jpeg",
+                "total_posts": 354,
+                "days_as_member": 1238,
+                "signature": null,
+                "access_level": "piano",
+                "xp": 0,
+                "xp_rank": "Casual",
+                "total_post_likes": 237,
+                "created_at": "2017-12-30 09:48:08",
+                "level_rank": "1.0"
+            },
+            "thread": {
+                "id": 45,
+                "category_id": 1,
+                "author_id": 151455,
+                "title": "Choosing keyboard",
+                "slug": "choosing-keyboard",
+                "pinned": 0,
+                "locked": 0,
+                "state": "published",
+                "post_count": 2,
+                "last_post_id": 854,
+                "published_on": "2017-10-26 17:10:36",
+                "created_at": "2017-10-26 17:10:36",
+                "updated_at": "2018-10-30 03:01:26",
+                "deleted_at": null,
+                "version_master_id": null,
+                "version_saved_at": null,
+                "category_slug": "general-piano-discussion",
+                "category": "General Piano Discussion",
+                "last_post_published_on": "2018-02-17 12:25:25",
+                "last_post_user_id": 151730,
+                "is_read": 0,
+                "is_followed": 0,
+                "mobile_app_url": "https://dev.pianote.com/forums/api/thread/show/45",
+                "author_display_name": "Sebastian F",
+                "author_avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/1081_avatar_1508343341.jpeg",
+                "author_access_level": "piano",
+                "published_on_formatted": "Oct 26, 2017",
+                "latest_post": {
+                    "id": 854,
+                    "created_at": "2018-02-17 12:25:25",
+                    "created_at_diff": "3 years ago",
+                    "author_id": 151730,
+                    "author_display_name": "ReynoldUK",
+                    "author_avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/1367_avatar_1517174437.jpeg"
+                }
+            }
+        },
+        {
+            "id": 2684,
+            "thread_id": 177,
+            "author_id": 152032,
+            "prompting_post_id": 2679,
+            "content": "<blockquote><span class=\"post-id\">4585</span><p class=\"quote-heading\"><strong>Jesus</strong><em> - Oct 8, 2018</em></p><br /><p>Is not bad at all Piot :) Im sure I will enjoy it further when I see you actually playing it on the piano. Yet I have several questions mate</p>\n<p> </p>\n<p>You say you are working on (for the video???) with the metronome. Did I understood you right? Cos if you played this without a metronome, to me sound it all in the beat and very accurate ritmically</p>\n<p> </p>\n<p>Also, how do you do it? Do you record everything in different channels of your keyboard and just hit \"play\" altogether or you record it all separate with a DAW and them mix it all?</p>\n<p> </p>\n<p>I wish you luck if you say will be your first video, me personally, anytime I try to record myself is like nothing goes wright due to know yourself recorded LOL - hope will not happens to you :)</p></blockquote><p>&nbsp;</p><p>Thank you Jesus :) There is the answer to your question:</p>\n<p> </p>\n<p>Well, I do not have only one way to do it, but I will try to reveal the basic usual process.</p>\n<p> </p>\n<p>First - I play something on piano, usually left hand chords and right hand the same chords, then on my right hand after I feel comfortable with progression I choose single notes from chords, add notes from scales double with octaves and create a melody that follows my chord progression. Then I change left hand patterns, try chord inversions, arpeggions etc. and listen what combination sounds best.</p>\n<p> </p>\n<p>Then I have several ideas from this improvisation and I connect my piano to my computer as a MIDI controller and record them splitted as short musical licks. I like Ableton software (Lite version is free) - it is the best, most powerful software to make songs in my opinion. I also have a little midi keyboard controller (novation launchkey 49 mk2) and it allowes me to work faster with the software, but I prefer playing on weighted keyboard keys on my piano. Synth keys are very light so the dynamics are kind of unpredictable, with weighted keys you have more control over dynamics.</p>\n<p> </p>\n<p>So I split everything into parts (right and left hand separetly) and record chunks of ideas and play them in different versions, listen to them and start asking myself questions like - does my melody sound better with plain chords or arpeggios beneath? Does itsound better an octave higher or lower? Faster or slower? What length that melody should be ? - is 16 measures boring, maybe 8 mesures are better? - with this chunks of ideas I create a song freamework and I play my piano on top of it - coming with some new ideas and then I repeat the process. Then I learn my final production on piano again and it usually requires to exercise it with metronome to nail it.</p>\n<p> </p>\n<p>When you play and when you just hear your playing it is a different experience, I find easier to compose a song structure when I just hear my recorded playing because my head is colder then ;-)</p>\n<p> </p>\n<p>With my piano working as MIDI I can also play on it with different sounds - strings, bass guitar, even drums. You have to know how Ableton works to fully understand this. With Novation launchkey MIDI controller I got pricey, commercial VST instrument called XLN Addictive Keys for free, so my MIDI piano sounds good even as MIDI.</p>\n<p> </p>\n<p>I am working with metronome because the song sound better in 80 bpm tempo - I speed it up in the software (that is called cheating, hehe ;-) ) - originally I was playing in 60 bpm tempo so I have to work up to 80 bpm to make the video of me playing the song in that tempo. Of course it is also possible to speed up the video but I do not want to do that beacuse learning to perform my music as is, gives me a satisfaction from my accomplishment. That is the reason I play piano afterall :-)</p>\n<p> </p>\n<p>About accuracy - there is an option called quantization - it just snaps notes to the grid for exaple eight notes - but overusing it results in robotic, unnatural rhythm, so it is always better to play it right with micro rhythm changes and sound as human :) <br />Mistakes are actually good I sometimes by mistake play a note outside the scale and it happens to sound great... and your mistakes make you sound as yourself, they make your unique sound.</p>\n<p> </p>\n<p>It may sound like a lot of work but it is actually not when you know your stuff - I am heavily into computers, I work in IT business so I have ease with computers... and doodling with music software is fun too, and gives you another angle of understanding how music works and even how piano works - I think that they complementing each other very well. I used to be very intolerant and I was avoiding making music with help of computer, I used to think that this is an inferior method and I was trapped in this little box of limitations when I started in my twenties. Now I am curious about everything that sounds good to me and do not limit myself to one particular method or workflow and I grow musically faster with that open attitude. And to be really good at playing piano you need years of playing, but music software is something you can learn in a month, so in a short timeframe you gain very powerful tool that can really aid your songwriting skills.</p>\n<p> </p>\n<p>I have started piano when I was 34, so I probably won't be another Chopin, but I believe that it is possible to write and play great songs even with very basic technical skills.</p>\n<p> </p>\n<p>Is there a better / faster way to compose songs? Yes - do everything on piano. But I unfortunately do not have such a technical piano skills to play everything I want, so I support myself with computer software. I hope someday I will have the skills to play everything I hear in my head on piano.</p>",
+            "state": "published",
+            "published_on": "2018-10-08 13:47:27",
+            "edited_on": "2018-10-08 15:00:31",
+            "created_at": "2018-10-08 13:47:27",
+            "updated_at": "2018-10-09 16:03:12",
+            "deleted_at": null,
+            "version_master_id": null,
+            "version_saved_at": null,
+            "like_count": 1,
+            "is_liked_by_viewer": 0,
+            "author": {
+                "display_name": "Piotr Sierant",
+                "avatar_url": "https://s3.amazonaws.com/pianote/defaults/avatar.png",
+                "total_posts": 70,
+                "days_as_member": 1146,
+                "signature": null,
+                "access_level": "piano",
+                "xp": 0,
+                "xp_rank": "Casual",
+                "total_post_likes": 0,
+                "created_at": "2018-04-01 12:12:24",
+                "level_rank": "1.0"
+            },
+            "thread": {
+                "id": 177,
+                "category_id": 1,
+                "author_id": 149630,
+                "title": "YOUR Compositions",
+                "slug": "your-compositions",
+                "pinned": 0,
+                "locked": 0,
+                "state": "published",
+                "post_count": 38,
+                "last_post_id": 16344,
+                "published_on": "2018-07-13 15:53:34",
+                "created_at": "2018-07-13 15:53:34",
+                "updated_at": "2019-03-04 17:43:23",
+                "deleted_at": null,
+                "version_master_id": null,
+                "version_saved_at": null,
+                "category_slug": "general-piano-discussion",
+                "category": "General Piano Discussion",
+                "last_post_published_on": "2020-04-17 23:06:44",
+                "last_post_user_id": 353089,
+                "is_read": 0,
+                "is_followed": 0,
+                "mobile_app_url": "https://dev.pianote.com/forums/api/thread/show/177",
+                "author_display_name": "Lisa Witt",
+                "author_avatar_url": "https://d2vyvo0tyx8ig5.cloudfront.net/avatars/149630_1609278320825-1609278322-149630.jpg",
+                "author_access_level": "admin",
+                "published_on_formatted": "Jul 13, 2018",
+                "latest_post": {
+                    "id": 16344,
+                    "created_at": "2020-04-17 23:06:44",
+                    "created_at_diff": "1 year ago",
+                    "author_id": 353089,
+                    "author_display_name": "Doc322",
+                    "author_avatar_url": "https://s3.amazonaws.com/pianote/defaults/avatar.png"
+                }
+            }
+        }
+    ],
+    "filter_options": null
+}
+```
 
 ### Forum Rules
 
