@@ -58,15 +58,15 @@ class ThreadUserDecorator implements DecoratorInterface
                 $this->userProvider->getUserAccessLevel($thread['author_id']);
             $threads[$threadIndex]['published_on_formatted'] = Carbon::parse($thread['published_on'])->format('M d, Y');
 
-            if (array_key_exists('last_post_id', $threads[$threadIndex])) {
-                $threads[$threadIndex]['latest_post']['id'] = $threads[$threadIndex]['last_post_id'];
-                $threads[$threadIndex]['latest_post']['created_at'] = $threads[$threadIndex]['last_post_published_on'];
-                $threads[$threadIndex]['latest_post']['created_at_diff'] = Carbon::parse($threads[$threadIndex]['last_post_published_on'])->diffForHumans();
+            if (array_key_exists('last_post_id', $thread)) {
+                $threads[$threadIndex]['latest_post']['id'] = $thread['last_post_id'];
+                $threads[$threadIndex]['latest_post']['created_at'] = $thread['last_post_published_on'];
+                $threads[$threadIndex]['latest_post']['created_at_diff'] = Carbon::parse($thread['last_post_published_on'])->diffForHumans();
 
-                $threads[$threadIndex]['latest_post']['author_id'] = $threads[$threadIndex]['last_post_user_id'];
-                $threads[$threadIndex]['latest_post']['author_display_name'] = $users[$threads[$threadIndex]['last_post_user_id']]->getDisplayName();
+                $threads[$threadIndex]['latest_post']['author_id'] = $thread['last_post_user_id'];
+                $threads[$threadIndex]['latest_post']['author_display_name'] = $users[$thread['last_post_user_id']]->getDisplayName();
                 $threads[$threadIndex]['latest_post']['author_avatar_url'] =
-                    $users[$threads[$threadIndex]['last_post_user_id']]->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
+                    $users[$thread['last_post_user_id']]->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
             }
         }
 
