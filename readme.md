@@ -1,4 +1,3 @@
-
 - [Install](#install)
 - [Configure](#configure)
 - [API Reference](#api-reference)
@@ -178,26 +177,34 @@
     + [Request Parameters](#request-parameters-34)
     + [Response Example](#response-example-34)
   * [Create Post](#create-post)
-  * [Update Post](#update-post)
-  * [Report Post](#report-post)
-    + [Permission required `report-posts`](#permission-required--report-posts-)
+    + [Permission required `create-posts`](#permission-required--create-posts--2)
     + [Request Example](#request-example-35)
     + [Request Parameters](#request-parameters-35)
     + [Response Example](#response-example-35)
-  * [Like Post](#like-post)
-    + [Permission required `like-posts`](#permission-required--like-posts--4)
+  * [Update Post](#update-post)
     + [Request Example](#request-example-36)
+    + [Permission required `update-posts`](#permission-required--update-posts--2)
     + [Request Parameters](#request-parameters-36)
     + [Response Example](#response-example-36)
-  * [Unlike Post - JSON controller](#unlike-post---json-controller-1)
-    + [Permission required `like-posts`](#permission-required--like-posts--5)
+  * [Report Post](#report-post)
+    + [Permission required `report-posts`](#permission-required--report-posts-)
     + [Request Example](#request-example-37)
     + [Request Parameters](#request-parameters-37)
     + [Response Example](#response-example-37)
-  * [Search](#search)
+  * [Like Post](#like-post)
+    + [Permission required `like-posts`](#permission-required--like-posts--4)
     + [Request Example](#request-example-38)
     + [Request Parameters](#request-parameters-38)
     + [Response Example](#response-example-38)
+  * [Unlike Post - JSON controller](#unlike-post---json-controller-1)
+    + [Permission required `like-posts`](#permission-required--like-posts--5)
+    + [Request Example](#request-example-39)
+    + [Request Parameters](#request-parameters-39)
+    + [Response Example](#response-example-39)
+  * [Search](#search)
+    + [Request Example](#request-example-40)
+    + [Request Parameters](#request-parameters-40)
+    + [Response Example](#response-example-40)
   * [Forum Rules](#forum-rules)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
@@ -2725,9 +2732,183 @@ error: function(response) {
 ``` 404 ``` when specified thread does not exist
 
 
-### Create Post
+### Create Post 
 
-### Update Post
+```
+PUT /forums/api/post/store
+```
+
+#### Permission required `create-posts`
+
+#### Request Example
+
+```
+var content = 'Temporibus provident modi quo.';
+var threadId = 1;
+
+$.ajax({
+    url: '/forums/api/post/store',
+    type: 'put',
+    data: {content: content, thread_id: threadId},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key               | required | default | description\|notes                 |
+| ----------------- | ----------------- | -------- | ------- | ---------------------------------- |
+| body              | content           | yes      |         | Post content                       |
+| body              | thread_id         | yes      |         | The thread id this post belongs to |
+| body              | prompting_post_id | no       |         |                                    |
+| body              | parent_ids        | no       |         |Array with parent ids for reply post|
+
+#### Response Example
+
+`200 OK`
+```
+{
+    "id": 36634,
+    "thread_id": 4,
+    "author_id": 149628,
+    "prompting_post_id": null,
+    "content": "Reply pt 36631",
+    "state": "published",
+    "published_on": "2021-05-24 10:11:39",
+    "edited_on": null,
+    "created_at": "2021-05-24 10:11:39",
+    "updated_at": "2021-05-24 10:11:39",
+    "deleted_at": null,
+    "version_master_id": null,
+    "version_saved_at": null,
+    "author": {
+        "display_name": "Roxana1234",
+        "avatar_url": "https://dzryyo1we6bm3.cloudfront.net/avatars/IMG_3636-1614176795-149628.jpg",
+        "total_posts": 7,
+        "days_as_member": 1392,
+        "signature": null,
+        "access_level": "admin",
+        "xp": "250",
+        "xp_rank": "Enthusiast II",
+        "total_post_likes": 0,
+        "created_at": "2017-07-31 22:54:41",
+        "level_rank": "1.0"
+    },
+    "reply_parents": [
+        {
+            "id": 36631,
+            "thread_id": 4,
+            "author_id": 149628,
+            "prompting_post_id": null,
+            "content": " Uninstall using the Toolbox App? If you installed PhpStorm using the Toolbox App, do the following: Open the Toolbox App, click the screw nut icon for the necessary instance, and select Uninstall.",
+            "state": "published",
+            "published_on": "2021-05-24 07:49:21",
+            "edited_on": null,
+            "created_at": "2021-05-24 07:49:21",
+            "updated_at": "2021-05-24 07:51:29",
+            "deleted_at": null,
+            "version_master_id": null,
+            "version_saved_at": null
+        }
+    ]
+}
+```
+```404``` when user does not have permission to create posts\
+```422``` validation errors
+```
+{
+  "status": "error",
+  "code": 422,
+  "total_results": 0,
+  "results": [],
+  "errors": [
+    {
+      "source": "content",
+      "detail": "The content field is required."
+    },
+    {
+      "source": "thread_id",
+      "detail": "The thread id field is required."
+    }
+  ]
+}
+```
+
+### Update Post 
+
+```
+PATCH /post/api/update/{id}
+```
+
+#### Request Example
+
+#### Permission required `update-posts`
+
+```
+var content = 'Nam sit delectus debitis consectetur.';
+
+$.ajax({
+    url: '/forums/api/post/update/{id}',
+    type: 'patch',
+    data: {content: content},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key      | required | default | description\|notes    |
+| ----------------- | -------- | -------- | ------- | --------------------- |
+| path              | {id}     | yes      |         | The post id to update |
+| body              | content  | yes      |         | New post content      |
+
+#### Response Example
+
+`200 OK`
+```
+{
+  "id": 1,
+  "thread_id": 1,
+  "author_id": 1,
+  "prompting_post_id": 97,
+  "content": "Nam sit delectus debitis consectetur.",
+  "state": "published",
+  "published_on": "2007-01-10 15:39:45",
+  "edited_on": null,
+  "created_at": null,
+  "updated_at": "2018-07-13 14:36:12",
+  "deleted_at": null
+}
+```
+``` 404 ``` when user does not have permission to update posts\
+``` 404 ``` when specified post does not exist\
+``` 422 ``` validation errors
+```
+{
+  "status": "error",
+  "code": 422,
+  "total_results": 0,
+  "results": [],
+  "errors": [
+    {
+      "source": "content",
+      "detail": "The content field is required."
+    }
+  ]
+}
+```
 
 ### Report Post
 ```
