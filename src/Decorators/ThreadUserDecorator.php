@@ -78,7 +78,7 @@ class ThreadUserDecorator implements DecoratorInterface
                 Carbon::parse($thread['published_on'])
                     ->format('M d, Y');
 
-            if (array_key_exists('last_post_id', $thread)) {
+            if (array_key_exists('last_post_id', $thread) && $thread['last_post_id'] != 0) {
                 $lastPost = $lastPosts[$thread['last_post_id']];
                 $threads[$threadIndex]['latest_post']['id'] = $lastPost['id'];
                 $threads[$threadIndex]['latest_post']['created_at'] = $lastPost['published_on'];
