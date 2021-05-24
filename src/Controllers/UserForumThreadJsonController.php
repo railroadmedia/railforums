@@ -105,7 +105,7 @@ class UserForumThreadJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
-        $thread = $this->threadRepository->getDecoratedThreadsByIds([$id]);
+        $thread = $this->threadRepository->read($id);
 
         if (empty($thread)) {
             throw new NotFoundHttpException();
@@ -137,7 +137,7 @@ class UserForumThreadJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'follow-threads');
 
-        $thread = $this->threadRepository->getDecoratedThreadsByIds([$id]);
+        $thread = $this->threadRepository->read($id);
         $currentUserId = auth()->id();
 
         if (empty($thread) || empty($currentUserId)) {
@@ -174,14 +174,14 @@ class UserForumThreadJsonController extends Controller
         $threads = $this->threadRepository->getDecoratedThreads(
             $amount,
             $page,
-            ($categoryId)?[$categoryId]:[],
+            ($categoryId) ? [$categoryId] : [],
             $pinned,
             $followed
         )
             ->toArray();
 
         $threadsCount = $this->threadRepository->getThreadsCount(
-            ($categoryId)?[$categoryId]:[],
+            ($categoryId) ? [$categoryId] : [],
             $pinned,
             $followed
         );
@@ -200,7 +200,9 @@ class UserForumThreadJsonController extends Controller
     {
         //$this->permissionService->canOrThrow(auth()->id(), 'show-threads');
 
-        $thread = $this->threadRepository->getDecoratedThreadsByIds([$id])->first();
+        $thread =
+            $this->threadRepository->getDecoratedThreadsByIds([$id])
+                ->first();
 
         if (!$thread) {
             throw new NotFoundHttpException();
@@ -300,9 +302,7 @@ class UserForumThreadJsonController extends Controller
             )
         );
 
-        $threads = $this->threadRepository->getDecoratedThreadsByIds([$thread->id]);
-
-        return response()->json($threads->first());
+        return response()->json($thread);
     }
 
     /**
