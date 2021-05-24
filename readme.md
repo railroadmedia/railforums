@@ -2909,6 +2909,44 @@ $.ajax({
   ]
 }
 ```
+### Delete Post 
+
+```
+DELETE /forums/api/post/delete/{id}
+```
+
+#### Permission required `delete-posts`
+
+#### Request Example
+
+```
+var postId = 1;
+
+$.ajax({
+    url: '/forums/api/post/delete/' + postId,
+    type: 'delete',
+    data: {},
+    dataType: 'json',
+    success: function(response) {
+        // handle success
+    },
+    error: function(response) {
+        // handle error
+    }
+});
+```
+
+#### Request Parameters
+
+| path\|query\|body | key  | required | default | description\|notes      |
+| ----------------- | ---- | -------- | ------- | ----------------------- |
+| path              | {id} | yes      |         | The post id to delete |
+
+#### Response Example
+
+``` 204 ``` No content\
+``` 404 ``` when user does not have permission to delete posts\
+``` 404 ``` when specified thread does not exist
 
 ### Report Post
 ```
