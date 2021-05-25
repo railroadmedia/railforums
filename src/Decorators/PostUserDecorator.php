@@ -81,6 +81,7 @@ class PostUserDecorator implements DecoratorInterface
                 ->selectRaw('COUNT(' . ConfigService::$tablePostLikes . '.id) as count')
                 ->addSelect('liker_id')
                 ->whereIn(ConfigService::$tablePostLikes . '.liker_id', $userIds)
+                ->groupBy(ConfigService::$tablePostLikes . '.liker_id')
                 ->get()
                 ->toArray();
 
@@ -106,7 +107,7 @@ class PostUserDecorator implements DecoratorInterface
                 $posts[$postIndex]['author']['created_at'] =
                     $user->getCreatedAt()
                         ->toDateTimeString();
-                $posts[$postIndex]['author']['level_rank'] = $usersXp['level_rank'];
+                $posts[$postIndex]['author']['level_rank'] = $usersXp['level_rank']??'1.0';
             }
         }
 
