@@ -308,4 +308,26 @@ class PostRepository extends EventDispatchingRepository
 
         return (string)$result;
     }
+
+    /**
+     * Returns the posts count of the specified users
+     *
+     * @param array $userIds
+     *
+     * @return array
+     */
+    public function getUsersPostsCount(array $userIds)
+    {
+        $postsCount =
+            $this->connection()
+                ->table(ConfigService::$tablePosts)
+                ->selectRaw('author_id')
+                ->selectRaw('COUNT(' . ConfigService::$tablePosts . '.id) as count')
+                ->whereIn('author_id', $userIds)
+                ->groupBy('author_id')
+                ->get()
+                ->toArray();
+
+        return array_combine(array_column($postsCount, 'author_id'), array_column($postsCount, 'count'));
+    }
 }
