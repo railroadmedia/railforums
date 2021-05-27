@@ -89,6 +89,9 @@ class PostUserDecorator implements DecoratorInterface
 
         foreach ($posts as $postIndex => $post) {
 
+            $posts[$postIndex]['is_liked_by_viewer'] =
+                isset($post['is_liked_by_viewer']) && $post['is_liked_by_viewer'] == 1;
+
             if (!empty($users[$post['author_id']])) {
                 $user = $users[$post['author_id']];
                 $posts[$postIndex]['author']['display_name'] = $user->getDisplayName();
@@ -107,7 +110,7 @@ class PostUserDecorator implements DecoratorInterface
                 $posts[$postIndex]['author']['created_at'] =
                     $user->getCreatedAt()
                         ->toDateTimeString();
-                $posts[$postIndex]['author']['level_rank'] = $usersXp['level_rank']??'1.0';
+                $posts[$postIndex]['author']['level_rank'] = $usersXp['level_rank'] ?? '1.0';
             }
         }
 

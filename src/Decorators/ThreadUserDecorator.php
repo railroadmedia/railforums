@@ -41,11 +41,10 @@ class ThreadUserDecorator implements DecoratorInterface
      */
     public function decorate($threads)
     {
-        $lastPostIds =
-            array_unique(
-                $threads->pluck('last_post_id')
-                    ->toArray()
-            );
+        $lastPostIds = array_unique(
+            $threads->pluck('last_post_id')
+                ->toArray()
+        );
         $lastPosts =
             $this->postRepository->getDecoratedPostsByIds($lastPostIds)
                 ->keyBy('id');
@@ -62,6 +61,11 @@ class ThreadUserDecorator implements DecoratorInterface
         $users = $this->userProvider->getUsersByIds($userIds);
 
         foreach ($threads as $threadIndex => $thread) {
+            
+            $threads[$threadIndex]['locked'] = $thread['locked'] == 1;
+            $threads[$threadIndex]['pinned'] = $thread['pinned'] == 1;
+            $threads[$threadIndex]['is_followed'] = $thread['is_followed'] == 1;
+            $threads[$threadIndex]['is_read'] = $thread['is_read'] == 1;
 
             $threads[$threadIndex]['mobile_app_url'] =
                 url()->route('railforums.mobile-app.show.thread', [$thread['id']]);
