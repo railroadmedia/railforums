@@ -64,8 +64,8 @@ class ThreadUserDecorator implements DecoratorInterface
             
             $threads[$threadIndex]['locked'] = $thread['locked'] == 1;
             $threads[$threadIndex]['pinned'] = $thread['pinned'] == 1;
-            $threads[$threadIndex]['is_followed'] = $thread['is_followed'] == 1;
-            $threads[$threadIndex]['is_read'] = $thread['is_read'] == 1;
+            $threads[$threadIndex]['is_followed'] = isset($thread['is_followed']) && $thread['is_followed'] == 1;
+            $threads[$threadIndex]['is_read'] = isset($thread['is_read']) && $thread['is_read'] == 1;
 
             $threads[$threadIndex]['mobile_app_url'] =
                 url()->route('railforums.mobile-app.show.thread', [$thread['id']]);
