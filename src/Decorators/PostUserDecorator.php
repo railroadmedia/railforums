@@ -88,8 +88,9 @@ class PostUserDecorator implements DecoratorInterface
         $userLikes = array_combine(array_column($postLikes, 'liker_id'), array_column($postLikes, 'count'));
 
         foreach ($posts as $postIndex => $post) {
-            $posts[$postIndex]['published_on_diff'] = Carbon::parse($post['published_on'])
-                ->diffforHumans();
+            $posts[$postIndex]['published_on_formatted'] =
+                Carbon::parse($post['published_on'])
+                    ->format('M d, Y');
             $posts[$postIndex]['is_liked_by_viewer'] =
                 isset($post['is_liked_by_viewer']) && $post['is_liked_by_viewer'] == 1;
 
