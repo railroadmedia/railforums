@@ -25,8 +25,7 @@ class ThreadRepository extends EventDispatchingRepository
     public function getCreateEvent($entity)
     {
         return new ThreadCreated(
-            $entity->id,
-          auth()->id()
+            $entity->id, auth()->id()
         );
     }
 
@@ -40,8 +39,7 @@ class ThreadRepository extends EventDispatchingRepository
         $id = is_object($entity) ? $entity->id : $entity;
 
         return new ThreadUpdated(
-            $id,
-            auth()->id()
+            $id, auth()->id()
         );
     }
 
@@ -53,8 +51,7 @@ class ThreadRepository extends EventDispatchingRepository
     public function getDeleteEvent($id)
     {
         return new ThreadDeleted(
-            $id,
-            auth()->id()
+            $id, auth()->id()
         );
     }
 
@@ -110,7 +107,7 @@ class ThreadRepository extends EventDispatchingRepository
         $amount,
         $page,
         $categoryIds,
-        $pinned = false,
+        $pinned = null,
         $followed = null
     ) {
         $query = $this->getDecoratedQuery();
@@ -139,12 +136,17 @@ class ThreadRepository extends EventDispatchingRepository
 
         $query->limit($amount)
             ->skip($amount * ($page - 1))
-            ->orderByRaw('last_post_published_on desc, id desc')
             ->whereIn(
                 ConfigService::$tableThreads . '.state',
                 self::ACCESSIBLE_STATES
-            )
-            ->where('pinned', $pinned);
+            );
+
+        if ($pinned) {
+            $query->where('pinned', $pinned)
+                ->orderByRaw('last_post_published_on desc, id desc');
+        } else {
+            $query->orderByRaw('pinned desc, last_post_published_on desc, id desc');
+        }
 
         return $query->get();
     }
@@ -160,7 +162,7 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function getThreadsCount(
         $categoryIds,
-        $pinned = false,
+        $pinned = null,
         $followed = null
     ) {
         $query =
@@ -170,9 +172,11 @@ class ThreadRepository extends EventDispatchingRepository
                     ConfigService::$tableThreads . '.state',
                     self::ACCESSIBLE_STATES
                 )
-                ->where(ConfigService::$tableThreads . '.pinned', $pinned)
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at');
 
+        if ($pinned) {
+            $query->where(ConfigService::$tableThreads . '.pinned', $pinned);
+        }
         if (!empty($categoryIds)) {
             $query->whereIn(
                 ConfigService::$tableThreads . '.category_id',
@@ -223,8 +227,17 @@ class ThreadRepository extends EventDispatchingRepository
     public function getDecoratedQuery()
     {
         return $this->query()
-            ->select(ConfigService::$tableThreads . '.*', ConfigService::$tableCategories.'.slug as category_slug', ConfigService::$tableCategories.'.title as category')
-            ->join(ConfigService::$tableCategories,ConfigService::$tableThreads . '.category_id','=',ConfigService::$tableCategories.'.id' )
+            ->select(
+                ConfigService::$tableThreads . '.*',
+                ConfigService::$tableCategories . '.slug as category_slug',
+                ConfigService::$tableCategories . '.title as category'
+            )
+            ->join(
+                ConfigService::$tableCategories,
+                ConfigService::$tableThreads . '.category_id',
+                '=',
+                ConfigService::$tableCategories . '.id'
+            )
             ->selectSub(
                 function (Builder $builder) {
 

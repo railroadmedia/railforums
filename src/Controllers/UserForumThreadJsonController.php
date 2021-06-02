@@ -168,7 +168,7 @@ class UserForumThreadJsonController extends Controller
         $amount = $request->get('amount') ? (int)$request->get('amount') : self::AMOUNT;
         $page = $request->get('page') ? (int)$request->get('page') : self::PAGE;
         $categoryId = $request->get('category_id', null);
-        $pinned = (boolean)$request->get('pinned');
+        $pinned = $request->has('pinned') ? (boolean)$request->get('pinned') : null;
         $followed = $request->has('followed') ? (boolean)$request->get('followed') : null;
 
         $threads = $this->threadRepository->getDecoratedThreads(
