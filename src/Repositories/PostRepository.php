@@ -171,7 +171,7 @@ class PostRepository extends EventDispatchingRepository
      */
     public function getDecoratedQuery()
     {
-        return $this->query()
+        $query = $this->query()
             ->select(ConfigService::$tablePosts . '.*')
             ->selectSub(
                 function (Builder $builder) {
@@ -184,7 +184,10 @@ class PostRepository extends EventDispatchingRepository
                 },
                 'like_count'
             )
-            ->selectSub(
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at');
+
+        if (auth()->user()) {
+            $query->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tablePostLikes)
@@ -193,13 +196,15 @@ class PostRepository extends EventDispatchingRepository
                             ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
                         )
                         ->whereRaw(
-                            ConfigService::$tablePostLikes . '.liker_id = ' . auth()->id()
+                            ConfigService::$tablePostLikes . '.liker_id = ' . auth()->id() ?? 0
                         );
                 },
                 'is_liked_by_viewer'
-            )
-            ->whereNull(ConfigService::$tablePosts . '.deleted_at');
-    }
+            );
+        }
+
+        return $query;
+            }
 
     /**
      * Performs a chunked table read and creates search index records with the fetched data
