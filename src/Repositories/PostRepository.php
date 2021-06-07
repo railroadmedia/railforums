@@ -204,7 +204,7 @@ class PostRepository extends EventDispatchingRepository
         }
 
         return $query;
-            }
+    }
 
     /**
      * Performs a chunked table read and creates search index records with the fetched data
@@ -239,10 +239,10 @@ class PostRepository extends EventDispatchingRepository
 
                 $postsData = self::decorate($postEntities);
 
-                foreach ($postsData as $postData) {
+                foreach ($postsData as $index => $postData) {
 
                     $searchIndex = [
-                        'high_value' => $this->getFilteredPostContent($postData->content),
+                        'high_value' => utf8_encode($this->getFilteredPostContent($postData->content)),
                         'medium_value' => null,
                         'low_value' => $postData->author_display_name,
                         'thread_id' => $postData->thread_id,
@@ -252,11 +252,17 @@ class PostRepository extends EventDispatchingRepository
                     ];
 
                     $chunk[] = $searchIndex;
+                    try {
+                        $instance->baseQuery()
+                            ->from(ConfigService::$tableSearchIndexes)
+                            ->insert($chunk);
+                    } catch (\Exception $e) {
+                        $this->info(print_r($chunk));
+                    }
+
                 }
 
-                $instance->baseQuery()
-                    ->from(ConfigService::$tableSearchIndexes)
-                    ->insert($chunk);
+
             }
         );
     }
@@ -269,21 +275,23 @@ class PostRepository extends EventDispatchingRepository
     {
         // filter out blockquote tags
         $crawler = new Crawler($content);
-
-        $crawler->filter('blockquote')
-            ->each(
-                function (Crawler $crawler) {
-                    foreach ($crawler as $node) {
-                        $node->parentNode->removeChild($node);
+        $result = $content;
+        if ($crawler->filter('blockquote')->count() > 0) {
+            $crawler->filter('blockquote')
+                ->each(
+                    function (Crawler $crawler) {
+                        foreach ($crawler as $node) {
+                            $node->parentNode->removeChild($node);
+                        }
                     }
-                }
-            );
+                );
 
-        $result = $crawler->text();
+            $result = $crawler->text();
+        }
 
         if ($result) {
 
-            $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2) . chr(0xA0));
+            $result = trim($result, " \t\n\r\0\x0B\xBFQui" . chr(0xC2) . chr(0xA0));
         }
 
         //        if (!$result) {
