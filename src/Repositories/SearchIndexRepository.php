@@ -2,13 +2,12 @@
 
 namespace Railroad\Railforums\Repositories;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\JoinClause;
+use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
-use Railroad\Railforums\Services\ConfigService;
 
 class SearchIndexRepository extends RepositoryBase
 {
@@ -30,7 +29,8 @@ class SearchIndexRepository extends RepositoryBase
     public function __construct(
         PostRepository $postRepository,
         ThreadRepository $threadRepository
-    ) {
+    )
+    {
         $this->postRepository = $postRepository;
         $this->threadRepository = $threadRepository;
     }
@@ -123,31 +123,17 @@ SQL;
             }
         }
 
-        // pre-fill the results array to insert content in correct order
-        $results = array_fill(0, count($searchResults), null);
-
         $postsData = $this->postRepository
-                            ->getDecoratedPostsByIds(array_keys($postsIds));
+            ->getDecoratedPostsByIds(array_keys($postsIds))->keyBy('id');
 
-        foreach ($postsData as $postStdData) {
-
-            /** @var \stdClass $postStdData */
-            $postPosition = $postsIds[$postStdData->id];
-
-            $results[$postPosition] = (array) $postStdData;
-        }
 
         $threadsData = $this->threadRepository
-                            ->getDecoratedThreadsByIds(array_keys($threadsIds));
+            ->getDecoratedThreadsByIds(array_keys($threadsIds))->keyBy('id');
 
-        foreach ($threadsData as $threadStdData) {
-
-            /** @var \stdClass $threadStdData */
-            $threadPositions = $threadsIds[$threadStdData->id];
-
-            foreach ($threadPositions as $position) {
-                $results[$position]['thread'] = (array) $threadStdData;
-            }
+        $results = [];
+        foreach ($searchResults as $key => $searchResult) {
+            $results[$key] = $postsData[$searchResult->post_id];
+            $results[$key]['thread'] = $threadsData[$searchResult->thread_id];
         }
 
         return $results;
@@ -220,7 +206,6 @@ SQL;
         $this->deleteOldIndexes();
 
         $this->postRepository->createSearchIndexes();
-        $this->threadRepository->createSearchIndexes();
 
         DB::statement('OPTIMIZE table ' . ConfigService::$tableSearchIndexes);
     }

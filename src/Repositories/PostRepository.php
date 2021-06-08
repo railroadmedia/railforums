@@ -219,14 +219,15 @@ class PostRepository extends EventDispatchingRepository
                 ->orderBy(ConfigService::$tablePosts . '.id');
 
         $instance = $this;
+        $chunk = [];
 
         $query->chunk(
             self::CHUNK_SIZE,
             function (Collection $postsData) use (
-                $instance
+                $instance, $chunk
             ) {
 
-                $chunk = [];
+
                 $now =
                     Carbon::now()
                         ->toDateTimeString();
@@ -242,7 +243,7 @@ class PostRepository extends EventDispatchingRepository
                 foreach ($postsData as $index => $postData) {
 
                     $searchIndex = [
-                        'high_value' => utf8_encode($this->getFilteredPostContent($postData->content)),
+                        'high_value' => substr(utf8_encode($this->getFilteredPostContent($postData->content)), 0, 65535),
                         'medium_value' => null,
                         'low_value' => $postData->author_display_name,
                         'thread_id' => $postData->thread_id,
@@ -252,14 +253,14 @@ class PostRepository extends EventDispatchingRepository
                     ];
 
                     $chunk[] = $searchIndex;
-                    try {
-                        $instance->baseQuery()
-                            ->from(ConfigService::$tableSearchIndexes)
-                            ->insert($chunk);
-                    } catch (\Exception $e) {
-                        $this->info(print_r($chunk));
-                    }
+                }
 
+                try {
+                    $instance->baseQuery()
+                        ->from(ConfigService::$tableSearchIndexes)
+                        ->insert($chunk);
+                } catch (\Exception $e) {
+                   $this->info(print_r($e->getMessage(), true));
                 }
 
 
