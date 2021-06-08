@@ -207,6 +207,8 @@ SQL;
 
         $this->postRepository->createSearchIndexes();
 
+        $this->threadRepository->createSearchIndexes();
+
         DB::statement('OPTIMIZE table ' . ConfigService::$tableSearchIndexes);
     }
 
