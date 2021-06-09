@@ -125,7 +125,10 @@ SQL;
 
         $postsData = $this->postRepository
             ->getDecoratedPostsByIds(array_keys($postsIds))->keyBy('id');
-
+       
+	foreach ($postsData as $postsDatum) {
+            $postsDatum['content'] = $this->postRepository->getFilteredPostContent($postsDatum['content']);
+        }
 
         $threadsData = $this->threadRepository
             ->getDecoratedThreadsByIds(array_keys($threadsIds))->keyBy('id');

@@ -274,7 +274,7 @@ class PostRepository extends EventDispatchingRepository
      * strips out blockquote tags with it's content, return the rest of the content, if not empty
      * if post content is composed just of blockquote tags, return the content without quoted post metadata
      */
-    protected function getFilteredPostContent($content)
+    public function getFilteredPostContent($content)
     {
         // filter out blockquote tags
         $crawler = new Crawler($content);
