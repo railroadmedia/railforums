@@ -214,8 +214,10 @@ class PostRepository extends EventDispatchingRepository
         $query =
             $this->baseQuery()
                 ->from(ConfigService::$tablePosts)
+                ->join(ConfigService::$tableThreads, ConfigService::$tablePosts.'.thread_id', '=', ConfigService::$tableThreads.'.id')
                 ->select(ConfigService::$tablePosts . '.*')
                 ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+                ->whereNull(ConfigService::$tableThreads . '.deleted_at')
                 ->orderBy(ConfigService::$tablePosts . '.id');
 
         $instance = $this;
