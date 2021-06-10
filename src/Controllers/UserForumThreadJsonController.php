@@ -63,7 +63,8 @@ class UserForumThreadJsonController extends Controller
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
         PermissionService $permissionService
-    ) {
+    )
+    {
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
         $this->threadFollowRepository = $threadFollowRepository;
@@ -212,7 +213,7 @@ class UserForumThreadJsonController extends Controller
         $page = $request->get('page', 1);
 
         $thread['posts'] = $this->postRepository->getDecoratedPosts($amount, $page, $id);
-
+        $thread['page'] = $page;
         return response()->json($thread);
     }
 
@@ -264,8 +265,18 @@ class UserForumThreadJsonController extends Controller
         );
 
         $threads = $this->threadRepository->getDecoratedThreadsByIds([$thread->id]);
+        $thread = $threads->first();
 
-        return response()->json($threads->first());
+        $allThreadsdsInCategory = collect(
+            $this->threadRepository->getAllThreadIdsInCategory($thread['category_id'])
+        )
+            ->pluck('id')
+            ->all();
+        $threadPositionInCategory = array_search($thread['id'], $allThreadsdsInCategory);
+
+        $thread['page'] = ceil(($threadPositionInCategory + 1) / 10);
+
+        return response()->json($thread);
     }
 
     /**
@@ -329,5 +340,28 @@ class UserForumThreadJsonController extends Controller
         }
 
         return new JsonResponse(null, 204);
+    }
+
+    /**
+     * @param $id
+     * @return JsonResponse
+     */
+    public function jumpToPost($id)
+    {
+        $post = $this->postRepository->read($id);
+        $thread = $this->threadRepository->read($post->thread_id);
+
+        $allPostIdsInThread = collect(
+            $this->postRepository->getAllPostIdsInThread($post->thread_id)
+        )
+            ->pluck('id')
+            ->all();
+        $postPositionInThread = array_search($post->id, $allPostIdsInThread);
+        $request = new \Illuminate\Http\Request();
+
+        $request->replace(['amount' => 10,
+            'page' => ceil(($postPositionInThread + 1) / 10)]);
+
+        return $this->show($thread->id, $request);
     }
 }

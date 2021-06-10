@@ -136,6 +136,7 @@ SQL;
         $results = [];
         foreach ($searchResults as $key => $searchResult) {
             $results[$key] = $postsData[$searchResult->post_id];
+            $results[$key]['mobile_app_url'] = url()->route('forums.api.post.jump-to',$searchResult->post_id);
             $results[$key]['thread'] = $threadsData[$searchResult->thread_id];
         }
 

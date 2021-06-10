@@ -135,4 +135,12 @@ Route::group(
             \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@delete'
         );
 
+        Route::get(
+            '/jump-to-post/{id}',
+            [
+                'as' => 'forums.api.post.jump-to',
+                'uses' => \Railroad\Railforums\Controllers\UserForumThreadJsonController::class    .'@jumpToPost'
+            ]
+        );
+
     });
