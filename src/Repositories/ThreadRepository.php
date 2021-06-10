@@ -394,4 +394,24 @@ class ThreadRepository extends EventDispatchingRepository
             }
         );
     }
+
+    /**
+     * Returns the posts of the specified thread
+     *
+     * @param int $id
+     *
+     * @return Collection
+     */
+    public function getAllThreadIdsInCategory($id)
+    {
+        return $this->query()
+            ->where('category_id', $id)
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->whereIn(
+                ConfigService::$tableThreads . '.state',
+                self::ACCESSIBLE_STATES
+            )
+            ->orderBy('published_on', 'asc')
+            ->get();
+    }
 }

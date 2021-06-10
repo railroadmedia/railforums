@@ -10,6 +10,7 @@ use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\PostLikeRepository;
 use Railroad\Railforums\Repositories\PostReplyRepository;
 use Railroad\Railforums\Repositories\PostRepository;
+use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Requests\PostJsonCreateRequest;
 use Railroad\Railforums\Requests\PostJsonIndexRequest;
 use Railroad\Railforums\Requests\PostJsonUpdateRequest;
@@ -42,6 +43,10 @@ class UserForumPostJsonController extends Controller
     protected $permissionService;
 
     /**
+     * @var ThreadRepository
+     */
+    protected $threadRepository;
+    /**
      * UserForumPostJsonController constructor.
      *
      * @param PostLikeRepository $postLikeRepository
@@ -53,12 +58,14 @@ class UserForumPostJsonController extends Controller
         PostLikeRepository $postLikeRepository,
         PostReplyRepository $postReplyRepository,
         PostRepository $postRepository,
-        PermissionService $permissionService
+        PermissionService $permissionService,
+        ThreadRepository $threadRepository
     ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
+        $this->threadRepository = $threadRepository;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -250,6 +257,15 @@ class UserForumPostJsonController extends Controller
                 $this->postReplyRepository->getPostReplyParents($post['id'])
                     ->all();
         }
+
+        $allPostIdsInThread = collect(
+            $this->postRepository->getAllPostIdsInThread($post['thread_id'])
+        )
+            ->pluck('id')
+            ->all();
+        $postPositionInThread = array_search($post['id'], $allPostIdsInThread);
+
+        $post['page'] = ceil(($postPositionInThread + 1) / 10);
 
         return response()->json($post);
     }
