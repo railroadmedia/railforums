@@ -414,4 +414,11 @@ class ThreadRepository extends EventDispatchingRepository
             ->orderBy('published_on', 'asc')
             ->get();
     }
+
+    public function getThreadBySlug($slug)
+    {
+        return $this->query()
+            ->where(ConfigService::$tableThreads . '.slug', $slug)
+            ->get();
+    }
 }
