@@ -2,7 +2,6 @@
 
 Route::group(
     [
-        'prefix' => 'forums/',
         'middleware' => config('railforums.controller_middleware', []),
     ],
     function () {
