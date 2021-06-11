@@ -25,8 +25,8 @@ class DiscussionCreateRequest extends FormRequest
     {
         return [
             'title' =>'required|string|max:255',
-            'description' => 'nullable|string',
-            'weight' => 'nullable|numeric'
+            'description' => 'required|nullable|string',
+            'weight' => 'required|nullable|numeric'
         ];
     }
 }
