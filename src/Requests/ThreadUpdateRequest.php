@@ -3,6 +3,7 @@
 namespace Railroad\Railforums\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Railroad\Railforums\Services\ConfigService;
 
 class ThreadUpdateRequest extends FormRequest
 {
@@ -24,7 +25,8 @@ class ThreadUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' =>'min:1|string|max:255'
+            'title' =>'min:1|string|max:255',
+            'category_id' => 'required|numeric|exists:'.ConfigService::$tableCategories.',id',
         ];
     }
 }

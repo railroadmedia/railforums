@@ -254,7 +254,7 @@ class UserForumThreadController extends Controller
                     auth()->id(),
                     'update-threads',
                     $request->all(),
-                    ['title']
+                    ['title', 'category_id']
                 ),
                 [
                     'updated_at' => Carbon::now()
