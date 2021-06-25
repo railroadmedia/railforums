@@ -143,4 +143,12 @@ Route::group(
             ]
         );
 
+        Route::get(
+            '/rules',
+            [
+                'as' => 'forums.api.forum.rules',
+                'uses' => \Railroad\Railforums\Controllers\UserForumThreadJsonController::class    .'@getForumRules'
+            ]
+        );
+
     });

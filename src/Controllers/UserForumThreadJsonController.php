@@ -364,4 +364,9 @@ class UserForumThreadJsonController extends Controller
 
         return $this->show($thread->id, $request);
     }
+
+    public function getForumRules()
+    {
+        return $this->jumpToPost(config('railforums.forum_rules_post_id', 1));
+    }
 }
