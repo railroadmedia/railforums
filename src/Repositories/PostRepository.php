@@ -153,7 +153,8 @@ class PostRepository extends EventDispatchingRepository
      */
     public function getAllPostIdsInThread($id)
     {
-        return $this->query()
+        return $this->baseQuery()
+            ->from(ConfigService::$tablePosts)
             ->where('thread_id', $id)
             ->whereNull(ConfigService::$tablePosts . '.deleted_at')
             ->whereIn(
