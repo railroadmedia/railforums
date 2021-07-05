@@ -58,4 +58,12 @@ class PostLikeRepository extends EventDispatchingRepository
             ->where(ConfigService::$tablePostLikes . '.post_id', $postId)
             ->value('count');
     }
+
+    public function getLatestPostLike($postId)
+    {
+        return $this->query()
+            ->where(ConfigService::$tablePostLikes . '.post_id', $postId)
+            ->orderBy('id','desc')
+            ->first();
+    }
 }
