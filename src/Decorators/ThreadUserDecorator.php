@@ -87,8 +87,8 @@ class ThreadUserDecorator implements DecoratorInterface
                 $threads[$threadIndex]['latest_post']['id'] = $lastPost['id'];
                 $threads[$threadIndex]['latest_post']['created_at'] = $lastPost['published_on'];
                 $threads[$threadIndex]['latest_post']['created_at_diff'] =
-                    Carbon::parse($lastPost['published_on'])
-                        ->diffForHumans();
+                    str_replace(['mo','mos'],['M','M'],Carbon::parse($lastPost['published_on'])
+                        ->diffForHumans(null, null, true));
 
                 $threads[$threadIndex]['latest_post']['author_id'] = $lastPost['author_id'];
                 $threads[$threadIndex]['latest_post']['author_display_name'] =
