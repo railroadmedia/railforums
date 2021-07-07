@@ -109,7 +109,8 @@ class ThreadRepository extends EventDispatchingRepository
         $categoryIds,
         $pinned = null,
         $followed = null
-    ) {
+    )
+    {
         $query = $this->getDecoratedQuery();
 
         if ($followed === true) {
@@ -164,7 +165,8 @@ class ThreadRepository extends EventDispatchingRepository
         $categoryIds,
         $pinned = null,
         $followed = null
-    ) {
+    )
+    {
         $query =
             $this->query()
                 ->selectRaw('COUNT(' . ConfigService::$tableThreads . '.id) as count')
@@ -420,5 +422,19 @@ class ThreadRepository extends EventDispatchingRepository
         return $this->query()
             ->where(ConfigService::$tableThreads . '.slug', $slug)
             ->get();
+    }
+
+    /**
+     * @param $limit
+     * @return Collection
+     */
+    public function getRecentThreads($limit)
+    {
+        return $this->query()
+            ->join('forum_posts', 'forum_threads.id', '=', 'forum_posts.thread_id')
+            ->whereNull('forum_posts.deleted_at')
+            ->where('forum_posts.state', 'published')
+            ->orderBy('forum_posts.created_at', 'desc')
+            ->limit($limit)->groupBy('forum_threads.id')->get();
     }
 }

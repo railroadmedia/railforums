@@ -215,7 +215,7 @@ class PostRepository extends EventDispatchingRepository
         $query =
             $this->baseQuery()
                 ->from(ConfigService::$tablePosts)
-                ->join(ConfigService::$tableThreads, ConfigService::$tablePosts.'.thread_id', '=', ConfigService::$tableThreads.'.id')
+                ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
                 ->select(ConfigService::$tablePosts . '.*')
                 ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
@@ -263,7 +263,7 @@ class PostRepository extends EventDispatchingRepository
                         ->from(ConfigService::$tableSearchIndexes)
                         ->insert($chunk);
                 } catch (\Exception $e) {
-                   $this->info(print_r($e->getMessage(), true));
+                    $this->info(print_r($e->getMessage(), true));
                 }
 
 
