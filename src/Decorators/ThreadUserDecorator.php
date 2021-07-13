@@ -91,12 +91,15 @@ class ThreadUserDecorator implements DecoratorInterface
                         ->diffForHumans(null, null, true));
 
                 $threads[$threadIndex]['latest_post']['author_id'] = $lastPost['author_id'];
-                $threads[$threadIndex]['latest_post']['author_display_name'] =
-                    $users[$lastPost['author_id']]->getDisplayName();
-                $threads[$threadIndex]['latest_post']['author_avatar_url'] =
-                    $users[$lastPost['author_id']]->getProfilePictureUrl()
-                    ??
-                    config('railforums.author_default_avatar_url');
+                $threads[$threadIndex]['latest_post']['author_display_name'] = '';
+                $threads[$threadIndex]['latest_post']['author_avatar_url'] = config('railforums.author_default_avatar_url');
+
+                if(array_key_exists($lastPost['author_id'], $users)) {
+                    $threads[$threadIndex]['latest_post']['author_display_name'] =
+                        $users[$lastPost['author_id']]->getDisplayName();
+                    $threads[$threadIndex]['latest_post']['author_avatar_url'] =
+                        $users[$lastPost['author_id']]->getProfilePictureUrl();
+                }
             }
         }
 
