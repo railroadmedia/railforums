@@ -208,67 +208,19 @@ class PostRepository extends EventDispatchingRepository
     }
 
     /**
-     * Performs a chunked table read and creates search index records with the fetched data
+     * Get post data for search indexes
      */
     public function createSearchIndexes()
     {
-        $query =
+        return
             $this->baseQuery()
                 ->from(ConfigService::$tablePosts)
                 ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
                 ->select(ConfigService::$tablePosts . '.*')
                 ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-                ->orderBy(ConfigService::$tablePosts . '.id');
-
-        $instance = $this;
-        $chunk = [];
-
-        $query->chunk(
-            self::CHUNK_SIZE,
-            function (Collection $postsData) use (
-                $instance, $chunk
-            ) {
-
-
-                $now =
-                    Carbon::now()
-                        ->toDateTimeString();
-
-                $postEntities = new BaseCollection();
-
-                foreach ($postsData as $postData) {
-                    $postEntities[] = new Entity((array)$postData);
-                }
-
-                $postsData = self::decorate($postEntities);
-
-                foreach ($postsData as $index => $postData) {
-
-                    $searchIndex = [
-                        'high_value' => substr(utf8_encode($this->getFilteredPostContent($postData->content)), 0, 65535),
-                        'medium_value' => null,
-                        'low_value' => $postData->author_display_name,
-                        'thread_id' => $postData->thread_id,
-                        'post_id' => $postData->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-
-                    $chunk[] = $searchIndex;
-                }
-
-                try {
-                    $instance->baseQuery()
-                        ->from(ConfigService::$tableSearchIndexes)
-                        ->insert($chunk);
-                } catch (\Exception $e) {
-                    $this->info(print_r($e->getMessage(), true));
-                }
-
-
-            }
-        );
+                ->orderBy(ConfigService::$tablePosts . '.id')
+                ->get();
     }
 
     /**

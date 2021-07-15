@@ -2,9 +2,12 @@
 
 namespace Railroad\Railforums\Repositories;
 
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
@@ -25,14 +28,21 @@ class SearchIndexRepository extends RepositoryBase
      */
     protected $threadRepository;
 
+    /**
+     * @var UserProviderInterface
+     */
+    private $userProvider;
+
 
     public function __construct(
         PostRepository $postRepository,
-        ThreadRepository $threadRepository
+        ThreadRepository $threadRepository,
+        UserProviderInterface $userProvider
     )
     {
         $this->postRepository = $postRepository;
         $this->threadRepository = $threadRepository;
+        $this->userProvider = $userProvider;
     }
 
     /**
@@ -125,8 +135,8 @@ SQL;
 
         $postsData = $this->postRepository
             ->getDecoratedPostsByIds(array_keys($postsIds))->keyBy('id');
-       
-	foreach ($postsData as $postsDatum) {
+
+        foreach ($postsData as $postsDatum) {
             $postsDatum['content'] = $this->postRepository->getFilteredPostContent($postsDatum['content']);
         }
 
@@ -136,7 +146,7 @@ SQL;
         $results = [];
         foreach ($searchResults as $key => $searchResult) {
             $results[$key] = $postsData[$searchResult->post_id];
-            $results[$key]['mobile_app_url'] = url()->route('forums.api.post.jump-to',$searchResult->post_id);
+            $results[$key]['mobile_app_url'] = url()->route('forums.api.post.jump-to', $searchResult->post_id);
             $results[$key]['thread'] = $threadsData[$searchResult->thread_id];
         }
 
@@ -209,11 +219,71 @@ SQL;
         //delete old indexes
         $this->deleteOldIndexes();
 
-        $this->postRepository->createSearchIndexes();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
-        $this->threadRepository->createSearchIndexes();
+        $postsData = $this->postRepository->createSearchIndexes();
+
+        $threadsData = $this->threadRepository->createSearchIndexes();
+
+        $userIds = array_merge(
+            $postsData->pluck('author_id')
+                ->toArray(),
+            $threadsData->pluck('author_id')
+                ->toArray()
+        );
+
+        $userIds = array_unique($userIds);
+        $users = $this->userProvider->getUsersByIds($userIds);
+
+        $searchIndexes = [];
+
+        foreach ($postsData as $postData) {
+            $author = $users[$postData->author_id];
+            $searchIndex = [
+                'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
+                'medium_value' => null,
+                'low_value' => $author ? $author->getDisplayName() : '',
+                'thread_id' => $postData->thread_id,
+                'post_id' => $postData->id,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            $searchIndexes[] = $searchIndex;
+        }
+
+        foreach ($threadsData as $threadData) {
+            $author = $users[$postData->author_id];
+            $searchIndex = [
+                'high_value' => null,
+                'medium_value' => $threadData->title,
+                'low_value' => $author ? $author->getDisplayName() : '',
+                'thread_id' => $threadData->id,
+                'post_id' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            $searchIndexes[] = $searchIndex;
+        }
+
+        $searchIndexes = collect($searchIndexes);
+
+        $chunks = $searchIndexes->chunk(500);
+
+        foreach ($chunks as $chunk) {
+            try {
+                \DB::table(ConfigService::$tableSearchIndexes)->insert($chunk->toArray());
+            } catch (Exception $e) {
+                $this->info(print_r($e->getMessage(), true));
+            }
+        }
 
         DB::statement('OPTIMIZE table ' . ConfigService::$tableSearchIndexes);
+
+        return true;
     }
 
     /**

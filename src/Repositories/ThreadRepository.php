@@ -343,58 +343,17 @@ class ThreadRepository extends EventDispatchingRepository
     }
 
     /**
-     * Performs a chunked table read and creates search index records with the fetched data
+     * Return threads data for search indexes
      */
     public function createSearchIndexes()
     {
-        $query =
+        return
             $this->baseQuery()
                 ->from(ConfigService::$tableThreads)
                 ->select(ConfigService::$tableThreads . '.*')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-                ->orderBy(ConfigService::$tableThreads . '.id');
-
-        $instance = $this;
-
-        $query->chunk(
-            self::CHUNK_SIZE,
-            function (Collection $threadsData) use (
-                $instance
-            ) {
-
-                $chunk = [];
-                $now =
-                    Carbon::now()
-                        ->toDateTimeString();
-
-                $threadEntities = new BaseCollection();
-
-                foreach ($threadsData as $threadData) {
-                    $threadEntities[] = new Entity((array)$threadData);
-                }
-
-                $threadsData = self::decorate($threadEntities);
-
-                foreach ($threadsData as $threadData) {
-
-                    $searchIndex = [
-                        'high_value' => null,
-                        'medium_value' => $threadData->title,
-                        'low_value' => $threadData->author_display_name ?? '',
-                        'thread_id' => $threadData->id,
-                        'post_id' => null,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
-
-                    $chunk[] = $searchIndex;
-                }
-
-                $instance->baseQuery()
-                    ->from(ConfigService::$tableSearchIndexes)
-                    ->insert($chunk);
-            }
-        );
+                ->orderBy(ConfigService::$tableThreads . '.id')
+                ->get();
     }
 
     /**
