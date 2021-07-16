@@ -48,7 +48,8 @@ class CategoryRepository extends EventDispatchingRepository
                 ->where(
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
-                );
+                )
+                ->whereNotIn(ConfigService::$tableCategories . '.id', config('railforums.excludedOldForumsIds', []));
 
         if ($amount) {
             $query =
@@ -73,7 +74,8 @@ class CategoryRepository extends EventDispatchingRepository
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
                 )
-                ->whereNull(ConfigService::$tableCategories . '.deleted_at');
+                ->whereNull(ConfigService::$tableCategories . '.deleted_at')
+                ->whereNotIn(ConfigService::$tableCategories . '.id', config('railforums.excludedOldForumsIds', []));
 
         return $query->value('count');
     }

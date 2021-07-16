@@ -389,6 +389,8 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function getRecentThreads($limit)
     {
+        \DB::statement("SET SQL_MODE=''");
+
         return $this->query()
             ->join('forum_posts', 'forum_threads.id', '=', 'forum_posts.thread_id')
             ->whereNull('forum_posts.deleted_at')

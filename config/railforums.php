@@ -123,5 +123,6 @@ return [
     ],
 
     //topics
-    'topics' => []
+    'topics' => [],
+    'excludedOldForumsIds' => []
 ];
