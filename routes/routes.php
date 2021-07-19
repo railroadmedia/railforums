@@ -239,5 +239,11 @@ Route::group(
             'signature/delete/{id}',
             \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class.'@delete'
         )->name('railforums.api.discussions.delete');
+
+        //post-likes
+        Route::get(
+            '/post-likes/{id}',
+            \Railroad\Railforums\Controllers\UserForumPostJsonController::class. '@getPostLikes'
+        )->name('railforums.post-likes.index');
     }
 );

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider;
 use Railroad\Railforums\Commands\CreateSearchIndexes;
 use Railroad\Railforums\Decorators\PostUserDecorator;
 use Railroad\Railforums\Decorators\ThreadUserDecorator;
+use Railroad\Railforums\Events\PostCreated;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\EventListeners\PostEventListener;
 use Railroad\Railforums\Events\PostDeleted;
@@ -15,7 +16,10 @@ class ForumServiceProvider extends EventServiceProvider
     protected $listen = [
         PostDeleted::class => [
             PostEventListener::class . '@onPostDeleted',
-        ]
+        ],
+        PostCreated::class=> [
+            PostEventListener::class . '@onPostCreated',
+        ],
     ];
 
     /**

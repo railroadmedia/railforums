@@ -6,7 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Routing\Controller;
+use Illuminate\Http\Request;
 use Railroad\Permissions\Services\PermissionService;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostLikeRepository;
 use Railroad\Railforums\Repositories\PostReplyRepository;
 use Railroad\Railforums\Repositories\PostRepository;
@@ -47,6 +49,11 @@ class UserForumPostJsonController extends Controller
      */
     protected $threadRepository;
     /**
+     * @var UserProviderInterface
+     */
+    protected $userProvider;
+
+    /**
      * UserForumPostJsonController constructor.
      *
      * @param PostLikeRepository $postLikeRepository
@@ -59,13 +66,16 @@ class UserForumPostJsonController extends Controller
         PostReplyRepository $postReplyRepository,
         PostRepository $postRepository,
         PermissionService $permissionService,
-        ThreadRepository $threadRepository
-    ) {
+        ThreadRepository $threadRepository,
+        UserProviderInterface $userProvider
+    )
+    {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
         $this->threadRepository = $threadRepository;
+        $this->userProvider = $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -86,9 +96,9 @@ class UserForumPostJsonController extends Controller
         }
 
         (new AnonymousNotifiable)->route(
-                ConfigService::$postReportNotificationChannel,
-                ConfigService::$postReportNotificationRecipients
-            )
+            ConfigService::$postReportNotificationChannel,
+            ConfigService::$postReportNotificationRecipients
+        )
             ->notify(
                 new ConfigService::$postReportNotificationClass(
                     $post->getArrayCopy()
@@ -331,5 +341,33 @@ class UserForumPostJsonController extends Controller
         }
 
         return new JsonResponse(null, 204);
+    }
+
+    /**
+     * @param Request $request
+     * @param $postId
+     * @return JsonResponse
+     */
+    public function getPostLikes(Request $request, $postId)
+    {
+        $postLikes = $this->postLikeRepository->getPostLikes($postId, $request->get('limit', 10),
+            $request->get('page', 1));
+
+        $likerIds = $postLikes->pluck('liker_id')->toArray();
+
+        $likers = $this->userProvider->getUsersByIds($likerIds);
+
+        $results = [];
+        foreach ($likers as $liker) {
+            $results[] = [
+                'user_id' => $liker->getId(),
+                'authorId' => $liker->getId(),
+                'display_name' => $liker->getDisplayName(),
+                'avatar_url' =>
+                    $liker->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url')
+            ];
+
+        }
+        return response()->json($results);
     }
 }

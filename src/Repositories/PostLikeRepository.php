@@ -66,4 +66,14 @@ class PostLikeRepository extends EventDispatchingRepository
             ->orderBy('id','desc')
             ->first();
     }
+
+    public function getPostLikes($postId, $limit, $page)
+    {
+        return $this->query()
+            ->where(ConfigService::$tablePostLikes . '.post_id', $postId)
+            ->limit($limit)
+            ->skip(($page - 1) * $limit)
+            ->orderBy('id','desc')
+            ->get();
+    }
 }
