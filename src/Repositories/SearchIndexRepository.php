@@ -79,9 +79,9 @@ class SearchIndexRepository extends RepositoryBase
         $termsWithPrefix = $this->getPrefixedTerms($term);
 
         $scoreSql = <<<SQL
-(MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier +
-MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * $mediumMultiplier +
-MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier) as score
+(MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier *  (UNIX_TIMESTAMP(published_on) / 1000000000)+
+MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * $mediumMultiplier *  (UNIX_TIMESTAMP(published_on) / 1000000000)+
+MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier *  (UNIX_TIMESTAMP(published_on) / 1000000000)) as score
 SQL;
 
         $searchIndexResults = $this
@@ -92,10 +92,11 @@ SQL;
                     $table . '.high_value',
                     $table . '.medium_value',
                     $table . '.low_value',
+                    $table . '.published_on as published_on',
                     DB::raw($scoreSql),
-                    DB::raw("MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier AS high_score"),
-                    DB::raw("MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * $mediumMultiplier AS medium_score"),
-                    DB::raw("MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier AS low_score"),
+                    DB::raw("MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier  *  (UNIX_TIMESTAMP(published_on) / 1000000000) AS high_score"),
+                    DB::raw("MATCH (medium_value) AGAINST ('$term' IN BOOLEAN MODE) * $mediumMultiplier  *  (UNIX_TIMESTAMP(published_on) / 1000000000) AS medium_score"),
+                    DB::raw("MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier  *  (UNIX_TIMESTAMP(published_on) / 1000000000)  AS low_score"),
                     $table . '.post_id',
                     $table . '.thread_id',
                 ]
@@ -240,7 +241,8 @@ SQL;
         $searchIndexes = [];
 
         foreach ($postsData as $postData) {
-            $author = $users[$postData->author_id];
+           // dd($postData);
+            $author = $users[$postData->author_id] ?? null;
             $searchIndex = [
                 'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
                 'medium_value' => null,
@@ -249,13 +251,14 @@ SQL;
                 'post_id' => $postData->id,
                 'created_at' => $now,
                 'updated_at' => $now,
+                'published_on' => $postData->published_on
             ];
 
             $searchIndexes[] = $searchIndex;
         }
 
         foreach ($threadsData as $threadData) {
-            $author = $users[$postData->author_id];
+            $author = $users[$postData->author_id] ?? null;
             $searchIndex = [
                 'high_value' => null,
                 'medium_value' => $threadData->title,
@@ -264,6 +267,7 @@ SQL;
                 'post_id' => null,
                 'created_at' => $now,
                 'updated_at' => $now,
+                'published_on' => $threadData->published_on
             ];
 
             $searchIndexes[] = $searchIndex;
