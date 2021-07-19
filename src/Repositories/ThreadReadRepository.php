@@ -42,4 +42,15 @@ class ThreadReadRepository extends RepositoryBase
             'updated_at' => $now,
         ]);
     }
+
+    public function markAsUnread($threadId, $userId = null)
+    {
+       $query = $this->query()->where('thread_id','=', $threadId);
+        if($userId){
+            $query->where('reader_id','=', $userId);
+        }
+
+
+        return $query->delete();
+    }
 }
