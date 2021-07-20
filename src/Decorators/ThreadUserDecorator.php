@@ -29,7 +29,8 @@ class ThreadUserDecorator implements DecoratorInterface
         DatabaseManager $databaseManager,
         UserProviderInterface $userProvider,
         PostRepository $postRepository
-    ) {
+    )
+    {
         $this->databaseManager = $databaseManager;
         $this->userProvider = $userProvider;
         $this->postRepository = $postRepository;
@@ -61,11 +62,11 @@ class ThreadUserDecorator implements DecoratorInterface
         $users = $this->userProvider->getUsersByIds($userIds);
 
         foreach ($threads as $threadIndex => $thread) {
-            
+
             $threads[$threadIndex]['locked'] = $thread['locked'] == 1;
             $threads[$threadIndex]['pinned'] = $thread['pinned'] == 1;
             $threads[$threadIndex]['is_followed'] = isset($thread['is_followed']) && $thread['is_followed'] == 1;
-            $threads[$threadIndex]['is_read'] = isset($thread['is_read']) && $thread['is_read'] == 1;
+
 
             $threads[$threadIndex]['mobile_app_url'] =
                 url()->route('railforums.mobile-app.show.thread', [$thread['id']]);
@@ -87,18 +88,24 @@ class ThreadUserDecorator implements DecoratorInterface
                 $threads[$threadIndex]['latest_post']['id'] = $lastPost['id'];
                 $threads[$threadIndex]['latest_post']['created_at'] = $lastPost['published_on'];
                 $threads[$threadIndex]['latest_post']['created_at_diff'] =
-                    str_replace(['mo','mos'],['M','M'],Carbon::parse($lastPost['published_on'])
+                    str_replace(['mo', 'mos'], ['M', 'M'], Carbon::parse($lastPost['published_on'])
                         ->diffForHumans(null, null, true));
 
                 $threads[$threadIndex]['latest_post']['author_id'] = $lastPost['author_id'];
                 $threads[$threadIndex]['latest_post']['author_display_name'] = '';
                 $threads[$threadIndex]['latest_post']['author_avatar_url'] = config('railforums.author_default_avatar_url');
 
-                if(array_key_exists($lastPost['author_id'], $users)) {
+                if (array_key_exists($lastPost['author_id'], $users)) {
                     $threads[$threadIndex]['latest_post']['author_display_name'] =
                         $users[$lastPost['author_id']]->getDisplayName();
                     $threads[$threadIndex]['latest_post']['author_avatar_url'] =
                         $users[$lastPost['author_id']]->getProfilePictureUrl();
+                }
+
+                if (Carbon::parse($lastPost['published_on'])->greaterThanOrEqualTo(Carbon::now()->subDays(3))) {
+                    $threads[$threadIndex]['is_read'] = isset($thread['is_read']) && $thread['is_read'] == 1;
+                } else {
+                    $threads[$threadIndex]['is_read'] = true;
                 }
             }
         }
