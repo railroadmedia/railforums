@@ -42,18 +42,10 @@ class ThreadUserDecorator implements DecoratorInterface
      */
     public function decorate($threads)
     {
-        $lastPostIds = array_unique(
-            $threads->pluck('last_post_id')
-                ->toArray()
-        );
-        $lastPosts =
-            $this->postRepository->getDecoratedPostsByIds($lastPostIds)
-                ->keyBy('id');
-
         $userIds = array_merge(
             $threads->pluck('author_id')
                 ->toArray(),
-            $lastPosts->pluck('author_id')
+            $threads->pluck('last_post_user_id')
                 ->toArray()
         );
 
@@ -84,25 +76,24 @@ class ThreadUserDecorator implements DecoratorInterface
                     ->format('M d, Y');
 
             if (array_key_exists('last_post_id', $thread) && $thread['last_post_id'] != 0) {
-                $lastPost = $lastPosts[$thread['last_post_id']];
-                $threads[$threadIndex]['latest_post']['id'] = $lastPost['id'];
-                $threads[$threadIndex]['latest_post']['created_at'] = $lastPost['published_on'];
+                $threads[$threadIndex]['latest_post']['id'] = $thread['last_post_id'];
+                $threads[$threadIndex]['latest_post']['created_at'] = $thread['last_post_published_on'];
                 $threads[$threadIndex]['latest_post']['created_at_diff'] =
-                    str_replace(['mo', 'mos'], ['M', 'M'], Carbon::parse($lastPost['published_on'])
+                    str_replace(['mo', 'mos'], ['M', 'M'], Carbon::parse($thread['last_post_published_on'])
                         ->diffForHumans(null, null, true));
 
-                $threads[$threadIndex]['latest_post']['author_id'] = $lastPost['author_id'];
+                $threads[$threadIndex]['latest_post']['author_id'] = $thread['last_post_user_id'];
                 $threads[$threadIndex]['latest_post']['author_display_name'] = '';
                 $threads[$threadIndex]['latest_post']['author_avatar_url'] = config('railforums.author_default_avatar_url');
 
-                if (array_key_exists($lastPost['author_id'], $users)) {
+                if (array_key_exists($thread['last_post_user_id'], $users)) {
                     $threads[$threadIndex]['latest_post']['author_display_name'] =
-                        $users[$lastPost['author_id']]->getDisplayName();
+                        $users[$thread['last_post_user_id']]->getDisplayName();
                     $threads[$threadIndex]['latest_post']['author_avatar_url'] =
-                        $users[$lastPost['author_id']]->getProfilePictureUrl();
+                        $users[$thread['last_post_user_id']]->getProfilePictureUrl();
                 }
 
-                if (Carbon::parse($lastPost['published_on'])->greaterThanOrEqualTo(Carbon::now()->subDays(3))) {
+                if (Carbon::parse($thread['last_post_published_on'])->greaterThanOrEqualTo(Carbon::now()->subDays(3))) {
                     $threads[$threadIndex]['is_read'] = isset($thread['is_read']) && $thread['is_read'] == 1;
                 } else {
                     $threads[$threadIndex]['is_read'] = true;
