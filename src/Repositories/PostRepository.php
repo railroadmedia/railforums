@@ -212,15 +212,29 @@ class PostRepository extends EventDispatchingRepository
      */
     public function createSearchIndexes()
     {
-        return
+        $query =
             $this->baseQuery()
                 ->from(ConfigService::$tablePosts)
                 ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
                 ->select(ConfigService::$tablePosts . '.*')
                 ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-                ->orderBy(ConfigService::$tablePosts . '.id')
-                ->get();
+                ->whereIn(
+                    ConfigService::$tablePosts . '.state',
+                    self::ACCESSIBLE_STATES
+                )
+                ->orderBy(ConfigService::$tablePosts . '.id');
+        $posts = new Collection();
+
+        $query->chunk(
+            self::CHUNK_SIZE,
+            function (Collection $postsData) use (
+                &$posts
+            ) {
+            $posts = $posts->merge($postsData);
+            });
+
+        return $posts;
     }
 
     /**

@@ -347,13 +347,23 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function createSearchIndexes()
     {
-        return
+        $query =
             $this->baseQuery()
                 ->from(ConfigService::$tableThreads)
                 ->select(ConfigService::$tableThreads . '.*')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-                ->orderBy(ConfigService::$tableThreads . '.id')
-                ->get();
+                ->orderBy(ConfigService::$tableThreads . '.id');
+        $threads = new Collection();
+
+        $query->chunk(
+            self::CHUNK_SIZE,
+            function (Collection $threadsData) use (
+                &$threads
+            ) {
+                $threads = $threads->merge($threadsData);
+            });
+
+        return $threads;
     }
 
     /**
