@@ -243,7 +243,7 @@ SQL;
 
         foreach ($postsData as $postData) {
             $author = $users[$postData->author_id] ?? null;
-            $searchIndex = [
+            $searchIndexes[] = [
                 'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
                 'medium_value' => null,
                 'low_value' => $author ? $author->getDisplayName() : '',
@@ -254,12 +254,12 @@ SQL;
                 'published_on' => $postData->published_on
             ];
 
-            $searchIndexes[] = $searchIndex;
+            unset($postsData);
         }
 
         foreach ($threadsData as $threadData) {
             $author = $users[$postData->author_id] ?? null;
-            $searchIndex = [
+            $searchIndexes[] = [
                 'high_value' => null,
                 'medium_value' => $threadData->title,
                 'low_value' => $author ? $author->getDisplayName() : '',
@@ -270,20 +270,20 @@ SQL;
                 'published_on' => $threadData->published_on
             ];
 
-            $searchIndexes[] = $searchIndex;
+            unset($threadsData);
         }
 
-        $searchIndexes = collect($searchIndexes);
-
-        $chunks = $searchIndexes->chunk(500);
+        $chunks = array_chunk($searchIndexes, 500);
 
         foreach ($chunks as $chunk) {
             try {
-                \DB::table(ConfigService::$tableSearchIndexes)->insert($chunk->toArray());
+                \DB::table(ConfigService::$tableSearchIndexes)->insert($chunk);
             } catch (Exception $e) {
                 //  $this->l(print_r($e->getMessage(), true));
             }
         }
+
+        unset($searchIndexes);
 
         DB::statement('OPTIMIZE table ' . ConfigService::$tableSearchIndexes);
 
