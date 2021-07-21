@@ -2,18 +2,15 @@
 
 namespace Railroad\Railforums\Repositories;
 
-use Carbon\Carbon;
+use DB;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
-use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Events\ThreadUpdated;
 use Railroad\Railforums\Services\ConfigService;
-use Railroad\Resora\Collections\BaseCollection;
 use Railroad\Resora\Decorators\Decorator;
-use Railroad\Resora\Entities\Entity;
 use Railroad\Resora\Queries\BaseQuery;
 use Railroad\Resora\Queries\CachedQuery;
 
@@ -22,21 +19,6 @@ class ThreadRepository extends EventDispatchingRepository
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 1000;
-
-    /**
-     * @var UserProviderInterface
-     */
-    private $userProvider;
-
-    /**
-     * PostRepository constructor.
-     *
-     * @param UserProviderInterface $userProvider
-     */
-    public function __construct(UserProviderInterface $userProvider)
-    {
-        $this->userProvider = $userProvider;
-    }
 
     public function getCreateEvent($entity)
     {
@@ -370,33 +352,14 @@ class ThreadRepository extends EventDispatchingRepository
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
                 ->orderBy(ConfigService::$tableThreads . '.id');
 
-        $threads = [];
-
-        $now =
-            Carbon::now()
-                ->toDateTimeString();
+        $threads = new Collection();
 
         $query->chunk(
             self::CHUNK_SIZE,
             function (Collection $threadsData) use (
-                &$threads, $now
+                &$threads
             ) {
-                $userIds =     $threadsData->pluck('author_id')
-                    ->toArray();
-                $userIds = array_unique($userIds);
-                $users = $this->userProvider->getUsersByIds($userIds);
-
-                foreach ($threadsData as $threadData) {
-                    $author = $users[$threadData->author_id] ?? null;
-                    $threads[] = [
-                        'medium_value' => $threadData->title,
-                        'low_value' => $author ? $author->getDisplayName() : '',
-                        'thread_id' => $threadData->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                        'published_on' => $threadData->published_on
-                    ];
-                }
+                $threads = $threads->merge($threadsData);
             });
 
         return $threads;
@@ -435,7 +398,7 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function getRecentThreads($limit)
     {
-        \DB::statement("SET SQL_MODE=''");
+        DB::statement("SET SQL_MODE=''");
 
         return $this->query()
             ->join('forum_posts', 'forum_threads.id', '=', 'forum_posts.thread_id')

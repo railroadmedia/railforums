@@ -226,6 +226,52 @@ SQL;
 
         $threadsData = $this->threadRepository->createSearchIndexes();
 
+        $userIds = array_merge(
+            $postsData->pluck('author_id')
+                ->toArray(),
+            $threadsData->pluck('author_id')
+                ->toArray()
+        );
+
+        $userIds = array_unique($userIds);
+        $users = $this->userProvider->getUsersByIds($userIds);
+
+        $searchIndexes = [];
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
+
+        foreach ($postsData as $postData) {
+            $author = $users[$postData->author_id] ?? null;
+            $searchIndex = [
+                'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
+                'medium_value' => null,
+                'low_value' => $author ? $author->getDisplayName() : '',
+                'thread_id' => $postData->thread_id,
+                'post_id' => $postData->id,
+                'created_at' => $now,
+                'updated_at' => $now,
+                'published_on' => $postData->published_on
+            ];
+
+            $searchIndexes[] = $searchIndex;
+        }
+
+        foreach ($threadsData as $threadData) {
+            $author = $users[$postData->author_id] ?? null;
+            $searchIndex = [
+                'high_value' => null,
+                'medium_value' => $threadData->title,
+                'low_value' => $author ? $author->getDisplayName() : '',
+                'thread_id' => $threadData->id,
+                'post_id' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+                'published_on' => $threadData->published_on
+            ];
+
+            $searchIndexes[] = $searchIndex;
+        }
         $searchIndexes = array_merge($postsData, $threadsData);
 
         $searchIndexes = collect($searchIndexes);
@@ -236,7 +282,7 @@ SQL;
             try {
                 \DB::table(ConfigService::$tableSearchIndexes)->insert($chunk->toArray());
             } catch (Exception $e) {
-              //  $this->l(print_r($e->getMessage(), true));
+                //  $this->l(print_r($e->getMessage(), true));
             }
         }
 
