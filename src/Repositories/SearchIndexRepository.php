@@ -222,60 +222,75 @@ SQL;
 
         $this->deleteOldIndexes();
 
-        $postsData = $this->postRepository->createSearchIndexes();
-
-        $threadsData = $this->threadRepository->createSearchIndexes();
-
-        $userIds = array_merge(
-            $postsData->pluck('author_id')
-                ->toArray(),
-            $threadsData->pluck('author_id')
-                ->toArray()
-        );
-
-        $userIds = array_unique($userIds);
-        $users = $this->userProvider->getUsersByIds($userIds);
+        $query = $this->postRepository->baseQuery()
+            ->from(ConfigService::$tablePosts)
+            ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
+            ->select(ConfigService::$tablePosts . '.*')
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->whereIn(
+                ConfigService::$tablePosts . '.state',
+                ['published']
+            )
+            ->orderBy(ConfigService::$tablePosts . '.id');
 
         $searchIndexes = [];
         $now =
             Carbon::now()
                 ->toDateTimeString();
 
-        $postChunks = array_chunk($postsData, 1000);
+        $query->chunk(
+            1000,
+            function (Collection $postsData) use (
+                &$searchIndexes, $now
+            ) {
+                $userIds =     $postsData->pluck('author_id')
+                    ->toArray();
+                $userIds = array_unique($userIds);
+                $users = $this->userProvider->getUsersByIds($userIds);
 
-        foreach ($postChunks as $postData) {
-            $author = $users[$postData->author_id] ?? null;
-            $searchIndexes[] = [
-                'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
-                'medium_value' => null,
-                'low_value' => $author ? $author->getDisplayName() : '',
-                'thread_id' => $postData->thread_id,
-                'post_id' => $postData->id,
-                'created_at' => $now,
-                'updated_at' => $now,
-                'published_on' => $postData->published_on
-            ];
+                foreach ($postsData as $postData) {
+                    $author = $users[$postData->author_id] ?? null;
+                    $searchIndexes[] = [
+                        'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
+                        'low_value' => $author ? $author->getDisplayName() : '',
+                        'thread_id' => $postData->thread_id,
+                        'post_id' => $postData->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                        'published_on' => $postData->published_on
+                    ];
+                }
+            });
+        
+        $threadsQuery = $this->threadRepository->baseQuery()
+        ->from(ConfigService::$tableThreads)
+        ->select(ConfigService::$tableThreads . '.*')
+        ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+        ->orderBy(ConfigService::$tableThreads . '.id');
 
-            unset($postsData);
-        }
+        $threadsQuery->chunk(
+            1000,
+            function (Collection $threadsData) use (
+                &$searchIndexes, $now
+            ) {
+                $userIds =     $threadsData->pluck('author_id')
+                    ->toArray();
+                $userIds = array_unique($userIds);
+                $users = $this->userProvider->getUsersByIds($userIds);
 
-        $threadChunks = array_chunk($threadsData, 1000);
-
-        foreach ($threadChunks as $threadData) {
-            $author = $users[$postData->author_id] ?? null;
-            $searchIndexes[] = [
-                'high_value' => null,
-                'medium_value' => $threadData->title,
-                'low_value' => $author ? $author->getDisplayName() : '',
-                'thread_id' => $threadData->id,
-                'post_id' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-                'published_on' => $threadData->published_on
-            ];
-
-            unset($threadsData);
-        }
+                foreach ($threadsData as $threadData) {
+                    $author = $users[$threadData->author_id] ?? null;
+                    $searchIndexes[] = [
+                        'medium_value' => $threadData->title,
+                        'low_value' => $author ? $author->getDisplayName() : '',
+                        'thread_id' => $threadData->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                        'published_on' => $threadData->published_on
+                    ];
+                }
+            });
 
         $chunks = array_chunk($searchIndexes, 500);
 
