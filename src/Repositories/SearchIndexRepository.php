@@ -222,7 +222,7 @@ SQL;
 
         $this->deleteOldIndexes();
 
-        $query = $this->postRepository->baseQuery()
+        $query = $this->postRepository->query()
             ->from(ConfigService::$tablePosts)
             ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
             ->select(ConfigService::$tablePosts . '.*')
@@ -262,8 +262,8 @@ SQL;
                     ];
                 }
             });
-        
-        $threadsQuery = $this->threadRepository->baseQuery()
+
+        $threadsQuery = $this->threadRepository->query()
         ->from(ConfigService::$tableThreads)
         ->select(ConfigService::$tableThreads . '.*')
         ->whereNull(ConfigService::$tableThreads . '.deleted_at')
