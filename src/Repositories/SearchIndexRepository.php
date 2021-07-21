@@ -218,6 +218,8 @@ SQL;
     public function createSearchIndexes()
     {
         //delete old indexes
+        DB::disableQueryLog();
+
         $this->deleteOldIndexes();
 
         $postsData = $this->postRepository->createSearchIndexes();
@@ -234,7 +236,7 @@ SQL;
             try {
                 \DB::table(ConfigService::$tableSearchIndexes)->insert($chunk->toArray());
             } catch (Exception $e) {
-                $this->info(print_r($e->getMessage(), true));
+              //  $this->l(print_r($e->getMessage(), true));
             }
         }
 

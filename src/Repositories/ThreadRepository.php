@@ -21,7 +21,7 @@ class ThreadRepository extends EventDispatchingRepository
 {
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
-    const CHUNK_SIZE = 100;
+    const CHUNK_SIZE = 1000;
 
     /**
      * @var UserProviderInterface
@@ -389,11 +389,9 @@ class ThreadRepository extends EventDispatchingRepository
                 foreach ($threadsData as $threadData) {
                     $author = $users[$threadData->author_id] ?? null;
                     $threads[] = [
-                        'high_value' => null,
                         'medium_value' => $threadData->title,
                         'low_value' => $author ? $author->getDisplayName() : '',
                         'thread_id' => $threadData->id,
-                        'post_id' => null,
                         'created_at' => $now,
                         'updated_at' => $now,
                         'published_on' => $threadData->published_on

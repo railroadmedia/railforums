@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Railroad\Railforums\Repositories\SearchIndexRepository;
 
@@ -46,6 +47,11 @@ class CreateSearchIndexes extends Command
      */
     public function handle()
     {
+        $this->info('Starting '.Carbon::now()->toDateTimeString());
+        $this->info('RAM usage: ' . round(memory_get_usage(true) / 1048576, 2));
         $this->searchIndexRepository->createSearchIndexes();
+
+        $this->info('RAM usage: ' . round(memory_get_usage(true) / 1048576, 2));
+        $this->info('End '.Carbon::now()->toDateTimeString());
     }
 }

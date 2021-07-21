@@ -21,7 +21,7 @@ class PostRepository extends EventDispatchingRepository
 {
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
-    const CHUNK_SIZE = 100;
+    const CHUNK_SIZE = 1000;
 
         /**
          * @var UserProviderInterface
@@ -245,7 +245,6 @@ class PostRepository extends EventDispatchingRepository
                     $author = $users[$postData->author_id] ?? null;
                     $posts[] = [
                         'high_value' => substr(utf8_encode($this->getFilteredPostContent($postData->content)), 0, 65535),
-                        'medium_value' => null,
                         'low_value' => $author ? $author->getDisplayName() : '',
                         'thread_id' => $postData->thread_id,
                         'post_id' => $postData->id,
