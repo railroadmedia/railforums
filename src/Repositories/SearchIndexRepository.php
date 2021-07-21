@@ -241,7 +241,9 @@ SQL;
             Carbon::now()
                 ->toDateTimeString();
 
-        foreach ($postsData as $postData) {
+        $postChunks = array_chunk($postsData, 1000);
+
+        foreach ($postChunks as $postData) {
             $author = $users[$postData->author_id] ?? null;
             $searchIndexes[] = [
                 'high_value' => substr(utf8_encode($this->postRepository->getFilteredPostContent($postData->content)), 0, 65535),
@@ -257,7 +259,9 @@ SQL;
             unset($postsData);
         }
 
-        foreach ($threadsData as $threadData) {
+        $threadChunks = array_chunk($threadsData, 1000);
+
+        foreach ($threadChunks as $threadData) {
             $author = $users[$postData->author_id] ?? null;
             $searchIndexes[] = [
                 'high_value' => null,
