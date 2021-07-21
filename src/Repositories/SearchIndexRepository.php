@@ -272,7 +272,6 @@ SQL;
 
             $searchIndexes[] = $searchIndex;
         }
-        $searchIndexes = array_merge($postsData, $threadsData);
 
         $searchIndexes = collect($searchIndexes);
 
