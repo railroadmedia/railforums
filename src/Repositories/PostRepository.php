@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Repositories;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Events\PostCreated;
 use Railroad\Railforums\Events\PostDeleted;
 use Railroad\Railforums\Events\PostUpdated;
@@ -22,20 +23,20 @@ class PostRepository extends EventDispatchingRepository
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 100;
 
-    //    /**
-    //     * @var UserProviderInterface
-    //     */
-    //    private $userProvider;
+        /**
+         * @var UserProviderInterface
+         */
+        private $userProvider;
 
-    //    /**
-    //     * PostRepository constructor.
-    //     *
-    //     * @param UserProviderInterface $userProvider
-    //     */
-    //    public function __construct(UserProviderInterface $userProvider)
-    //    {
-    //        $this->userProvider = $userProvider;
-    //    }
+        /**
+         * PostRepository constructor.
+         *
+         * @param UserProviderInterface $userProvider
+         */
+        public function __construct(UserProviderInterface $userProvider)
+        {
+            $this->userProvider = $userProvider;
+        }
 
     public function getCreateEvent($entity)
     {
@@ -224,14 +225,35 @@ class PostRepository extends EventDispatchingRepository
                     self::ACCESSIBLE_STATES
                 )
                 ->orderBy(ConfigService::$tablePosts . '.id');
-        $posts = new Collection();
+        $posts = [];
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
         $query->chunk(
             self::CHUNK_SIZE,
             function (Collection $postsData) use (
-                &$posts
+                &$posts, $now
             ) {
-            $posts = $posts->merge($postsData);
+
+                $userIds =     $postsData->pluck('author_id')
+                        ->toArray();
+                $userIds = array_unique($userIds);
+                $users = $this->userProvider->getUsersByIds($userIds);
+
+                foreach ($postsData as $postData) {
+                    $author = $users[$postData->author_id] ?? null;
+                    $posts[] = [
+                        'high_value' => substr(utf8_encode($this->getFilteredPostContent($postData->content)), 0, 65535),
+                        'medium_value' => null,
+                        'low_value' => $author ? $author->getDisplayName() : '',
+                        'thread_id' => $postData->thread_id,
+                        'post_id' => $postData->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                        'published_on' => $postData->published_on
+                    ];
+                }
             });
 
         return $posts;
@@ -243,53 +265,11 @@ class PostRepository extends EventDispatchingRepository
      */
     public function getFilteredPostContent($content)
     {
-        // filter out blockquote tags
-        $crawler = new Crawler($content);
-        $result = $content;
-        if ($crawler->filter('blockquote')->count() > 0) {
-            $crawler->filter('blockquote')
-                ->each(
-                    function (Crawler $crawler) {
-                        foreach ($crawler as $node) {
-                            $node->parentNode->removeChild($node);
-                        }
-                    }
-                );
-
-            $result = $crawler->text();
-        }
-
-        if ($result) {
-
-            $result = trim($result, " \t\n\r\0\x0B\xBFQui" . chr(0xC2) . chr(0xA0));
-        }
-
-        //        if (!$result) {
-        //            // if post contains only a blockquote tag
-        //            // filter out the quoted post metadata
-        //            $crawler = new Crawler($content);
-        //
-        //            $crawler->filter('span.post-id')->each(function (Crawler $crawler) {
-        //                foreach ($crawler as $node) {
-        //                    $node->parentNode->removeChild($node);
-        //                }
-        //            });
-        //
-        //            $crawler->filter('p.quote-heading')->each(function (Crawler $crawler) {
-        //                foreach ($crawler as $node) {
-        //                    $node->parentNode->removeChild($node);
-        //                }
-        //            });
-        //
-        //            $result = $crawler->text();
-        //
-        //            if ($result) {
-        //
-        //                $result = trim($result, " \t\n\r\0\x0B" . chr(0xC2).chr(0xA0));
-        //            }
-        //        }
-
-        return (string)$result;
+        return  preg_replace(
+            "~<blockquote(.*?)>(.*)</blockquote>~si",
+            "",
+            $content
+        );
     }
 
     /**

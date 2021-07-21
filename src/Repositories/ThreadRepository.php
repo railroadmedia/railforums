@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Events\ThreadUpdated;
@@ -21,6 +22,21 @@ class ThreadRepository extends EventDispatchingRepository
     const STATE_PUBLISHED = 'published';
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 100;
+
+    /**
+     * @var UserProviderInterface
+     */
+    private $userProvider;
+
+    /**
+     * PostRepository constructor.
+     *
+     * @param UserProviderInterface $userProvider
+     */
+    public function __construct(UserProviderInterface $userProvider)
+    {
+        $this->userProvider = $userProvider;
+    }
 
     public function getCreateEvent($entity)
     {
@@ -353,14 +369,36 @@ class ThreadRepository extends EventDispatchingRepository
                 ->select(ConfigService::$tableThreads . '.*')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
                 ->orderBy(ConfigService::$tableThreads . '.id');
-        $threads = new Collection();
+
+        $threads = [];
+
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
         $query->chunk(
             self::CHUNK_SIZE,
             function (Collection $threadsData) use (
-                &$threads
+                &$threads, $now
             ) {
-                $threads = $threads->merge($threadsData);
+                $userIds =     $threadsData->pluck('author_id')
+                    ->toArray();
+                $userIds = array_unique($userIds);
+                $users = $this->userProvider->getUsersByIds($userIds);
+
+                foreach ($threadsData as $threadData) {
+                    $author = $users[$threadData->author_id] ?? null;
+                    $threads[] = [
+                        'high_value' => null,
+                        'medium_value' => $threadData->title,
+                        'low_value' => $author ? $author->getDisplayName() : '',
+                        'thread_id' => $threadData->id,
+                        'post_id' => null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                        'published_on' => $threadData->published_on
+                    ];
+                }
             });
 
         return $threads;
