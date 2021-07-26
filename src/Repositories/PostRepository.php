@@ -252,4 +252,20 @@ class PostRepository extends EventDispatchingRepository
 
         return array_combine(array_column($postsCount, 'author_id'), array_column($postsCount, 'count'));
     }
+
+    /**
+     * @param array $postIds
+     * @return array|false|null
+     */
+    public function getPostsAuthorIds(array $postIds)
+    {
+        $postsAuthors =
+            $this->connection()
+                ->table(ConfigService::$tablePosts)
+                ->whereIn('id', $postIds)
+                ->get()
+                ->toArray();
+
+        return array_combine(array_column($postsAuthors, 'id'), array_column($postsAuthors, 'author_id'));
+    }
 }
