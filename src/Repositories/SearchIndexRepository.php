@@ -225,7 +225,7 @@ SQL;
         $query = $this->postRepository->query()
             ->from(ConfigService::$tablePosts)
             ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
-            ->select(ConfigService::$tablePosts . '.*')
+            ->select(ConfigService::$tablePosts . '.content', ConfigService::$tablePosts.'.thread_id', ConfigService::$tablePosts . '.author_id', ConfigService::$tablePosts .'.id', ConfigService::$tablePosts.'.published_on' )
             ->whereNull(ConfigService::$tablePosts . '.deleted_at')
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereIn(
@@ -234,16 +234,17 @@ SQL;
             )
             ->orderBy(ConfigService::$tablePosts . '.id');
 
-        $searchIndexes = [];
+
         $now =
             Carbon::now()
                 ->toDateTimeString();
 
         $query->chunk(
-            1000,
+            500,
             function (Collection $postsData) use (
-                &$searchIndexes, $now
+                $now
             ) {
+                $searchIndexes = [];
                 $userIds =     $postsData->pluck('author_id')
                     ->toArray();
                 $userIds = array_unique($userIds);
@@ -261,6 +262,9 @@ SQL;
                         'published_on' => $postData->published_on
                     ];
                 }
+
+                \DB::table(ConfigService::$tableSearchIndexes)->insert($searchIndexes);
+                sleep(2);
             });
 
         $threadsQuery = $this->threadRepository->query()
@@ -270,10 +274,11 @@ SQL;
         ->orderBy(ConfigService::$tableThreads . '.id');
 
         $threadsQuery->chunk(
-            1000,
+            500,
             function (Collection $threadsData) use (
-                &$searchIndexes, $now
+                 $now
             ) {
+                $searchIndexes = [];
                 $userIds =     $threadsData->pluck('author_id')
                     ->toArray();
                 $userIds = array_unique($userIds);
@@ -290,19 +295,9 @@ SQL;
                         'published_on' => $threadData->published_on
                     ];
                 }
+
+                DB::table(ConfigService::$tableSearchIndexes)->insert($searchIndexes);
             });
-
-        $chunks = array_chunk($searchIndexes, 500);
-
-        foreach ($chunks as $chunk) {
-            try {
-                \DB::table(ConfigService::$tableSearchIndexes)->insert($chunk);
-            } catch (Exception $e) {
-                //  $this->l(print_r($e->getMessage(), true));
-            }
-        }
-
-        unset($searchIndexes);
 
         DB::statement('OPTIMIZE table ' . ConfigService::$tableSearchIndexes);
 
