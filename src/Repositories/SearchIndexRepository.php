@@ -252,11 +252,9 @@ SQL;
             Carbon::now()
                 ->toDateTimeString();
 
-        $query->chunk(
+        $query->chunkById(
             1000,
-            function (Collection $postsData) use (
-                $now
-            ) {
+            function (Collection $postsData) use ($now) {
                 $searchIndexes = [];
                 $userIds = $postsData->pluck('author_id')
                     ->toArray();
@@ -281,8 +279,10 @@ SQL;
                 }
 
                 DB::table(ConfigService::$tableSearchIndexes)->insert($searchIndexes);
-                sleep(1);
-            }
+//                sleep(1);
+            },
+            ConfigService::$tablePosts.'.id',
+            'id'
         );
 
         $threadsQuery = $this->threadRepository->query()
@@ -291,7 +291,7 @@ SQL;
             ->whereNull(ConfigService::$tableThreads.'.deleted_at')
             ->orderBy(ConfigService::$tableThreads.'.id');
 
-        $threadsQuery->chunk(
+        $threadsQuery->chunkById(
             1000,
             function (Collection $threadsData) use (
                 $now
@@ -315,8 +315,10 @@ SQL;
                 }
 
                 DB::table(ConfigService::$tableSearchIndexes)->insert($searchIndexes);
-                sleep(1);
-            }
+//                sleep(1);
+            },
+            ConfigService::$tableThreads.'.id',
+            'id'
         );
 
         DB::statement('OPTIMIZE table '.ConfigService::$tableSearchIndexes);
