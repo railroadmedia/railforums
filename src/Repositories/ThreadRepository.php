@@ -20,6 +20,8 @@ class ThreadRepository extends EventDispatchingRepository
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 1000;
 
+    public static $onlyMine = false;
+
     public function getCreateEvent($entity)
     {
         return new ThreadCreated(
@@ -93,12 +95,12 @@ class ThreadRepository extends EventDispatchingRepository
     /**
      * Returns the threads and associated data
      *
-     * @param int $amount
-     * @param int $page
-     * @param array $categoryIds
-     * @param bool $pinned
-     * @param bool $followed
-     *
+     * @param $amount
+     * @param $page
+     * @param $categoryIds
+     * @param null $pinned
+     * @param null $followed
+     * @param $orderByAndDirection
      * @return Collection
      */
     public function getDecoratedThreads(
@@ -106,26 +108,28 @@ class ThreadRepository extends EventDispatchingRepository
         $page,
         $categoryIds,
         $pinned = null,
-        $followed = null
-    )
-    {
+        $followed = null,
+        $orderByAndDirection = '-last_post_published_on'
+    ) {
+        $orderByDirection = substr($orderByAndDirection, 0, 1) !== '-' ? 'asc' : 'desc';
+
+        $orderByColumn = trim($orderByAndDirection, '-');
+
         $query = $this->getDecoratedQuery();
 
         if ($followed === true) {
-            $query->whereExists(
-                function (Builder $builder) {
-                    return $builder->selectRaw('*')
-                        ->from(ConfigService::$tableThreadFollows)
-                        ->limit(1)
-                        ->where(
-                            'follower_id',
-                            auth()->id()
-                        )
-                        ->whereRaw(
-                            ConfigService::$tableThreads . '.id = ' . ConfigService::$tableThreadFollows . '.thread_id'
-                        );
-                }
-            );
+            $query->whereExists(function (Builder $builder) {
+                return $builder->selectRaw('*')
+                    ->from(ConfigService::$tableThreadFollows)
+                    ->limit(1)
+                    ->where(
+                        'follower_id',
+                        auth()->id()
+                    )
+                    ->whereRaw(
+                        ConfigService::$tableThreads . '.id = ' . ConfigService::$tableThreadFollows . '.thread_id'
+                    );
+            });
         }
 
         if (!empty($categoryIds)) {
@@ -140,11 +144,18 @@ class ThreadRepository extends EventDispatchingRepository
                 self::ACCESSIBLE_STATES
             );
 
-        if ($pinned !== null) {
+        if ($orderByColumn == 'mine') {
+            $query->where('author_id', auth()->id());
+            self::$onlyMine = true;
+            $orderByDirection = 'desc';
+            $orderByColumn = 'last_post_published_on';
+        }
+
+        if ($pinned) {
             $query->where('pinned', $pinned)
-                ->orderByRaw('last_post_published_on desc, id desc');
+                ->orderByRaw('pinned desc, last_post_published_on desc, id desc');
         } else {
-            $query->orderByRaw('pinned desc, last_post_published_on desc, id desc');
+            $query->orderByRaw($orderByColumn . ' ' . $orderByDirection . ', id desc');
         }
 
         return $query->get();
@@ -163,8 +174,7 @@ class ThreadRepository extends EventDispatchingRepository
         $categoryIds,
         $pinned = null,
         $followed = null
-    )
-    {
+    ) {
         $query =
             $this->query()
                 ->selectRaw('COUNT(' . ConfigService::$tableThreads . '.id) as count')
@@ -186,23 +196,20 @@ class ThreadRepository extends EventDispatchingRepository
 
         if (is_bool($followed)) {
 
-            $query->leftJoin(
-                ConfigService::$tableThreadFollows,
-                function (JoinClause $query) {
-                    $query->on(
-                        ConfigService::$tableThreadFollows . '.thread_id',
+            $query->leftJoin(ConfigService::$tableThreadFollows, function (JoinClause $query) {
+                $query->on(
+                    ConfigService::$tableThreadFollows . '.thread_id',
+                    '=',
+                    ConfigService::$tableThreads . '.id'
+                )
+                    ->on(
+                        ConfigService::$tableThreadFollows . '.follower_id',
                         '=',
-                        ConfigService::$tableThreads . '.id'
-                    )
-                        ->on(
-                            ConfigService::$tableThreadFollows . '.follower_id',
-                            '=',
-                            $query->raw(
-                                auth()->id()
-                            )
-                        );
-                }
-            );
+                        $query->raw(
+                            auth()->id()
+                        )
+                    );
+            });
 
             if ($followed === true) {
 
@@ -214,6 +221,10 @@ class ThreadRepository extends EventDispatchingRepository
                     $query->whereNull(ConfigService::$tableThreadFollows . '.id');
                 }
             }
+        }
+
+        if (self::$onlyMine) {
+            $query->where('author_id', auth()->id());
         }
 
         return $query->value('count');
@@ -354,13 +365,11 @@ class ThreadRepository extends EventDispatchingRepository
 
         $threads = new Collection();
 
-        $query->chunk(
-            self::CHUNK_SIZE,
-            function (Collection $threadsData) use (
-                &$threads
-            ) {
-                $threads = $threads->merge($threadsData);
-            });
+        $query->chunk(self::CHUNK_SIZE, function (Collection $threadsData) use (
+            &$threads
+        ) {
+            $threads = $threads->merge($threadsData);
+        });
 
         return $threads;
     }
@@ -405,6 +414,8 @@ class ThreadRepository extends EventDispatchingRepository
             ->whereNull('forum_posts.deleted_at')
             ->where('forum_posts.state', 'published')
             ->orderBy('forum_posts.created_at', 'desc')
-            ->limit($limit)->groupBy('forum_threads.id')->get();
+            ->limit($limit)
+            ->groupBy('forum_threads.id')
+            ->get();
     }
 }

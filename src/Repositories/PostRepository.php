@@ -18,6 +18,8 @@ class PostRepository extends EventDispatchingRepository
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 1000;
 
+    public static $onlyMine = false;
+
     public function getCreateEvent($entity)
     {
         return new PostCreated($entity->id, auth()->id());
@@ -77,15 +79,20 @@ class PostRepository extends EventDispatchingRepository
      */
     public function getPostsCount($threadId)
     {
-        return $this->query()
+        $query = $this->query()
             ->selectRaw('COUNT(' . ConfigService::$tablePosts . '.id) as count')
             ->where(ConfigService::$tablePosts . '.thread_id', $threadId)
             ->whereIn(
                 ConfigService::$tablePosts . '.state',
                 self::ACCESSIBLE_STATES
             )
-            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-            ->value('count');
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at');
+
+        if (self::$onlyMine) {
+            $query->where('author_id', auth()->id());
+        }
+
+        return $query->value('count');
     }
 
     /**
@@ -97,18 +104,35 @@ class PostRepository extends EventDispatchingRepository
      *
      * @return Collection
      */
-    public function getDecoratedPosts($amount, $page, $threadId)
+    public function getDecoratedPosts($amount, $page, $threadId, $orderByAndDirection = '-published_on')
     {
-        return $this->getDecoratedQuery()
-            ->where(ConfigService::$tablePosts . '.thread_id', $threadId)
-            ->whereIn(
-                ConfigService::$tablePosts . '.state',
-                self::ACCESSIBLE_STATES
-            )
-            ->limit($amount)
-            ->skip($amount * ($page - 1))
-            ->orderBy('published_on', 'asc')
-            ->get();
+        $orderByDirection = substr($orderByAndDirection, 0, 1) !== '-' ? 'asc' : 'desc';
+
+        $orderByColumn = trim($orderByAndDirection, '-');
+
+        $query =
+            $this->getDecoratedQuery()
+                ->where(ConfigService::$tablePosts . '.thread_id', $threadId)
+                ->whereIn(
+                    ConfigService::$tablePosts . '.state',
+                    self::ACCESSIBLE_STATES
+                )
+                ->limit($amount)
+                ->skip($amount * ($page - 1));
+
+        if ($orderByColumn == 'mine') {
+
+            self::$onlyMine = true;
+
+            $query->where('author_id', auth()->id());
+
+            $orderByDirection = 'desc';
+            $orderByColumn = 'published_on';
+        }
+
+        $query->orderBy($orderByColumn, $orderByDirection);
+
+        return $query->get();
     }
 
     /**
@@ -153,20 +177,21 @@ class PostRepository extends EventDispatchingRepository
      */
     public function getDecoratedQuery()
     {
-        $query = $this->query()
-            ->select(ConfigService::$tablePosts . '.*')
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->selectRaw('COUNT(*)')
-                        ->from(ConfigService::$tablePostLikes)
-                        ->limit(1)
-                        ->whereRaw(
-                            ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
-                        );
-                },
-                'like_count'
-            )
-            ->whereNull(ConfigService::$tablePosts . '.deleted_at');
+        $query =
+            $this->query()
+                ->select(ConfigService::$tablePosts . '.*')
+                ->selectSub(
+                    function (Builder $builder) {
+                        return $builder->selectRaw('COUNT(*)')
+                            ->from(ConfigService::$tablePostLikes)
+                            ->limit(1)
+                            ->whereRaw(
+                                ConfigService::$tablePostLikes . '.post_id = ' . ConfigService::$tablePosts . '.id'
+                            );
+                    },
+                    'like_count'
+                )
+                ->whereNull(ConfigService::$tablePosts . '.deleted_at');
 
         if (auth()->user()) {
             $query->selectSub(
@@ -196,7 +221,12 @@ class PostRepository extends EventDispatchingRepository
         $query =
             $this->baseQuery()
                 ->from(ConfigService::$tablePosts)
-                ->join(ConfigService::$tableThreads, ConfigService::$tablePosts . '.thread_id', '=', ConfigService::$tableThreads . '.id')
+                ->join(
+                    ConfigService::$tableThreads,
+                    ConfigService::$tablePosts . '.thread_id',
+                    '=',
+                    ConfigService::$tableThreads . '.id'
+                )
                 ->select(ConfigService::$tablePosts . '.*')
                 ->whereNull(ConfigService::$tablePosts . '.deleted_at')
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at')
@@ -213,7 +243,8 @@ class PostRepository extends EventDispatchingRepository
                 &$posts
             ) {
                 $posts = $posts->merge($postsData);
-            });
+            }
+        );
 
         return $posts;
     }
