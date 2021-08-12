@@ -104,7 +104,7 @@ class PostRepository extends EventDispatchingRepository
      *
      * @return Collection
      */
-    public function getDecoratedPosts($amount, $page, $threadId, $orderByAndDirection = '-published_on')
+    public function getDecoratedPosts($amount, $page, $threadId, $orderByAndDirection = 'published_on')
     {
         $orderByDirection = substr($orderByAndDirection, 0, 1) !== '-' ? 'asc' : 'desc';
 
