@@ -149,14 +149,13 @@ class PostRepository extends EventDispatchingRepository
             ->get();
     }
 
-    /**
-     * Returns the posts of the specified thread
+    /** Returns the posts of the specified thread
      *
-     * @param int $id
-     *
+     * @param $id
+     * @param string $order
      * @return Collection
      */
-    public function getAllPostIdsInThread($id)
+    public function getAllPostIdsInThread($id, $order = 'asc')
     {
         return $this->baseQuery()
             ->from(ConfigService::$tablePosts)
@@ -166,7 +165,7 @@ class PostRepository extends EventDispatchingRepository
                 ConfigService::$tablePosts . '.state',
                 self::ACCESSIBLE_STATES
             )
-            ->orderBy('published_on', 'asc')
+            ->orderBy('published_on', $order)
             ->get();
     }
 
