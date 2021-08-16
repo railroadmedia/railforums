@@ -155,8 +155,12 @@ class PostRepository extends EventDispatchingRepository
      * @param string $order
      * @return Collection
      */
-    public function getAllPostIdsInThread($id, $order = 'asc')
+    public function getAllPostIdsInThread($id, $orderByAndDirection = 'published_on')
     {
+        $orderByDirection = substr($orderByAndDirection, 0, 1) !== '-' ? 'asc' : 'desc';
+
+        $orderByColumn = trim($orderByAndDirection, '-');
+
         return $this->baseQuery()
             ->from(ConfigService::$tablePosts)
             ->where('thread_id', $id)
@@ -165,7 +169,7 @@ class PostRepository extends EventDispatchingRepository
                 ConfigService::$tablePosts . '.state',
                 self::ACCESSIBLE_STATES
             )
-            ->orderBy('published_on', $order)
+            ->orderBy($orderByColumn, $orderByDirection)
             ->get();
     }
 
