@@ -151,7 +151,7 @@ class ThreadRepository extends EventDispatchingRepository
             $orderByColumn = 'last_post_published_on';
         }
 
-        if ($pinned) {
+        if ($pinned !== null) {
             $query->where('pinned', $pinned)
                 ->orderByRaw('pinned desc, last_post_published_on desc, id desc');
         } else {
