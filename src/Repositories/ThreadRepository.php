@@ -151,12 +151,11 @@ class ThreadRepository extends EventDispatchingRepository
             $orderByColumn = 'last_post_published_on';
         }
 
-        if ($pinned === true) {
-            $query->where('pinned', $pinned)
-                ->orderByRaw('pinned desc, last_post_published_on desc, id desc');
-        } else {
-            $query->orderByRaw($orderByColumn . ' ' . $orderByDirection . ', id desc');
+        if ($pinned !== null) {
+            $query->where('pinned', $pinned);
         }
+        
+        $query->orderByRaw($orderByColumn . ' ' . $orderByDirection . ', id desc');
 
         return $query->get();
     }
@@ -184,9 +183,10 @@ class ThreadRepository extends EventDispatchingRepository
                 )
                 ->whereNull(ConfigService::$tableThreads . '.deleted_at');
 
-        if ($pinned === true) {
-            $query->where(ConfigService::$tableThreads . '.pinned', $pinned);
+        if ($pinned !== null) {
+            $query->where('pinned', $pinned);
         }
+
         if (!empty($categoryIds)) {
             $query->whereIn(
                 ConfigService::$tableThreads . '.category_id',
