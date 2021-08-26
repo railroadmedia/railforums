@@ -3,17 +3,12 @@
 namespace Railroad\Railforums\Controllers;
 
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Exceptions\NotAllowedException;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Repositories\CategoryRepository;
 use Railroad\Railforums\Requests\DiscussionCreateRequest;
-use Railroad\Railforums\Requests\DiscussionJsonCreateRequest;
-use Railroad\Railforums\Requests\DiscussionJsonIndexRequest;
-use Railroad\Railforums\Requests\DiscussionJsonUpdateRequest;
 use Railroad\Railforums\Requests\DiscussionUpdateRequest;
-use Railroad\Railforums\Responses\JsonPaginatedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserForumDiscussionController extends Controller
@@ -56,29 +51,26 @@ class UserForumDiscussionController extends Controller
                 ->toDateTimeString();
 
         $discussion = $this->categoryRepository->create(
-            array_merge(
-                $request->only(
-                    [
-                        'title',
-                        'description',
-                        'weight',
-                        'icon',
-                    ]
-                ),
-                [
+            array_merge($request->only([
+                    'title',
+                    'description',
+                    'weight',
+                    'icon',
+                ]), [
                     'brand' => config('railforums.brand'),
                     'slug' => CategoryRepository::sanitizeForSlug(
                         $request->get('title')
                     ),
                     'topic' => config('railforums.topics')[$request->get('topic')] ?? null,
                     'created_at' => $now,
-                ]
-            )
+                ])
         );
 
         $message = ['success' => true];
 
-        return redirect()->to('/members/forums')->with($message);
+        return redirect()
+            ->to('/members/forums')
+            ->with($message);
     }
 
     /**
@@ -96,23 +88,20 @@ class UserForumDiscussionController extends Controller
 
         $discussion = $this->categoryRepository->update(
             $id,
-            array_merge(
-                $this->permissionService->columns(
-                    auth()->id(),
-                    'update-discussions',
-                    $request->all(),
-                    ['title', 'description', 'icon']
-                ),
-                [
+            array_merge($this->permissionService->columns(auth()->id(),
+                'update-discussions',
+                $request->all(),
+                ['title', 'description', 'icon']), [
                     'updated_at' => Carbon::now()
                         ->toDateTimeString(),
-                ]
-            )
+                ])
         );
 
         $message = ['success' => true];
 
-        return redirect()->to('/members/forums')->with($message);
+        return redirect()
+            ->to('/members/forums')
+            ->with($message);
     }
 
     /**

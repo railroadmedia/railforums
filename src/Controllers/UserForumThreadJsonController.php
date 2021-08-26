@@ -63,8 +63,7 @@ class UserForumThreadJsonController extends Controller
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
         PermissionService $permissionService
-    )
-    {
+    ) {
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
         $this->threadFollowRepository = $threadFollowRepository;
@@ -116,15 +115,13 @@ class UserForumThreadJsonController extends Controller
             Carbon::now()
                 ->toDateTimeString();
 
-        $threadFollow = $this->threadFollowRepository->create(
-            [
-                'thread_id' => $id,
-                'follower_id' => auth()->id(),
-                'followed_on' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        );
+        $threadFollow = $this->threadFollowRepository->create([
+            'thread_id' => $id,
+            'follower_id' => auth()->id(),
+            'followed_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
         return response()->json($threadFollow);
     }
@@ -146,12 +143,10 @@ class UserForumThreadJsonController extends Controller
         }
 
         $this->threadFollowRepository->query()
-            ->where(
-                [
-                    'thread_id' => $id,
-                    'follower_id' => $currentUserId,
-                ]
-            )
+            ->where([
+                'thread_id' => $id,
+                'follower_id' => $currentUserId,
+            ])
             ->delete();
 
         return new JsonResponse(null, 204);
@@ -171,13 +166,24 @@ class UserForumThreadJsonController extends Controller
         $categoryId = $request->get('category_id', null);
         $pinned = $request->has('pinned') ? (boolean)$request->get('pinned') : null;
         $followed = $request->has('followed') ? (boolean)$request->get('followed') : null;
+        $sortBy = $request->get('sort', '-last_post_published_on');
+
+        $pinnedThreads = $this->threadRepository->getDecoratedThreads(
+            $amount,
+            $page,
+            ($categoryId) ? [$categoryId] : [],
+            true,
+            $followed
+        )
+            ->toArray();
 
         $threads = $this->threadRepository->getDecoratedThreads(
             $amount,
             $page,
             ($categoryId) ? [$categoryId] : [],
             $pinned,
-            $followed
+            $followed,
+            $sortBy
         )
             ->toArray();
 
@@ -188,7 +194,7 @@ class UserForumThreadJsonController extends Controller
         );
 
         return new JsonPaginatedResponse(
-            $threads, $threadsCount, null, 200
+            array_merge($pinnedThreads, $threads), $threadsCount, null, 200
         );
     }
 
@@ -233,12 +239,10 @@ class UserForumThreadJsonController extends Controller
 
         $thread = $this->threadRepository->create(
             array_merge(
-                $request->only(
-                    [
-                        'title',
-                        'category_id',
-                    ]
-                ),
+                $request->only([
+                    'title',
+                    'category_id',
+                ]),
                 [
                     'author_id' => $authorId,
                     'slug' => ThreadRepository::sanitizeForSlug(
@@ -252,17 +256,15 @@ class UserForumThreadJsonController extends Controller
             )
         );
 
-        $this->postRepository->create(
-            [
-                'thread_id' => $thread->id,
-                'author_id' => $authorId,
-                'content' => $request->get('first_post_content'),
-                'state' => PostRepository::STATE_PUBLISHED,
-                'published_on' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        );
+        $this->postRepository->create([
+            'thread_id' => $thread->id,
+            'author_id' => $authorId,
+            'content' => $request->get('first_post_content'),
+            'state' => PostRepository::STATE_PUBLISHED,
+            'published_on' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
         $threads = $this->threadRepository->getDecoratedThreadsByIds([$thread->id]);
         $thread = $threads->first();
@@ -299,18 +301,10 @@ class UserForumThreadJsonController extends Controller
 
         $thread = $this->threadRepository->update(
             $id,
-            array_merge(
-                $this->permissionService->columns(
-                    auth()->id(),
-                    'update-threads',
-                    $request->all(),
-                    ['title']
-                ),
-                [
-                    'updated_at' => Carbon::now()
-                        ->toDateTimeString(),
-                ]
-            )
+            array_merge($this->permissionService->columns(auth()->id(), 'update-threads', $request->all(), ['title']), [
+                'updated_at' => Carbon::now()
+                    ->toDateTimeString(),
+            ])
         );
 
         return response()->json($thread);
@@ -359,8 +353,10 @@ class UserForumThreadJsonController extends Controller
         $postPositionInThread = array_search($post->id, $allPostIdsInThread);
         $request = new \Illuminate\Http\Request();
 
-        $request->replace(['amount' => 10,
-            'page' => ceil(($postPositionInThread + 1) / 10)]);
+        $request->replace([
+            'amount' => 10,
+            'page' => ceil(($postPositionInThread + 1) / 10),
+        ]);
 
         return $this->show($thread->id, $request);
     }
