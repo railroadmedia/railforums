@@ -164,7 +164,7 @@ class UserForumThreadJsonController extends Controller
         $amount = $request->get('amount') ? (int)$request->get('amount') : self::AMOUNT;
         $page = $request->get('page') ? (int)$request->get('page') : self::PAGE;
         $categoryId = $request->get('category_id', null);
-        $pinned = $request->has('pinned') ? (boolean)$request->get('pinned') : null;
+        $pinned = (boolean)$request->get('pinned');
         $followed = $request->has('followed') ? (boolean)$request->get('followed') : null;
         $sortBy = $request->get('sort', '-last_post_published_on');
 
