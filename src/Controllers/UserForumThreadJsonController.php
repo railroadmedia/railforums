@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Services\PermissionService;
+use Railroad\Railforums\Decorators\EmojiesDecorator;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\ThreadReadRepository;
@@ -49,26 +50,32 @@ class UserForumThreadJsonController extends Controller
     private $permissionService;
 
     /**
-     * UserForumThreadJsonController constructor.
-     *
+     * @var EmojiesDecorator
+     */
+    private $emojiesDecorator;
+
+    /**
      * @param ThreadRepository $threadRepository
      * @param ThreadReadRepository $threadReadRepository
      * @param ThreadFollowRepository $threadFollowRepository
      * @param PostRepository $postRepository
      * @param PermissionService $permissionService
+     * @param EmojiesDecorator $emojiesDecorator
      */
     public function __construct(
         ThreadRepository $threadRepository,
         ThreadReadRepository $threadReadRepository,
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
-        PermissionService $permissionService
+        PermissionService $permissionService,
+        EmojiesDecorator $emojiesDecorator
     ) {
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
         $this->threadFollowRepository = $threadFollowRepository;
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
+        $this->emojiesDecorator = $emojiesDecorator;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -218,8 +225,13 @@ class UserForumThreadJsonController extends Controller
         $amount = $request->get('amount', 20);
         $page = $request->get('page', 1);
 
-        $thread['posts'] = $this->postRepository->getDecoratedPosts($amount, $page, $id);
+        $posts = $this->postRepository->getDecoratedPosts($amount, $page, $id);
+
+        $this->emojiesDecorator->decorate($posts);
+
+        $thread['posts'] = $posts;
         $thread['page'] = $page;
+
         return response()->json($thread);
     }
 
@@ -238,12 +250,10 @@ class UserForumThreadJsonController extends Controller
         $authorId = auth()->id();
 
         $thread = $this->threadRepository->create(
-            array_merge(
-                $request->only([
-                    'title',
-                    'category_id',
-                ]),
-                [
+            array_merge($request->only([
+                'title',
+                'category_id',
+            ]), [
                     'author_id' => $authorId,
                     'slug' => ThreadRepository::sanitizeForSlug(
                         $request->get('title')
@@ -252,8 +262,7 @@ class UserForumThreadJsonController extends Controller
                     'published_on' => $now,
                     'created_at' => $now,
                     'updated_at' => $now,
-                ]
-            )
+                ])
         );
 
         $this->postRepository->create([
