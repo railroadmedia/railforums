@@ -47,6 +47,11 @@ Route::group(
             \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@read'
         );
 
+        Route::get(
+            'thread/latest',
+            \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@latest'
+        );
+
         // post api
         Route::get(
             'post/index',

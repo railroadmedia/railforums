@@ -224,9 +224,9 @@ class UserForumThreadJsonController extends Controller
 
         $amount = $request->get('amount', 20);
         $page = $request->get('page', 1);
+        $sortBy = $request->get('sort', 'published_on');
 
-        $posts = $this->postRepository->getDecoratedPosts($amount, $page, $id);
-
+        $posts = $this->postRepository->getDecoratedPosts($amount, $page, $id, $sortBy);
         $this->emojiesDecorator->decorate($posts);
 
         $thread['posts'] = $posts;
@@ -373,5 +373,27 @@ class UserForumThreadJsonController extends Controller
     public function getForumRules()
     {
         return $this->jumpToPost(config('railforums.forum_rules_post_id', 1));
+    }
+
+    /**
+     * @param ThreadJsonIndexRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function latest(ThreadJsonIndexRequest $request)
+    {
+        $this->permissionService->canOrThrow(auth()->id(), 'index-threads');
+
+        $amount = $request->get('amount') ? (int)$request->get('amount') : self::AMOUNT;
+        $page = $request->get('page') ? (int)$request->get('page') : self::PAGE;
+
+        $sortBy = $request->get('sort', '-last_post_published_on');
+
+        $threads = $this->threadRepository->getDecoratedThreads($amount, $page, [], null, null, $sortBy);
+        $threadsCount = $this->threadRepository->getThreadsCount([]);
+
+        return new JsonPaginatedResponse(
+            $threads, $threadsCount, null, 200
+        );
     }
 }
