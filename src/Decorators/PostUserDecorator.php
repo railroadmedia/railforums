@@ -87,10 +87,18 @@ class PostUserDecorator implements DecoratorInterface
 
         $userLikes = array_combine(array_column($postLikes, 'liker_id'), array_column($postLikes, 'count'));
 
+        $currentUser = $this->userProvider->getUser(auth()->id());
+
         foreach ($posts as $postIndex => $post) {
             $posts[$postIndex]['published_on_formatted'] =
                 Carbon::parse($post['published_on'])
-                    ->format('M d, Y');
+                    ->timezone($currentUser->getTimezone())
+                    ->format('M j, Y') .
+                ' AT ' .
+                Carbon::parse($post['published_on'])
+                    ->timezone($currentUser->getTimezone())
+                    ->format('g:i A');
+
             $posts[$postIndex]['is_liked_by_viewer'] =
                 isset($post['is_liked_by_viewer']) && $post['is_liked_by_viewer'] == 1;
 
