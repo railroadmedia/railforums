@@ -14,10 +14,9 @@ class AddIndexesToCoreTables extends Migration
      */
     public function up()
     {
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableCategories,
-                function (Blueprint $table) {
+        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableCategories, function (Blueprint $table) {
                     $table->index('title');
                     $table->index('slug');
                     $table->index('weight');
@@ -27,52 +26,37 @@ class AddIndexesToCoreTables extends Migration
                     $table->index('brand');
                     $table->index('topic');
                     $table->index('icon');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePosts,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tablePosts, function (Blueprint $table) {
                     $table->index('edited_on');
                     $table->index('created_at');
                     $table->index('updated_at');
                     $table->index('deleted_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePostLikes,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tablePostLikes, function (Blueprint $table) {
                     $table->index('created_at');
                     $table->index('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePostReports,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tablePostReports, function (Blueprint $table) {
                     $table->index('reported_on');
                     $table->index('created_at');
                     $table->index('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableSearchIndexes,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
                     $table->index('created_at');
                     $table->index('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableThreads,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableThreads, function (Blueprint $table) {
                     $table->index('category_id');
                     $table->index('author_id');
                     $table->index('slug');
@@ -84,37 +68,28 @@ class AddIndexesToCoreTables extends Migration
                     $table->index('created_at');
                     $table->index('updated_at');
                     $table->index('deleted_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableThreadFollows,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableThreadFollows, function (Blueprint $table) {
                     $table->index('followed_on');
                     $table->index('created_at');
                     $table->index('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableThreadReads,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableThreadReads, function (Blueprint $table) {
                     $table->index('created_at');
                     $table->index('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableUserSignatures,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableUserSignatures, function (Blueprint $table) {
                     $table->index('brand');
                     $table->index('created_at');
                     $table->index('updated_at');
-                }
-            );
+                });
+        }
     }
 
     /**
@@ -124,10 +99,9 @@ class AddIndexesToCoreTables extends Migration
      */
     public function down()
     {
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableCategories,
-                function (Blueprint $table) {
+        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableCategories, function (Blueprint $table) {
 
                     $table->dropIndex('title');
                     $table->dropIndex('slug');
@@ -139,52 +113,37 @@ class AddIndexesToCoreTables extends Migration
                     $table->dropIndex('topic');
                     $table->dropIndex('icon');
 
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePosts,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tablePosts, function (Blueprint $table) {
                     $table->dropIndex('edited_on');
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
                     $table->dropIndex('deleted_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePostLikes,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tablePostLikes, function (Blueprint $table) {
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tablePostReports,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tablePostReports, function (Blueprint $table) {
                     $table->dropIndex('reported_on');
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableSearchIndexes,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableThreads,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableThreads, function (Blueprint $table) {
                     $table->dropIndex('category_id');
                     $table->dropIndex('author_id');
                     $table->dropIndex('slug');
@@ -196,36 +155,27 @@ class AddIndexesToCoreTables extends Migration
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
                     $table->dropIndex('deleted_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableThreadFollows,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableThreadFollows, function (Blueprint $table) {
                     $table->dropIndex('followed_on');
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableThreadReads,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableThreadReads, function (Blueprint $table) {
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
-                }
-            );
+                });
 
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableUserSignatures,
-                function (Blueprint $table) {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableUserSignatures, function (Blueprint $table) {
                     $table->dropIndex('brand');
                     $table->dropIndex('created_at');
                     $table->dropIndex('updated_at');
-                }
-            );
+                });
+        }
     }
 }

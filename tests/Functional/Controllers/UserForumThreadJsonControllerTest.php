@@ -372,7 +372,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         $payload = [
             'amount' => 10,
             'page' => 1,
-            'category_ids' => [$categoryOne['id']],
+            'category_id' => $categoryOne['id'],
         ];
 
         $this->permissionServiceMock->method('canOrThrow')
@@ -465,32 +465,6 @@ class UserForumThreadJsonControllerTest extends TestCase
         );
     }
 
-    public function test_thread_show_without_permission()
-    {
-        $user = $this->fakeUser();
-
-        /** @var array $category */
-        $category = $this->fakeCategory();
-
-        $otherUserId = rand(2, 32767);
-
-        /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], $otherUserId);
-
-        $this->permissionServiceMock->method('canOrThrow')
-            ->willThrowException(
-                new NotAllowedException('You are not allowed to show-threads')
-            );
-
-        $response = $this->actingAs($user)->call(
-            'GET',
-            self::API_PREFIX . '/thread/show/' . $thread['id']
-        );
-
-        // assert response status code
-        $this->assertEquals(403, $response->getStatusCode());
-    }
-
     public function test_thread_show_with_decorated_data()
     {
         $user = $this->fakeUser();
@@ -553,7 +527,6 @@ class UserForumThreadJsonControllerTest extends TestCase
                 'last_post_published_on' => $post['published_on'],
                 'last_post_id' => $post['id'],
                 'last_post_user_id' => $user['id'],
-                'last_post_user_display_name' => $user['display_name'],
                 'is_read' => 1,
                 'is_followed' => 1,
             ],
@@ -753,7 +726,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         /** @var array $category */
         $category = $this->fakeCategory();
 
-        $otherUserId = rand(2, 32767);
+        $otherUserId = $this->fakeUser()['id'];
 
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $otherUserId);
@@ -834,7 +807,8 @@ class UserForumThreadJsonControllerTest extends TestCase
 
     public function test_thread_delete()
     {
-        $thread = $this->fakeThread();
+        $author = $this->fakeUser();
+        $thread = $this->fakeThread(rand(1,3), $author['id']);
 
         $this->permissionServiceMock->method('canOrThrow')
             ->willReturn(true);
@@ -860,7 +834,7 @@ class UserForumThreadJsonControllerTest extends TestCase
     {
         $user = $this->fakeUser();
 
-        $otherUserId = rand(2, 32767);
+        $otherUserId = $this->fakeUser()['id'];
 
         /** @var array $thread */
         $thread = $this->fakeThread(null, $otherUserId);

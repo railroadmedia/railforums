@@ -1,6 +1,7 @@
 <?php
 namespace Tests\Fixtures;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Railroad\Railforums\Contracts\UserProviderInterface;
@@ -58,9 +59,33 @@ class UserProvider implements UserProviderInterface
         $userObjects = [];
 
         foreach ($users as $user) {
-            $userObjects[$user->id] =  new User($user->id, $user->display_name, $user->avatar_url, $user->created_at);
+            $userObjects[$user->id] =  new User($user->id, $user->display_name, $user->avatar_url, Carbon::parse($user->created_at));
         }
 
         return $userObjects;
+    }
+
+    public function getUsersAccessLevel(array $userIds)
+    : array {
+        $results = [];
+        foreach ($userIds as $userId){
+            $results[$userId] = 'piano';
+        }
+
+        return $results;
+    }
+
+    public function getUsersXPAndRank(array $userIds)
+    : array {
+        $results = [];
+        foreach ($userIds as $userId){
+            $results[$userId] = [
+                'xp' => rand(0,500),
+                'xp_rank' => 'Casual',
+                'level_rank' => '1.0'
+            ];
+        }
+
+        return $results;
     }
 }

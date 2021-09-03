@@ -61,6 +61,10 @@ class TestCase extends BaseTestCase
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
 
+        $userProvider = new UserProvider();
+
+        $this->app->instance(UserProviderInterface::class, $userProvider);
+
         $this->artisan('migrate:fresh', []);
         $this->createUsersTable();
         $this->artisan('cache:clear', []);
@@ -79,10 +83,6 @@ class TestCase extends BaseTestCase
         }
 
         Carbon::setTestNow(Carbon::now());
-
-        $userProvider = new UserProvider();
-
-        $this->app->instance(UserProviderInterface::class, $userProvider);
     }
 
     protected function createUsersTable()
@@ -97,6 +97,8 @@ class TestCase extends BaseTestCase
                     $table->string('label');
                     $table->string('permission_level');
                     $table->string('avatar_url')
+                        ->nullable();
+                    $table->string('timezone')
                         ->nullable();
                     $table->dateTime('created_at');
                 }
@@ -194,13 +196,13 @@ class TestCase extends BaseTestCase
         $app->register(ForumServiceProvider::class);
     }
 
-    protected function fakeCategory()
+    protected function fakeCategory($weight=null)
     {
         $category = [
             'title' => $this->faker->sentence(20),
             'slug' => strtolower(implode('-', $this->faker->words(5))),
             'description' => $this->faker->sentence(20),
-            'weight' => $this->faker->numberBetween(),
+            'weight' => $weight ?? $this->faker->numberBetween(),
             'brand' => config('railforums.brand')
         ];
 
@@ -235,7 +237,7 @@ class TestCase extends BaseTestCase
         return $thread;
     }
 
-    protected function fakePost($threadId = null, $authorId = null, $content = null,  $updatedAt = null)
+    protected function fakePost($threadId = null, $authorId = null, $content = null,  $publishedAt = null)
     {
         $post = [
             'thread_id' => $threadId ?? $this->faker->randomNumber(),
@@ -243,9 +245,9 @@ class TestCase extends BaseTestCase
             'prompting_post_id' => $this->faker->randomNumber(),
             'content' => $content ?? $this->faker->sentence(20),
             'state' => PostRepository::STATE_PUBLISHED,
-            'updated_at' => $updatedAt ?? Carbon::instance($this->faker->dateTime)
+            'updated_at' => Carbon::instance($this->faker->dateTime)
                     ->toDateTimeString(),
-            'published_on' => Carbon::instance($this->faker->dateTime)
+            'published_on' => $publishedAt ?? Carbon::instance($this->faker->dateTime)
                 ->toDateTimeString(),
         ];
 
@@ -415,6 +417,7 @@ class TestCase extends BaseTestCase
                         'label' => $this->faker->word,
                         'permission_level' => $this->faker->word,
                         'created_at' => Carbon::now(),
+                        'timezone' => $this->faker->timezone
                     ]
                 );
 

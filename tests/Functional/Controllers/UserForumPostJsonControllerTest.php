@@ -15,7 +15,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
     protected function setUp()
     {
-       // $this->setDefaultConnection('mysql');
+        // $this->setDefaultConnection('mysql');
 
         parent::setUp();
     }
@@ -32,31 +32,29 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user['id']);
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/report/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/report/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(204, $response->getStatusCode());
 
         // assert the emails were sent
-        Notification::assertSentTo(
-            (new AnonymousNotifiable)
-                ->route(
+        Notification::assertSentTo((new AnonymousNotifiable)->route(
                 ConfigService::$postReportNotificationChannel,
                 ConfigService::$postReportNotificationRecipients
-            ),
-            ConfigService::$postReportNotificationClass,
-            function ($notification) use ($post) {
-                return $notification->post['id'] === $post['id'];
-            }
-        );
+            ), ConfigService::$postReportNotificationClass, function ($notification) use ($post) {
+            return $notification->post['id'] === $post['id'];
+        });
     }
 
     public function test_post_report_without_permission()
@@ -76,30 +74,28 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $otherUserId);
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to report-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to report-posts')
+            );
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/report/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/report/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
 
         // assert the emails were not sent
-        Notification::assertNotSentTo(
-            (new AnonymousNotifiable)
-                ->route(
+        Notification::assertNotSentTo((new AnonymousNotifiable)->route(
                 ConfigService::$postReportNotificationChannel,
                 ConfigService::$postReportNotificationRecipients
-            ),
-            ConfigService::$postReportNotificationClass,
-            function ($notification) use ($post) {
-                return $notification->post['id'] === $post['id'];
-            }
-        );
+            ), ConfigService::$postReportNotificationClass, function ($notification) use ($post) {
+            return $notification->post['id'] === $post['id'];
+        });
     }
 
     public function test_post_report_not_exists()
@@ -108,21 +104,22 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $user = $this->fakeUser();
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/report/' . rand(0, 32767)
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/report/' . rand(0, 32767)
+                );
 
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
 
         // assert the emails were not sent
         Notification::assertNotSentTo(
-            (new AnonymousNotifiable)
-                ->route(
-                ConfigService::$postReportNotificationChannel,
-                ConfigService::$postReportNotificationRecipients
-            ),
+            (new AnonymousNotifiable)->route(
+                    ConfigService::$postReportNotificationChannel,
+                    ConfigService::$postReportNotificationRecipients
+                ),
             ConfigService::$postReportNotificationClass
         );
     }
@@ -137,15 +134,18 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user['id']);
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/like/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/like/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
@@ -154,19 +154,16 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->assertArraySubset(
             [
                 'liker_id' => $user['id'],
-                'post_id' => $post['id']
+                'post_id' => $post['id'],
             ],
             $response->decodeResponseJson()
         );
 
         // assert the post like data was saved in the db
-        $this->assertDatabaseHas(
-            ConfigService::$tablePostLikes,
-            [
+        $this->assertDatabaseHas(ConfigService::$tablePostLikes, [
                 'post_id' => $post['id'],
-                'liker_id' => $user['id']
-            ]
-        );
+                'liker_id' => $user['id'],
+            ]);
     }
 
     public function test_post_like_without_permission()
@@ -184,26 +181,26 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $otherUserId);
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to like-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to like-posts')
+            );
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/like/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/like/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post like data was not saved in the db
-        $this->assertDatabaseMissing(
-            ConfigService::$tablePostLikes,
-            [
+        $this->assertDatabaseMissing(ConfigService::$tablePostLikes, [
                 'post_id' => $post['id'],
-                'liker_id' => $user['id']
-            ]
-        );
+                'liker_id' => $user['id'],
+            ]);
     }
 
     public function test_post_like_not_exists()
@@ -211,24 +208,24 @@ class UserForumPostJsonControllerTest extends TestCase
         $user = $this->fakeUser();
         $postId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('can')->willReturn(true);
+        $this->permissionServiceMock->method('can')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/like/' . $postId
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/like/' . $postId
+                );
 
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
 
         // assert the data was not saved in the db
-        $this->assertDatabaseMissing(
-            'forum_post_likes',
-            [
+        $this->assertDatabaseMissing('forum_post_likes', [
                 'post_id' => $postId,
-                'liker_id' => $user['id']
-            ]
-        );
+                'liker_id' => $user['id'],
+            ]);
     }
 
     public function test_post_unlike_with_permission()
@@ -244,7 +241,9 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user['id']);
 
-        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+        $dateTime =
+            Carbon::instance($this->faker->dateTime)
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
@@ -254,36 +253,32 @@ class UserForumPostJsonControllerTest extends TestCase
             'updated_at' => $dateTime,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
-        $this->assertDatabaseHas(
-            ConfigService::$tablePostLikes,
-            [
+        $this->assertDatabaseHas(ConfigService::$tablePostLikes, [
                 'post_id' => $post['id'],
-                'liker_id' => $user['id']
-            ]
-        );
+                'liker_id' => $user['id'],
+            ]);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'DELETE',
-            self::API_PREFIX . '/post/unlike/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'DELETE',
+                    self::API_PREFIX . '/post/unlike/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(204, $response->getStatusCode());
 
         // assert the data was removed from the db
-        $this->assertDatabaseMissing(
-            ConfigService::$tablePostLikes,
-            [
+        $this->assertDatabaseMissing(ConfigService::$tablePostLikes, [
                 'post_id' => $post['id'],
-                'liker_id' => $user['id']
-            ]
-        );
+                'liker_id' => $user['id'],
+            ]);
     }
 
     public function test_post_unlike_without_permission()
@@ -301,7 +296,9 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $otherUserId);
 
-        $dateTime = Carbon::instance($this->faker->dateTime)->toDateTimeString();
+        $dateTime =
+            Carbon::instance($this->faker->dateTime)
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
@@ -311,42 +308,44 @@ class UserForumPostJsonControllerTest extends TestCase
             'updated_at' => $dateTime,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to like-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to like-posts')
+            );
 
-        $response = $this->actingAs($user)->call(
-            'DELETE',
-            self::API_PREFIX . '/post/unlike/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'DELETE',
+                    self::API_PREFIX . '/post/unlike/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
 
         // assert the data was not removed from the db
-        $this->assertDatabaseHas(
-            ConfigService::$tablePostLikes,
-            [
+        $this->assertDatabaseHas(ConfigService::$tablePostLikes, [
                 'post_id' => $post['id'],
-                'liker_id' => $user['id']
-            ]
-        );
+                'liker_id' => $user['id'],
+            ]);
     }
 
     public function test_post_unlike_not_exists()
     {
         $postId = rand(0, 32767);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs()->call(
-            'DELETE',
-            self::API_PREFIX . '/post/unlike/' . $postId
-        );
+        $response =
+            $this->actingAs()
+                ->call(
+                    'DELETE',
+                    self::API_PREFIX . '/post/unlike/' . $postId
+                );
 
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
@@ -364,7 +363,7 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $posts = [];
 
-        for ($i=0; $i < 20; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             /** @var array $post */
             $post = $this->fakePost($threadOne['id'], $user['id']);
 
@@ -374,7 +373,7 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $threadTwo */
         $threadTwo = $this->fakeThread($category['id'], $user['id']);
 
-        for ($i=0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             /** @var array $post */
             $post = $this->fakePost($threadTwo['id'], $user['id']);
 
@@ -384,16 +383,19 @@ class UserForumPostJsonControllerTest extends TestCase
         $payload = [
             'amount' => 10,
             'page' => 1,
-            'thread_id' => $threadOne['id']
+            'thread_id' => $threadOne['id'],
         ];
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'GET',
-            self::API_PREFIX . '/post/index',
-            $payload
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/index',
+                    $payload
+                );
 
         $this->assertTrue(true);
 
@@ -427,12 +429,15 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user['id']);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'GET',
-            self::API_PREFIX . '/post/show/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/show/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
@@ -459,14 +464,17 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $otherUserId);
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to show-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to show-posts')
+            );
 
-        $response = $this->actingAs($user)->call(
-            'GET',
-            self::API_PREFIX . '/post/show/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/show/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
@@ -504,45 +512,45 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $postReplyOneFour = [
             'child_post_id' => $postFour['id'],
-            'parent_post_id' => $postOne['id']
+            'parent_post_id' => $postOne['id'],
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostReplies)
+        $this->databaseManager->table(ConfigService::$tablePostReplies)
             ->insertGetId($postReplyOneFour);
 
         $repliesMap[$postReplyOneFour['parent_post_id']] = $postReplyOneFour;
 
         $postReplyTwoFour = [
             'child_post_id' => $postFour['id'],
-            'parent_post_id' => $postTwo['id']
+            'parent_post_id' => $postTwo['id'],
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostReplies)
+        $this->databaseManager->table(ConfigService::$tablePostReplies)
             ->insertGetId($postReplyTwoFour);
 
         $repliesMap[$postReplyTwoFour['parent_post_id']] = $postReplyTwoFour;
 
         $postReplyThreeFour = [
             'child_post_id' => $postFour['id'],
-            'parent_post_id' => $postThree['id']
+            'parent_post_id' => $postThree['id'],
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostReplies)
+        $this->databaseManager->table(ConfigService::$tablePostReplies)
             ->insertGetId($postReplyThreeFour);
 
         $repliesMap[$postReplyThreeFour['parent_post_id']] = $postReplyThreeFour;
 
         // ^^ postFour is set to quote/reply to postOne, postTwo, postThree
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'GET',
-            self::API_PREFIX . '/post/show/' . $postFour['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/show/' . $postFour['id']
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
@@ -602,94 +610,102 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user['id']);
 
-        $now = Carbon::now()->toDateTimeString();
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
             'liker_id' => $user['id'],
             'liked_on' => $now,
             'created_at' => $now,
-            'updated_at' => $now
+            'updated_at' => $now,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
         // 3rd most recent liker
         $otherUserOne = $this->fakeUser();
 
-        $fiveMinutesAgo = Carbon::parse("-5 minutes")->toDateTimeString();
+        $fiveMinutesAgo =
+            Carbon::parse("-5 minutes")
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
             'liker_id' => $otherUserOne['id'],
             'liked_on' => $fiveMinutesAgo,
             'created_at' => $fiveMinutesAgo,
-            'updated_at' => $fiveMinutesAgo
+            'updated_at' => $fiveMinutesAgo,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
         // 2nd most recent liker
         $otherUserTwo = $this->fakeUser();
 
-        $oneMinuteAgo = Carbon::parse("-1 minutes")->toDateTimeString();
+        $oneMinuteAgo =
+            Carbon::parse("-1 minutes")
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
             'liker_id' => $otherUserTwo['id'],
             'liked_on' => $oneMinuteAgo,
             'created_at' => $oneMinuteAgo,
-            'updated_at' => $oneMinuteAgo
+            'updated_at' => $oneMinuteAgo,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
         // 4th most recent liker
         $otherUserThree = $this->fakeUser();
 
-        $tenMinutesAgo = Carbon::parse("-10 minutes")->toDateTimeString();
+        $tenMinutesAgo =
+            Carbon::parse("-10 minutes")
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
             'liker_id' => $otherUserThree['id'],
             'liked_on' => $tenMinutesAgo,
             'created_at' => $tenMinutesAgo,
-            'updated_at' => $tenMinutesAgo
+            'updated_at' => $tenMinutesAgo,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
         // 5th most recent liker
         $otherUserFour = $this->fakeUser();
 
-        $twentyMinutesAgo = Carbon::parse("-20 minutes")->toDateTimeString();
+        $twentyMinutesAgo =
+            Carbon::parse("-20 minutes")
+                ->toDateTimeString();
 
         $postLike = [
             'post_id' => $post['id'],
             'liker_id' => $otherUserFour['id'],
             'liked_on' => $twentyMinutesAgo,
             'created_at' => $twentyMinutesAgo,
-            'updated_at' => $twentyMinutesAgo
+            'updated_at' => $twentyMinutesAgo,
         ];
 
-        $this->databaseManager
-            ->table(ConfigService::$tablePostLikes)
+        $this->databaseManager->table(ConfigService::$tablePostLikes)
             ->insertGetId($postLike);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'GET',
-            self::API_PREFIX . '/post/show/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/show/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
@@ -702,10 +718,12 @@ class UserForumPostJsonControllerTest extends TestCase
 
     public function test_post_show_not_exists()
     {
-        $response = $this->actingAs()->call(
-            'GET',
-            self::API_PREFIX . '/post/show/' . rand(0, 32767)
-        );
+        $response =
+            $this->actingAs()
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/show/' . rand(0, 32767)
+                );
 
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
@@ -723,39 +741,39 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $postData = [
             'content' => $this->faker->sentence(),
-            'thread_id' => $thread['id']
+            'thread_id' => $thread['id'],
         ];
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/store',
-            $postData
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/store',
+                    $postData
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert the post data was saved in the db
-        $this->assertDatabaseHas(
-            'forum_posts',
-            [
+        $this->assertDatabaseHas('forum_posts', [
                 'content' => $postData['content'],
-                'thread_id' => $postData['thread_id']
-            ]
-        );
+                'thread_id' => $postData['thread_id'],
+            ]);
 
         // assert response data
         $this->assertArraySubset([
             'content' => $postData['content'],
-            'thread_id' => $postData['thread_id']
+            'thread_id' => $postData['thread_id'],
         ], $response->decodeResponseJson());
     }
 
     public function test_post_store_without_permission()
     {
-         $user = $this->fakeUser();
+        $user = $this->fakeUser();
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -767,30 +785,30 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $postData = [
             'content' => $this->faker->sentence(),
-            'thread_id' => $thread['id']
+            'thread_id' => $thread['id'],
         ];
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to create-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to create-posts')
+            );
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/store',
-            $postData
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/store',
+                    $postData
+                );
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was not saved in the db
-        $this->assertDatabaseMissing(
-            'forum_posts',
-            [
+        $this->assertDatabaseMissing('forum_posts', [
                 'content' => $postData['content'],
-                'thread_id' => $postData['thread_id']
-            ]
-        );
+                'thread_id' => $postData['thread_id'],
+            ]);
     }
 
     public function test_post_store_with_replies()
@@ -816,73 +834,60 @@ class UserForumPostJsonControllerTest extends TestCase
             'parent_ids' => [
                 $postOne['id'],
                 $postTwo['id'],
-                $postThree['id']
-            ]
+                $postThree['id'],
+            ],
         ];
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'PUT',
-            self::API_PREFIX . '/post/store',
-            $postData
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'PUT',
+                    self::API_PREFIX . '/post/store',
+                    $postData
+                );
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert the post data was saved in the db
-        $this->assertDatabaseHas(
-            'forum_posts',
-            [
+        $this->assertDatabaseHas('forum_posts', [
                 'content' => $postData['content'],
-                'thread_id' => $postData['thread_id']
-            ]
-        );
+                'thread_id' => $postData['thread_id'],
+            ]);
 
         // assert response data
         $this->assertArraySubset([
             'content' => $postData['content'],
-            'thread_id' => $postData['thread_id']
+            'thread_id' => $postData['thread_id'],
         ], $response->decodeResponseJson());
 
         $postResponse = $response->decodeResponseJson();
 
         // assert postOne is marked as parent in db
-        $this->assertDatabaseHas(
-            'forum_post_replies',
-            [
+        $this->assertDatabaseHas('forum_post_replies', [
                 'parent_post_id' => $postOne['id'],
-                'child_post_id' => $postResponse['id']
-            ]
-        );
+                'child_post_id' => $postResponse['id'],
+            ]);
 
         // assert postTwo is marked as parent in db
-        $this->assertDatabaseHas(
-            'forum_post_replies',
-            [
+        $this->assertDatabaseHas('forum_post_replies', [
                 'parent_post_id' => $postTwo['id'],
-                'child_post_id' => $postResponse['id']
-            ]
-        );
+                'child_post_id' => $postResponse['id'],
+            ]);
 
         // assert postThree is marked as parent in db
-        $this->assertDatabaseHas(
-            'forum_post_replies',
-            [
+        $this->assertDatabaseHas('forum_post_replies', [
                 'parent_post_id' => $postThree['id'],
-                'child_post_id' => $postResponse['id']
-            ]
-        );
+                'child_post_id' => $postResponse['id'],
+            ]);
     }
 
     public function test_post_store_validation_fail()
     {
-        $response = $this->call(
-            'PUT',
-            self::API_PREFIX . '/post/store',
-            []
-        );
+        $response = $this->call('PUT', self::API_PREFIX . '/post/store', []);
 
         // assert response status code
         $this->assertEquals(422, $response->getStatusCode());
@@ -896,7 +901,7 @@ class UserForumPostJsonControllerTest extends TestCase
             [
                 "source" => "thread_id",
                 "detail" => "The thread id field is required.",
-            ]
+            ],
         ], $response->decodeResponseJson()['errors']);
     }
 
@@ -904,8 +909,8 @@ class UserForumPostJsonControllerTest extends TestCase
     {
         /** @var array $category */
         $category = $this->fakeCategory();
-
-        $otherUserId = rand(2, 32767);
+        $user = $this->fakeUser();
+        $otherUserId = $this->fakeUser()['id'];
 
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $otherUserId);
@@ -915,33 +920,28 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $newContent = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
-        $this->permissionServiceMock
-            ->method('columns')
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+        $this->permissionServiceMock->method('columns')
             ->willReturn(['content' => $newContent]);
 
-        $response = $this->call(
-            'PATCH',
-            self::API_PREFIX . '/post/update/' . $post['id'],
-            ['content' => $newContent]
-        );
+        $response =
+            $this->actingAs($user)
+                ->call('PATCH', self::API_PREFIX . '/post/update/' . $post['id'], ['content' => $newContent]);
 
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert the post data was saved in the db
-        $this->assertDatabaseHas(
-            'forum_posts',
-            [
+        $this->assertDatabaseHas('forum_posts', [
                 'id' => $post['id'],
-                'content' => $newContent
-            ]
-        );
+                'content' => $newContent,
+            ]);
 
         // assert response data
         $this->assertArraySubset([
             'content' => $newContent,
-            'id' => $post['id']
+            'id' => $post['id'],
         ], $response->decodeResponseJson());
     }
 
@@ -958,11 +958,7 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $user['id']);
 
-        $response = $this->call(
-            'PATCH',
-            self::API_PREFIX . '/post/update/' . $post['id'],
-            []
-        );
+        $response = $this->call('PATCH', self::API_PREFIX . '/post/update/' . $post['id'], []);
 
         // assert response status code
         $this->assertEquals(422, $response->getStatusCode());
@@ -972,7 +968,7 @@ class UserForumPostJsonControllerTest extends TestCase
             [
                 "source" => "content",
                 "detail" => "The content field is required.",
-            ]
+            ],
         ], $response->decodeResponseJson()['errors']);
     }
 
@@ -993,43 +989,37 @@ class UserForumPostJsonControllerTest extends TestCase
 
         $newContent = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to update-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to update-posts')
+            );
 
-        $response = $this->actingAs($user)->call(
-            'PATCH',
-            self::API_PREFIX . '/post/update/' . $post['id'],
-            ['content' => $newContent]
-        );
+        $response =
+            $this->actingAs($user)
+                ->call('PATCH', self::API_PREFIX . '/post/update/' . $post['id'], ['content' => $newContent]);
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was saved in the db
-        $this->assertDatabaseMissing(
-            'forum_posts',
-            [
+        $this->assertDatabaseMissing('forum_posts', [
                 'id' => $post['id'],
-                'content' => $newContent
-            ]
-        );
+                'content' => $newContent,
+            ]);
     }
 
     public function test_post_update_not_found()
     {
         $newContent = $this->faker->sentence();
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
-        $this->permissionServiceMock
-            ->method('columns')
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+        $this->permissionServiceMock->method('columns')
             ->willReturn(['content' => $newContent]);
 
-        $response = $this->actingAs()->call(
-            'PATCH',
-            self::API_PREFIX . '/post/update/' . rand(0, 32767),
-            ['content' => $newContent]
-        );
+        $response =
+            $this->actingAs()
+                ->call('PATCH', self::API_PREFIX . '/post/update/' . rand(0, 32767), ['content' => $newContent]);
 
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
@@ -1050,23 +1040,23 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $otherUserId);
 
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
-        $response = $this->actingAs($user)->call(
-            'DELETE',
-            self::API_PREFIX . '/post/delete/' . $post['id']
-        );
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'DELETE',
+                    self::API_PREFIX . '/post/delete/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(204, $response->getStatusCode());
 
         // assert the post data was marked as soft deleted
-        $this->assertSoftDeleted(
-            'forum_posts',
-            [
-                'id' => $post['id']
-            ]
-        );
+        $this->assertSoftDeleted('forum_posts', [
+                'id' => $post['id'],
+            ]);
     }
 
     public function test_post_delete_without_permission()
@@ -1082,31 +1072,32 @@ class UserForumPostJsonControllerTest extends TestCase
         /** @var array $post */
         $post = $this->fakePost($thread['id'], $otherUserId);
 
-        $this->permissionServiceMock->method('canOrThrow')->willThrowException(
-            new NotAllowedException('You are not allowed to delete-posts')
-        );
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willThrowException(
+                new NotAllowedException('You are not allowed to delete-posts')
+            );
 
-        $response = $this->actingAs()->call(
-            'DELETE',
-            self::API_PREFIX . '/post/delete/' . $post['id']
-        );
+        $response =
+            $this->actingAs()
+                ->call(
+                    'DELETE',
+                    self::API_PREFIX . '/post/delete/' . $post['id']
+                );
 
         // assert response status code
         $this->assertEquals(403, $response->getStatusCode());
 
         // assert the post data was not marked as soft deleted
-        $this->assertDatabaseHas(
-            'forum_posts',
-            [
+        $this->assertDatabaseHas('forum_posts', [
                 'id' => $post['id'],
-                'deleted_at' => null
-            ]
-        );
+                'deleted_at' => null,
+            ]);
     }
 
     public function test_post_delete_not_found()
     {
-        $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
 
         $response = $this->call(
             'DELETE',

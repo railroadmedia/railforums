@@ -443,11 +443,12 @@ class UserForumThreadControllerTest extends TestCase
     {
         /** @var array $category */
         $category = $this->fakeCategory();
+        $user = $this->fakeUser();
 
         /** @var array $thread */
-        $thread = $this->fakeThread($category['id'], rand(2, 32767));
+        $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $newTitle = $this->faker->sentence();
+        $newTitle = $this->faker->word;
 
         $this->permissionServiceMock->method('canOrThrow')->willThrowException(
             new NotAllowedException('You are not allowed to update-threads')

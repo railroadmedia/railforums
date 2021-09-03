@@ -19,8 +19,8 @@ class UserForumDiscussionControllerTest extends TestCase
         $user = $this->fakeUser();
 
         $discussionData = [
-            'title' => $this->faker->sentence(),
-            'description' => $this->faker->text
+            'title' => $this->faker->word,
+            'description' => $this->faker->paragraph
         ];
 
         $this->permissionServiceMock->method('can')->willReturn(true);
@@ -46,7 +46,7 @@ class UserForumDiscussionControllerTest extends TestCase
         $user = $this->fakeUser();
 
         $discussionData = [
-            'title' => $this->faker->sentence(),
+            'title' => $this->faker->word,
             'description' => $this->faker->text
         ];
 

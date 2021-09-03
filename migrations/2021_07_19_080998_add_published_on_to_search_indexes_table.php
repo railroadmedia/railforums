@@ -14,15 +14,16 @@ class AddPublishedOnToSearchIndexesTable extends Migration
      */
     public function up()
     {
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableSearchIndexes,
-                function (Blueprint $table) {
+        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
 
-                    $table->dateTime('published_on')->nullable()->index();
+                    $table->dateTime('published_on')
+                        ->nullable()
+                        ->index();
 
-                }
-            );
+                });
+        }
     }
 
     /**
@@ -32,14 +33,14 @@ class AddPublishedOnToSearchIndexesTable extends Migration
      */
     public function down()
     {
-        Schema::connection(ConfigService::$databaseConnectionName)
-            ->table(
-                ConfigService::$tableSearchIndexes,
-                function (Blueprint $table) {
+        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+
+            Schema::connection(ConfigService::$databaseConnectionName)
+                ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
 
                     $table->dropColumn('published_on');
 
-                }
-            );
+                });
+        }
     }
 }

@@ -24,7 +24,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
 
         for ($i = 0; $i < 20; $i++) {
             /** @var array $category */
-            $category = $this->fakeCategory();
+            $category = $this->fakeCategory($i);
 
             $discussions[] = $category;
 
@@ -36,7 +36,6 @@ class UserForumDiscussionJsonControllerTest extends TestCase
                 $this->fakeUser()['id'],
                 'post 1',
                 Carbon::now()
-                    ->subDays(10)
                     ->toDateTimeString()
             );
             $this->fakePost(
@@ -44,7 +43,6 @@ class UserForumDiscussionJsonControllerTest extends TestCase
                 $this->fakeUser()['id'],
                 'post 1',
                 Carbon::now()
-                    ->subDays(1)
                     ->toDateTimeString()
             );
             $latestPost[$category['id']] =
@@ -52,14 +50,14 @@ class UserForumDiscussionJsonControllerTest extends TestCase
                     $thread1['id'],
                     $user['id'],
                     'post 2',
-                    Carbon::now()
+                    Carbon::now()->addDay(10)
                         ->toDateTimeString()
                 );
         }
 
         $discussions =
             collect($discussions)
-                ->sortBy('created_at')
+                ->sortBy('weight')
                 ->toArray();
 
         $payload = [
@@ -69,6 +67,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
 
         $this->permissionServiceMock->method('canOrThrow')
             ->willReturn(true);
+
         $response = $this->call(
             'GET',
             self::API_PREFIX . '/discussions/index',
@@ -97,7 +96,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
 
         for ($i = 0; $i < 20; $i++) {
             /** @var array $category */
-            $category = $this->fakeCategory();
+            $category = $this->fakeCategory($i);
 
             $discussions[] = $category;
 
@@ -237,8 +236,8 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         $user = $this->fakeUser();
 
         /** @var array $category */
-        $category = $this->fakeCategory();
-        $category2 = $this->fakeCategory();
+        $category = $this->fakeCategory(1);
+        $category2 = $this->fakeCategory(2);
 
         /** @var array $thread */
         $thread1 = $this->fakeThread($category['id'], $user['id']);

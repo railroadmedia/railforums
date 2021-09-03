@@ -31,24 +31,27 @@ class User
 
     private $createdAt;
 
+    private $timezone;
+
     /**
-     * User constructor.
-     *
      * @param int $id
      * @param $displayName
      * @param $profilePictureUrl
      * @param $createdAt
+     * @param string $timezone
      */
     public function __construct(
         int $id,
         $displayName,
         $profilePictureUrl,
-        $createdAt
+        $createdAt,
+        $timezone = 'Europe/Bucharest'
     ) {
         $this->id = $id;
         $this->displayName = $displayName;
         $this->profilePictureUrl = $profilePictureUrl;
         $this->createdAt = $createdAt;
+        $this->timezone = $timezone;
     }
 
     /**
@@ -115,6 +118,14 @@ class User
     public function setCreatedAt($createdAt)
     : void {
         $this->createdAt = $createdAt;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimezone()
+    {
+        return $this->timezone;
     }
 
     /**
