@@ -88,6 +88,7 @@ class UserForumSignaturesController extends Controller
     public function update(Request $request, $id)
     {
         $oldSignature = $this->userSignaturesRepository->getUserSignature($id);
+        throw_if(!$oldSignature, new NotFoundHttpException());
 
         if ($oldSignature && $oldSignature['user_id'] != auth()->id()) {
             $this->permissionService->canOrThrow(auth()->id(), 'update-user-signature');
@@ -100,7 +101,7 @@ class UserForumSignaturesController extends Controller
                 'updated_at' => Carbon::now()
                     ->toDateTimeString(),
                 'brand' => config('railforums.brand'),
-                'user_id' => auth()->id(),
+                'user_id' => $oldSignature['user_id'],
             ]
         );
 
