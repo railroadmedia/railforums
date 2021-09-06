@@ -18,6 +18,7 @@ class PostEventListenerTest extends TestCase
     public function test_post_delete_event()
     {
         $user = $this->fakeUser();
+        $this->actingAs($user);
 
         /** @var array $category */
         $category = $this->fakeCategory();

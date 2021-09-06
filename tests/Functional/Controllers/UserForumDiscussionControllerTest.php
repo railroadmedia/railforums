@@ -20,7 +20,8 @@ class UserForumDiscussionControllerTest extends TestCase
 
         $discussionData = [
             'title' => $this->faker->word,
-            'description' => $this->faker->paragraph
+            'description' => $this->faker->paragraph,
+            'weight' => $this->faker->numberBetween(1,10)
         ];
 
         $this->permissionServiceMock->method('can')->willReturn(true);
@@ -36,7 +37,8 @@ class UserForumDiscussionControllerTest extends TestCase
             ConfigService::$tableCategories,
             [
                 'title' => $discussionData['title'],
-                'description' => $discussionData['description']
+                'description' => $discussionData['description'],
+                'weight' => $discussionData['weight']
             ]
         );
     }
@@ -47,7 +49,8 @@ class UserForumDiscussionControllerTest extends TestCase
 
         $discussionData = [
             'title' => $this->faker->word,
-            'description' => $this->faker->text
+            'description' => $this->faker->text,
+            'weight' => $this->faker->numberBetween(1,10)
         ];
 
         $this->permissionServiceMock->method('canOrThrow')->willThrowException(

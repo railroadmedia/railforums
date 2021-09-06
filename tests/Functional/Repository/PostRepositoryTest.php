@@ -23,6 +23,7 @@ class PostRepositoryTest extends TestCase
     public function test_post_create_event()
     {
         $user = $this->fakeUser();
+        $this->actingAs($user);
 
         /** @var array $category */
         $category = $this->fakeCategory();
@@ -52,6 +53,7 @@ class PostRepositoryTest extends TestCase
     public function test_post_update_event()
     {
         $user = $this->fakeUser();
+        $this->actingAs($user);
 
         /** @var array $category */
         $category = $this->fakeCategory();

@@ -875,4 +875,264 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
     }
+
+    public function test_latest_threads_with_permission()
+    {
+        $user = $this->fakeUser();
+
+        /** @var array $categoryOne */
+        $categoryOne = $this->fakeCategory();
+
+        $threads = [];
+
+        //old threads
+        for ($i = 0; $i < 20; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryOne['id'], $user['id']);
+            $this->fakePost($thread['id'], $user['id'], null, Carbon::now()->subYears($i+1)->toDateTimeString());
+        }
+
+        /** @var array $categoryTwo */
+        $categoryTwo = $this->fakeCategory();
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryTwo['id'], $user['id']);
+            $this->fakePost($thread['id'], $user['id'], null, Carbon::now()->subDays($i)->toDateTimeString());
+
+            $threads[$i] = $thread;
+        }
+
+        $payload = [
+            'amount' => 10,
+            'page' => 1
+        ];
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+
+        $response = $this->actingAs($user)->call(
+            'GET',
+            self::API_PREFIX .'/api/thread/latest',
+            $payload
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert reponse entities count is the requested amount
+        $this->assertEquals(count($results['results']), $payload['amount']);
+
+        // assert reponse has threads count for pagination
+        $this->assertArrayHasKey('total_results', $results);
+
+        // assert response entities have the requested category
+        foreach ($results['results'] as $index=>$thread) {
+            $this->assertEquals($thread['id'], $threads[$index]['id']);
+        }
+    }
+
+    public function test_thread_mine_threads_with_permission()
+    {
+        $user = $this->fakeUser();
+        $otherUser = $this->fakeUser();
+
+        /** @var array $categoryOne */
+        $categoryOne = $this->fakeCategory();
+
+        $threads = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryOne['id'], $otherUser['id']);
+        }
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryOne['id'], $user['id']);
+        }
+
+        /** @var array $categoryTwo */
+        $categoryTwo = $this->fakeCategory();
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryTwo['id'], $user['id']);
+
+            $threads[$thread['id']] = $thread;
+        }
+
+        $payload = [
+            'amount' => 10,
+            'page' => 1,
+            'category_id' => $categoryOne['id'],
+            'sort' => 'mine'
+        ];
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+
+        $response = $this->actingAs($user)->call(
+            'GET',
+            self::API_PREFIX . '/thread/index',
+            $payload
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert reponse entities count is the requested amount
+        $this->assertEquals(count($results['results']), $payload['amount']);
+
+        // assert reponse has threads count for pagination
+        $this->assertArrayHasKey('total_results', $results);
+
+        // assert response entities are my threads
+        foreach ($results['results'] as $thread) {
+            $this->assertEquals($thread['author_id'], $user['id']);
+            $this->assertEquals($thread['category_id'], $payload['category_id']);
+        }
+    }
+
+    public function test_thread_oldest_threads_with_permission()
+    {
+        $user = $this->fakeUser();
+        $otherUser = $this->fakeUser();
+
+        /** @var array $categoryOne */
+        $categoryOne = $this->fakeCategory();
+
+        $threads = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryOne['id'], $otherUser['id']);
+            $this->fakePost($thread['id'], $user['id'], null, Carbon::now()->subYears($i+1)->toDateTimeString());
+            $threads[] = $thread;
+        }
+
+        $payload = [
+            'amount' => 10,
+            'page' => 1,
+            'category_id' => $categoryOne['id'],
+            'sort' => 'last_post_published_on'
+        ];
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+
+        $response = $this->actingAs($user)->call(
+            'GET',
+            self::API_PREFIX . '/thread/index',
+            $payload
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert reponse entities count is the requested amount
+        $this->assertEquals(count($results['results']), $payload['amount']);
+
+        // assert reponse has threads count for pagination
+        $this->assertArrayHasKey('total_results', $results);
+
+        // assert response entities are my threads
+        foreach ($results['results'] as $index=>$thread) {
+            $this->assertEquals($thread['id'], array_reverse($threads)[$index]['id']);
+            $this->assertEquals($thread['category_id'], $payload['category_id']);
+        }
+    }
+
+    public function test_thread_filter_mine_posts_with_permission()
+    {
+        $user = $this->fakeUser();
+        $otherUser = $this->fakeUser();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $thread */
+        $thread = $this->fakeThread($category['id'], $user['id']);
+
+        for ($i = 1; $i <= 30; $i++) {
+           $this->fakePost($thread['id'], $this->faker->randomElement([$user['id'], $otherUser['id']]));
+        }
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+
+        $response = $this->actingAs($user)->call(
+            'GET',
+            self::API_PREFIX . '/thread/show/' . $thread['id'],[
+                'sort' => 'mine'
+            ]
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert response data
+        foreach ($results['posts'] as $index=>$post) {
+            $this->assertEquals($post['author_id'], $user['id']);
+        }
+    }
+
+    public function test_thread_sort_latest_posts_with_permission()
+    {
+        $user = $this->fakeUser();
+        $otherUser = $this->fakeUser();
+
+        /** @var array $categoryOne */
+        $categoryOne = $this->fakeCategory();
+
+        $posts = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $thread */
+            $thread = $this->fakeThread($categoryOne['id'], $otherUser['id']);
+            $post = $this->fakePost($thread['id'], $user['id'], null, Carbon::now()->subYears($i+1)->toDateTimeString());
+            $posts[] = $post;
+        }
+
+        $payload = [
+            'amount' => 10,
+            'page' => 1,
+            'sort' => '-published_on'
+        ];
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+
+        $response = $this->actingAs($user)->call(
+            'GET',
+            self::API_PREFIX . '/thread/show/' . $thread['id'],$payload
+        );
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert response entities are my threads
+        foreach ($results['posts'] as $index=>$post) {
+            $publishedOnFormatted =  Carbon::parse($post['published_on'])
+                    ->timezone('Europe/Bucharest')
+                    ->format('M j, Y') .
+                ' AT ' .
+                Carbon::parse($post['published_on'])
+                    ->timezone('Europe/Bucharest')
+                    ->format('g:i A');
+
+            $this->assertEquals($post['id'], array_reverse($posts)[$index]['id']);
+            $this->assertEquals($post['published_on_formatted'],  $publishedOnFormatted);
+        }
+    }
 }

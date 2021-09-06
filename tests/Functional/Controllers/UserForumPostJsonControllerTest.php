@@ -1107,4 +1107,69 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(404, $response->getStatusCode());
     }
+
+    public function test_post_with_permission()
+    {
+        $user = $this->fakeUser();
+
+        /** @var array $category */
+        $category = $this->fakeCategory();
+
+        /** @var array $threadOne */
+        $threadOne = $this->fakeThread($category['id'], $user['id']);
+
+        $posts = [];
+
+        for ($i = 0; $i < 20; $i++) {
+            /** @var array $post */
+            $post = $this->fakePost($threadOne['id'], $user['id']);
+
+            $posts[$post['id']] = $post;
+        }
+
+        /** @var array $threadTwo */
+        $threadTwo = $this->fakeThread($category['id'], $user['id']);
+
+        for ($i = 0; $i < 10; $i++) {
+            /** @var array $post */
+            $post = $this->fakePost($threadTwo['id'], $user['id']);
+
+            $posts[$post['id']] = $post;
+        }
+
+        $payload = [
+            'amount' => 10,
+            'page' => 1,
+            'thread_id' => $threadOne['id'],
+        ];
+
+        $this->permissionServiceMock->method('canOrThrow')
+            ->willReturn(true);
+
+        $response =
+            $this->actingAs($user)
+                ->call(
+                    'GET',
+                    self::API_PREFIX . '/post/index',
+                    $payload
+                );
+
+        $this->assertTrue(true);
+
+        // assert response status code
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $results = $response->decodeResponseJson();
+
+        // assert reponse posts count is the requested amount
+        $this->assertEquals(count($results['posts']), $payload['amount']);
+
+        // assert reponse posts count
+        $this->assertEquals($results['count'], 20);
+
+        // assert reponse posts have the requested category
+        foreach ($results['posts'] as $post) {
+            $this->assertEquals($post['thread_id'], $payload['thread_id']);
+        }
+    }
 }

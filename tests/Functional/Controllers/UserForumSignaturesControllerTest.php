@@ -102,7 +102,7 @@ class UserForumSignaturesControllerTest extends TestCase
 
         $response = $this->call(
             'PATCH',
-            '/signature/update/' . $signature['id'],
+            '/signature/update/' . $signature['user_id'],
             ['signature' => $newSignature]
         );
 
@@ -133,7 +133,7 @@ class UserForumSignaturesControllerTest extends TestCase
             $this->actingAs($user)
                 ->call(
                     'PATCH',
-                    '/signature/update/' . $signature['id'],
+                    '/signature/update/' . $signature['user_id'],
                     ['signature' => $newSignature]
                 );
 

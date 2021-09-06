@@ -416,7 +416,7 @@ class UserForumThreadControllerTest extends TestCase
         /** @var array $thread */
         $thread = $this->fakeThread($category['id'], $user['id']);
 
-        $newTitle = $this->faker->sentence();
+        $newTitle = $this->faker->word;
 
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
@@ -426,7 +426,8 @@ class UserForumThreadControllerTest extends TestCase
         $response = $this->actingAs($user)->call(
             'PATCH',
             '/thread/update/' . $thread['id'],
-            ['title' => $newTitle]
+            ['title' => $newTitle,
+                'category_id' => $category['id']]
         );
 
         // assert the thread data was saved in the db
@@ -457,7 +458,8 @@ class UserForumThreadControllerTest extends TestCase
         $response = $this->call(
             'PATCH',
             '/thread/update/' . $thread['id'],
-            ['title' => $newTitle]
+            ['title' => $newTitle,
+                'category_id' => $category['id']]
         );
 
         // assert the thread data was not saved in the db
@@ -497,6 +499,8 @@ class UserForumThreadControllerTest extends TestCase
     {
         $newTitle = $this->faker->sentence();
 
+        $category = $this->fakeCategory();
+
         $this->permissionServiceMock->method('canOrThrow')->willReturn(true);
         $this->permissionServiceMock
             ->method('columns')
@@ -505,7 +509,8 @@ class UserForumThreadControllerTest extends TestCase
         $response = $this->call(
             'PATCH',
             '/thread/update/' . rand(0, 32767),
-            ['title' => $newTitle]
+            ['title' => $newTitle,
+                'category_id' => $category['id']]
         );
 
         // assert response status code
