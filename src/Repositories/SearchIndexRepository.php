@@ -321,7 +321,7 @@ SQL;
             'id'
         );
 
-        DB::statement('OPTIMIZE table '.ConfigService::$tableSearchIndexes);
+//        DB::statement('OPTIMIZE table '.ConfigService::$tableSearchIndexes);
 
         return true;
     }
