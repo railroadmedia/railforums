@@ -10,6 +10,7 @@ use Railroad\Railforums\Events\PostCreated;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\EventListeners\PostEventListener;
 use Railroad\Railforums\Events\PostDeleted;
+use Staudenmeir\LaravelUpsert\DatabaseServiceProvider;
 
 class ForumServiceProvider extends EventServiceProvider
 {
@@ -59,6 +60,7 @@ class ForumServiceProvider extends EventServiceProvider
      */
     public function register()
     {
+        $this->app->register(DatabaseServiceProvider::class);
     }
 
     /**

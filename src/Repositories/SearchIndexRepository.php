@@ -219,10 +219,9 @@ SQL;
      */
     public function createSearchIndexes()
     {
-        //delete old indexes
         DB::disableQueryLog();
 
-        $this->deleteOldIndexes();
+//        $this->deleteOldIndexes();
 
         $query = $this->postRepository->query()
             ->from(ConfigService::$tablePosts)
@@ -253,8 +252,8 @@ SQL;
                 ->toDateTimeString();
 
         $query->chunkById(
-            500,
-            function (Collection $postsData) use ($now) {
+            250,
+            function (Collection $postsData) use (&$count, $now, &$command) {
                 $searchIndexes = [];
                 $userIds = $postsData->pluck('author_id')
                     ->toArray();
@@ -278,8 +277,12 @@ SQL;
                     ];
                 }
 
-                DB::table(ConfigService::$tableSearchIndexes)->insert($searchIndexes);
-                usleep(500);
+                DB::table(ConfigService::$tableSearchIndexes)->upsert(
+                    $searchIndexes,
+                    ['thread_id', 'post_id']
+                );
+
+                usleep(500000);
             },
             ConfigService::$tablePosts.'.id',
             'id'
@@ -292,7 +295,7 @@ SQL;
             ->orderBy(ConfigService::$tableThreads.'.id');
 
         $threadsQuery->chunkById(
-            500,
+            250,
             function (Collection $threadsData) use (
                 $now
             ) {
@@ -314,8 +317,12 @@ SQL;
                     ];
                 }
 
-                DB::table(ConfigService::$tableSearchIndexes)->insert($searchIndexes);
-                usleep(500);
+                DB::table(ConfigService::$tableSearchIndexes)->upsert(
+                    $searchIndexes,
+                    ['thread_id', 'post_id']
+                );
+
+                usleep(500000);
             },
             ConfigService::$tableThreads.'.id',
             'id'
