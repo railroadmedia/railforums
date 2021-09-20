@@ -59,6 +59,7 @@ class DiscussionDecorator implements DecoratorInterface
                         'p.published_on as last_post_created_at'
                     )
                     ->whereNull('p.deleted_at')
+                    ->whereNull('t.deleted_at')
                     ->where('t.category_id', $discussion['id'])
                     ->orderBy('p.published_on', 'desc')
                     ->limit(1)
