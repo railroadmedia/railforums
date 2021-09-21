@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Exceptions\NotAllowedException;
@@ -118,7 +119,7 @@ class UserForumDiscussionController extends Controller
         $discussion = $this->categoryRepository->read($id);
         throw_if(!$discussion, new NotFoundHttpException());
 
-        $result = $this->categoryRepository->delete($id);
+        $result = $this->categoryRepository->destroy($id);
         throw_if(!$result, new NotFoundHttpException());
 
         $message = ['success' => true];
