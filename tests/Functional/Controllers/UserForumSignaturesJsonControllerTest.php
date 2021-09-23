@@ -113,7 +113,7 @@ class UserForumSignaturesJsonControllerTest extends TestCase
 
         $response = $this->call(
             'PATCH',
-            self::API_PREFIX . '/signature/update/' . $signature['id'],
+            self::API_PREFIX . '/signature/update/' . $signature['user_id'],
             ['signature' => $newSignature]
         );
 
@@ -137,8 +137,9 @@ class UserForumSignaturesJsonControllerTest extends TestCase
     public function test_signature_update_without_permission()
     {
         $user = $this->fakeUser();
+        $otherUser = $this->fakeUser();
 
-        $signature = $this->fakeSignature();
+        $signature = $this->fakeSignature($otherUser['id']);
 
         $newSignature = $this->faker->sentence();
 
@@ -151,7 +152,7 @@ class UserForumSignaturesJsonControllerTest extends TestCase
             $this->actingAs($user)
                 ->call(
                     'PATCH',
-                    self::API_PREFIX . '/signature/update/' . $signature['id'],
+                    self::API_PREFIX . '/signature/update/' . $signature['user_id'],
                     ['signature' => $newSignature]
                 );
 
@@ -185,7 +186,7 @@ class UserForumSignaturesJsonControllerTest extends TestCase
             $this->actingAs($user)
                 ->call(
                     'PATCH',
-                    self::API_PREFIX . '/signature/update/' . $signature['id'],
+                    self::API_PREFIX . '/signature/update/' . $signature['user_id'],
                     ['signature' => $newSignature]
                 );
 
@@ -204,23 +205,6 @@ class UserForumSignaturesJsonControllerTest extends TestCase
         // assert response data
         $this->assertEquals($newSignature, $response->decodeResponseJson('signature'));
         $this->assertEquals($signature['id'], $response->decodeResponseJson('id'));
-    }
-
-    public function test_signature_update_not_found()
-    {
-        $newSignature = $this->faker->sentence();
-
-        $this->permissionServiceMock->method('canOrThrow')
-            ->willReturn(true);
-
-        $response = $this->call(
-            'PATCH',
-            self::API_PREFIX . '/signature/update/' . rand(0, 32767),
-            ['signature' => $newSignature]
-        );
-
-        // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
     }
 
     public function test_signature_delete()
