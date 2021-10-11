@@ -43,6 +43,7 @@ class DiscussionDecorator implements DecoratorInterface
                         'COUNT(*) as post_count'
                     )
                     ->whereNull('p.deleted_at')
+                    ->whereNull('t.deleted_at')
                     ->where('t.category_id', $discussion['id'])->first();
 
             $discussion['post_count'] = $posts->post_count;
