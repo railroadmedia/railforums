@@ -119,7 +119,7 @@ class UserForumDiscussionController extends Controller
         $discussion = $this->categoryRepository->read($id);
         throw_if(!$discussion, new NotFoundHttpException());
 
-        $result = $this->categoryRepository->destroy($id);
+        $result = $this->categoryRepository->delete($id);
         throw_if(!$result, new NotFoundHttpException());
 
         $message = ['success' => true];
