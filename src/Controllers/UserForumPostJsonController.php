@@ -68,8 +68,7 @@ class UserForumPostJsonController extends Controller
         PermissionService $permissionService,
         ThreadRepository $threadRepository,
         UserProviderInterface $userProvider
-    )
-    {
+    ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
         $this->postRepository = $postRepository;
@@ -127,15 +126,13 @@ class UserForumPostJsonController extends Controller
             Carbon::now()
                 ->toDateTimeString();
 
-        $postLike = $this->postLikeRepository->create(
-            [
+        $postLike = $this->postLikeRepository->create([
                 'post_id' => $post->id,
                 'liker_id' => auth()->id(),
                 'liked_on' => $now,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ]
-        );
+            ]);
 
         return response()->json($postLike);
     }
@@ -158,9 +155,9 @@ class UserForumPostJsonController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $this->postLikeRepository->destroy($postLike->id);
+        $deleted = $this->postLikeRepository->destroy($postLike->id);
 
-        return new JsonResponse(null, 204);
+        return response()->json(['success' => $deleted]);
     }
 
     /**
@@ -231,22 +228,17 @@ class UserForumPostJsonController extends Controller
         $authorId = auth()->id();
 
         $post = $this->postRepository->create(
-            array_merge(
-                $request->only(
-                    [
-                        'thread_id',
-                        'content',
-                        'prompting_post_id',
-                    ]
-                ),
-                [
+            array_merge($request->only([
+                    'thread_id',
+                    'content',
+                    'prompting_post_id',
+                ]), [
                     'state' => PostRepository::STATE_PUBLISHED,
                     'author_id' => $authorId,
                     'published_on' => $now,
                     'created_at' => $now,
                     'updated_at' => $now,
-                ]
-            )
+                ])
         );
 
         $parentIds = $request->get('parent_ids', []);
@@ -300,18 +292,10 @@ class UserForumPostJsonController extends Controller
 
         $post = $this->postRepository->update(
             $id,
-            array_merge(
-                $this->permissionService->columns(
-                    auth()->id(),
-                    'update-posts',
-                    $request->all(),
-                    ['content']
-                ),
-                [
+            array_merge($this->permissionService->columns(auth()->id(), 'update-posts', $request->all(), ['content']), [
                     'updated_at' => Carbon::now()
                         ->toDateTimeString(),
-                ]
-            )
+                ])
         );
 
         return response()->json($post);
@@ -350,10 +334,15 @@ class UserForumPostJsonController extends Controller
      */
     public function getPostLikes(Request $request, $postId)
     {
-        $postLikes = $this->postLikeRepository->getPostLikes($postId, $request->get('limit', 10),
-            $request->get('page', 1));
+        $postLikes = $this->postLikeRepository->getPostLikes(
+            $postId,
+            $request->get('limit', 10),
+            $request->get('page', 1)
+        );
 
-        $likerIds = $postLikes->pluck('liker_id')->toArray();
+        $likerIds =
+            $postLikes->pluck('liker_id')
+                ->toArray();
 
         $likers = $this->userProvider->getUsersByIds($likerIds);
 
@@ -363,8 +352,7 @@ class UserForumPostJsonController extends Controller
                 'user_id' => $liker->getId(),
                 'authorId' => $liker->getId(),
                 'display_name' => $liker->getDisplayName(),
-                'avatar_url' =>
-                    $liker->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url')
+                'avatar_url' => $liker->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url'),
             ];
 
         }
