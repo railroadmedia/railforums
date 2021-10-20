@@ -110,13 +110,22 @@ class UserForumPostController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
-        $postLike = $this->postLikeRepository->read($id);
+        $postLikes =
+            $this->postLikeRepository->query()
+                ->where([
+                    'post_id' => $id,
+                    'liker_id' => auth()->id(),
+                ])
+                ->get();
 
-        if (!$postLike) {
+
+        if (empty($postLikes)) {
             throw new NotFoundHttpException();
         }
 
-        $this->postLikeRepository->destroy($postLike->id);
+        foreach ($postLikes as $postLike) {
+            $this->postLikeRepository->destroy($postLike->id);
+        }
 
         $message = ['success' => true];
 

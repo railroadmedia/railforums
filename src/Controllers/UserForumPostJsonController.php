@@ -146,18 +146,24 @@ class UserForumPostJsonController extends Controller
     {
         $this->permissionService->canOrThrow(auth()->id(), 'like-posts');
 
-        $postLike =
+        $postLikes =
             $this->postLikeRepository->query()
-                ->where('post_id', $id)
-                ->first();
+                ->where([
+                    'post_id' => $id,
+                    'liker_id' => auth()->id(),
+                ])
+                ->get();
 
-        if (!$postLike) {
+
+        if (empty($postLikes)) {
             throw new NotFoundHttpException();
         }
 
-        $deleted = $this->postLikeRepository->destroy($postLike->id);
+        foreach ($postLikes as $postLike) {
+            $this->postLikeRepository->destroy($postLike->id);
+        }
 
-        return response()->json(['success' => $deleted]);
+        return response()->json(['success' => true]);
     }
 
     /**
