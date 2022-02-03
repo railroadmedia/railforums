@@ -120,7 +120,7 @@ class PostUserDecorator implements DecoratorInterface
                 $posts[$postIndex]['author']['created_at'] =
                     $user->getCreatedAt()
                         ->toDateTimeString();
-                $posts[$postIndex]['author']['level_rank'] = $usersXp[$post['author_id']]['level_rank'] ?? '1.0';
+                $posts[$postIndex]['author']['level_rank'] = $usersXp[$post['author_id']]['level_rank'] ?? '1.1';
             }
         }
 
