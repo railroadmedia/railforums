@@ -121,6 +121,7 @@ class PostUserDecorator implements DecoratorInterface
                     $user->getCreatedAt()
                         ->toDateTimeString();
                 $posts[$postIndex]['author']['level_rank'] = $usersXp[$post['author_id']]['level_rank'] ?? '1.1';
+                $posts[$postIndex]['author']['associated_coach'] =  $this->userProvider->getAssociatedCoach($post['author_id']);
             }
         }
 

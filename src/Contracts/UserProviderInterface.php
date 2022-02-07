@@ -34,4 +34,9 @@ interface UserProviderInterface
      */
     public function getUsersXPAndRank(array $userIds):array;
 
+    /**
+     * @param $userId
+     * @return mixed
+     */
+    public function getAssociatedCoach($userId);
 }
