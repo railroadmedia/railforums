@@ -41,6 +41,10 @@ class PostUserDecorator implements DecoratorInterface
      */
     public function decorate($posts)
     {
+        if($posts->isEmpty()){
+            return $posts;
+        }
+
         $userIds =
             $posts->pluck('author_id')
                 ->toArray();
@@ -89,6 +93,8 @@ class PostUserDecorator implements DecoratorInterface
 
         $currentUser = $this->userProvider->getUser(auth()->id());
 
+        $associatedCoaches = $this->userProvider->getAssociatedCoaches($userIds);
+
         foreach ($posts as $postIndex => $post) {
             $posts[$postIndex]['published_on_formatted'] =
                 Carbon::parse($post['published_on'])
@@ -121,7 +127,7 @@ class PostUserDecorator implements DecoratorInterface
                     $user->getCreatedAt()
                         ->toDateTimeString();
                 $posts[$postIndex]['author']['level_rank'] = $usersXp[$post['author_id']]['level_rank'] ?? '1.1';
-                $posts[$postIndex]['author']['associated_coach'] =  $this->userProvider->getAssociatedCoach($post['author_id']);
+                $posts[$postIndex]['author']['associated_coach'] =  $associatedCoaches[$post['author_id']]??null;
             }
         }
 
