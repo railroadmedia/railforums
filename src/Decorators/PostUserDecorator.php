@@ -41,7 +41,7 @@ class PostUserDecorator implements DecoratorInterface
      */
     public function decorate($posts)
     {
-        if($posts->isEmpty()){
+        if ($posts->isEmpty()) {
             return $posts;
         }
 
@@ -127,7 +127,9 @@ class PostUserDecorator implements DecoratorInterface
                     $user->getCreatedAt()
                         ->toDateTimeString();
                 $posts[$postIndex]['author']['level_rank'] = $usersXp[$post['author_id']]['level_rank'] ?? '1.1';
-                $posts[$postIndex]['author']['associated_coach'] =  $associatedCoaches[$post['author_id']]??null;
+                $posts[$postIndex]['author']['associated_coach'] =
+                    array_key_exists($post['author_id'], $associatedCoaches) ? $associatedCoaches[$post['author_id']] :
+                        null;
             }
         }
 
