@@ -252,7 +252,7 @@ SQL;
                 ->toDateTimeString();
 
         $query->chunkById(
-            250,
+            500,
             function (Collection $postsData) use (&$count, $now, &$command) {
                 $searchIndexes = [];
                 $userIds = $postsData->pluck('author_id')
@@ -282,7 +282,7 @@ SQL;
                     ['thread_id', 'post_id']
                 );
 
-                usleep(500000);
+                usleep(3500000);
             },
             ConfigService::$tablePosts.'.id',
             'id'
@@ -295,7 +295,7 @@ SQL;
             ->orderBy(ConfigService::$tableThreads.'.id');
 
         $threadsQuery->chunkById(
-            250,
+            500,
             function (Collection $threadsData) use (
                 $now
             ) {
@@ -322,7 +322,7 @@ SQL;
                     ['thread_id', 'post_id']
                 );
 
-                usleep(500000);
+                usleep(3500000);
             },
             ConfigService::$tableThreads.'.id',
             'id'
