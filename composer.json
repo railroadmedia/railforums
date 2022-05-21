@@ -11,16 +11,15 @@
     }
   ],
   "require": {
-    "php": "~7.1",
-    "laravel/framework": "5.6.*",
-    "guzzlehttp/guzzle": "~6.0",
-    "doctrine/dbal": "^2.5",
+    "php": "^8.1",
+    "laravel/framework": "^9.0",
+    "guzzlehttp/guzzle": "^7.2",
+    "doctrine/dbal": "^3.3",
     "ezyang/htmlpurifier": "^4.10",
     "railroad/railnotifications": "2.0.*",
-    "railroad/railsettings": "dev-master",
-    "railroad/resora": "^1.0",
-    "railroad/permissions": "^1.0",
-    "symfony/dom-crawler": "^5.1",
+    "railroad/resora": "^2.0",
+    "railroad/permissions": "^2.0",
+    "symfony/dom-crawler": "^6.0",
     "staudenmeir/laravel-upsert": "^1.0"
   },
   "require-dev": {
@@ -36,6 +35,11 @@
   "autoload-dev": {
     "psr-4": {
       "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "kylekatarnls/update-helper": true
     }
   }
 }
