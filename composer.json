@@ -19,8 +19,7 @@
     "railroad/railnotifications": "3.0.*",
     "railroad/resora": "^2.0",
     "railroad/permissions": "^2.0",
-    "symfony/dom-crawler": "^6.0",
-    "staudenmeir/laravel-upsert": "^1.0"
+    "symfony/dom-crawler": "^6.0"Up
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5.10",
