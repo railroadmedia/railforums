@@ -2,6 +2,7 @@
 
 namespace Railroad\Railforums\Controllers;
 
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Routing\Controller;
 use Railroad\Permissions\Exceptions\NotAllowedException;
