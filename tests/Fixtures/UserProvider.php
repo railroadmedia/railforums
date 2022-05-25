@@ -88,4 +88,9 @@ class UserProvider implements UserProviderInterface
 
         return $results;
     }
+
+    public function getAssociatedCoaches(array $userIds): array
+    {
+        return [];
+    }
 }

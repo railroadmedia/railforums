@@ -6,7 +6,7 @@ class UserForumSearchJsonControllerTest extends TestCase
 {
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('mysql');
 
@@ -79,7 +79,7 @@ class UserForumSearchJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $decodedResponse = $response->decodeResponseJson();
+        $decodedResponse = $response->json();
 
         // assert results count
         $this->assertLessThanOrEqual($limit, count($decodedResponse['results']));

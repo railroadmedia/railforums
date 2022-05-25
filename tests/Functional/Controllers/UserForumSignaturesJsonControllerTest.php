@@ -9,7 +9,7 @@ class UserForumSignaturesJsonControllerTest extends TestCase
 {
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('testbench');
 
@@ -98,7 +98,7 @@ class UserForumSignaturesJsonControllerTest extends TestCase
                     "detail" => "The signature field is required.",
                 ],
             ],
-            $response->decodeResponseJson()['errors']
+            $response->json()['errors']
         );
     }
 
@@ -130,8 +130,8 @@ class UserForumSignaturesJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertEquals($newSignature, $response->decodeResponseJson('signature'));
-        $this->assertEquals($signature['id'], $response->decodeResponseJson('id'));
+        $this->assertEquals($newSignature, $response->json('signature'));
+        $this->assertEquals($signature['id'], $response->json('id'));
     }
 
     public function test_signature_update_without_permission()
@@ -203,8 +203,8 @@ class UserForumSignaturesJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertEquals($newSignature, $response->decodeResponseJson('signature'));
-        $this->assertEquals($signature['id'], $response->decodeResponseJson('id'));
+        $this->assertEquals($newSignature, $response->json('signature'));
+        $this->assertEquals($signature['id'], $response->json('id'));
     }
 
     public function test_signature_delete()

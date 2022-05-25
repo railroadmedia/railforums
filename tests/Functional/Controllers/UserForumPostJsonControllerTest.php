@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Carbon\Carbon;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\Notifications\PostReport;
 use Illuminate\Support\Facades\Notification;
@@ -11,9 +12,11 @@ use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumPostJsonControllerTest extends TestCase
 {
+    use ArraySubsetAsserts;
+
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         // $this->setDefaultConnection('mysql');
 
@@ -156,7 +159,7 @@ class UserForumPostJsonControllerTest extends TestCase
                 'liker_id' => $user['id'],
                 'post_id' => $post['id'],
             ],
-            $response->decodeResponseJson()
+            $response->json()
         );
 
         // assert the post like data was saved in the db
@@ -272,7 +275,7 @@ class UserForumPostJsonControllerTest extends TestCase
                 );
 
         // assert response status code
-        $this->assertEquals(204, $response->getStatusCode());
+        $this->assertEquals(200, $response->getStatusCode());
 
         // assert the data was removed from the db
         $this->assertDatabaseMissing(ConfigService::$tablePostLikes, [
@@ -402,7 +405,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert reponse posts count is the requested amount
         $this->assertEquals(count($results['posts']), $payload['amount']);
@@ -445,7 +448,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response data
         $this->assertArraySubset(
             ['content' => $post['content']],
-            $response->decodeResponseJson()
+            $response->json()
         );
     }
 
@@ -555,7 +558,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         /*
         // response post format:
@@ -710,7 +713,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $postResponse = $response->decodeResponseJson();
+        $postResponse = $response->json();
 
         // assert reponse like count
         $this->assertEquals($postResponse['like_count'], 5);
@@ -768,7 +771,7 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->assertArraySubset([
             'content' => $postData['content'],
             'thread_id' => $postData['thread_id'],
-        ], $response->decodeResponseJson());
+        ], $response->json());
     }
 
     public function test_post_store_without_permission()
@@ -862,9 +865,9 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->assertArraySubset([
             'content' => $postData['content'],
             'thread_id' => $postData['thread_id'],
-        ], $response->decodeResponseJson());
+        ], $response->json());
 
-        $postResponse = $response->decodeResponseJson();
+        $postResponse = $response->json();
 
         // assert postOne is marked as parent in db
         $this->assertDatabaseHas('forum_post_replies', [
@@ -902,7 +905,7 @@ class UserForumPostJsonControllerTest extends TestCase
                 "source" => "thread_id",
                 "detail" => "The thread id field is required.",
             ],
-        ], $response->decodeResponseJson()['errors']);
+        ], $response->json()['errors']);
     }
 
     public function test_post_update_with_permission()
@@ -942,7 +945,7 @@ class UserForumPostJsonControllerTest extends TestCase
         $this->assertArraySubset([
             'content' => $newContent,
             'id' => $post['id'],
-        ], $response->decodeResponseJson());
+        ], $response->json());
     }
 
     public function test_post_update_validation_fail()
@@ -969,7 +972,7 @@ class UserForumPostJsonControllerTest extends TestCase
                 "source" => "content",
                 "detail" => "The content field is required.",
             ],
-        ], $response->decodeResponseJson()['errors']);
+        ], $response->json()['errors']);
     }
 
     public function test_post_update_without_permission()
@@ -1159,7 +1162,7 @@ class UserForumPostJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert reponse posts count is the requested amount
         $this->assertEquals(count($results['posts']), $payload['amount']);

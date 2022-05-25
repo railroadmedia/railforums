@@ -3,14 +3,17 @@
 namespace Tests;
 
 use Carbon\Carbon;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Railroad\Permissions\Exceptions\NotAllowedException;
 use Railroad\Railforums\Services\ConfigService;
 
 class UserForumThreadJsonControllerTest extends TestCase
 {
+    use ArraySubsetAsserts;
+
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('testbench');
 
@@ -43,8 +46,8 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertEquals($user['id'], $response->decodeResponseJson('reader_id'));
-        $this->assertEquals($thread['id'], $response->decodeResponseJson('thread_id'));
+        $this->assertEquals($user['id'], $response->json('reader_id'));
+        $this->assertEquals($thread['id'], $response->json('thread_id'));
 
         // assert the thread data was saved in the db
         $this->assertDatabaseHas(
@@ -151,7 +154,7 @@ class UserForumThreadJsonControllerTest extends TestCase
                 'thread_id' => $thread['id'],
                 'follower_id' => $user['id'],
             ],
-            $response->decodeResponseJson()
+            $response->json()
         );
 
         // assert the thread data was saved in the db
@@ -387,7 +390,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert reponse entities count is the requested amount
         $this->assertEquals(count($results['results']), $payload['amount']);
@@ -461,7 +464,7 @@ class UserForumThreadJsonControllerTest extends TestCase
                 'category_id' => (int)$category['id'],
                 'author_id' => $user['id'],
             ],
-            $response->decodeResponseJson()
+            $response->json()
         );
     }
 
@@ -530,7 +533,7 @@ class UserForumThreadJsonControllerTest extends TestCase
                 'is_read' => 1,
                 'is_followed' => 1,
             ],
-            $response->decodeResponseJson()
+            $response->json()
         );
     }
 
@@ -576,9 +579,9 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertEquals($threadData['title'], $response->decodeResponseJson('title'));
-        $this->assertEquals($category['id'], $response->decodeResponseJson('category_id'));
-        $this->assertEquals($user['id'], $response->decodeResponseJson('author_id'));
+        $this->assertEquals($threadData['title'], $response->json('title'));
+        $this->assertEquals($category['id'], $response->json('category_id'));
+        $this->assertEquals($user['id'], $response->json('author_id'));
 
         // assert the thread data was saved in the db
         $this->assertDatabaseHas(
@@ -674,7 +677,7 @@ class UserForumThreadJsonControllerTest extends TestCase
                     "detail" => "The category id field is required.",
                 ],
             ],
-            $response->decodeResponseJson()['errors']
+            $response->json()['errors']
         );
     }
 
@@ -714,9 +717,9 @@ class UserForumThreadJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertEquals($newTitle, $response->decodeResponseJson('title'));
-        $this->assertEquals($category['id'], $response->decodeResponseJson('category_id'));
-        $this->assertEquals($user['id'], $response->decodeResponseJson('author_id'));
+        $this->assertEquals($newTitle, $response->json('title'));
+        $this->assertEquals($category['id'], $response->json('category_id'));
+        $this->assertEquals($user['id'], $response->json('author_id'));
     }
 
     public function test_thread_update_without_permission()
@@ -782,7 +785,7 @@ class UserForumThreadJsonControllerTest extends TestCase
                     "detail" => "The title must be at least 1 characters.",
                 ],
             ],
-            $response->decodeResponseJson()['errors']
+            $response->json()['errors']
         );
     }
 
@@ -920,7 +923,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert reponse entities count is the requested amount
         $this->assertEquals(count($results['results']), $payload['amount']);
@@ -983,7 +986,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert reponse entities count is the requested amount
         $this->assertEquals(count($results['results']), $payload['amount']);
@@ -1034,7 +1037,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert reponse entities count is the requested amount
         $this->assertEquals(count($results['results']), $payload['amount']);
@@ -1077,7 +1080,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert response data
         foreach ($results['posts'] as $index=>$post) {
@@ -1119,7 +1122,7 @@ class UserForumThreadJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         // assert response entities are my threads
         foreach ($results['posts'] as $index=>$post) {

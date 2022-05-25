@@ -8,11 +8,10 @@ use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumDiscussionControllerTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
     }
-
 
     public function test_discussion_store_with_permission()
     {

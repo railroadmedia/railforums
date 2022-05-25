@@ -20,7 +20,6 @@ class AddUniqueKeyToSearchIndexTable extends Migration
                     $table->unique(['thread_id', 'post_id'], 'search_index_unique_id');
                 });
         }
-
     }
 
     /**

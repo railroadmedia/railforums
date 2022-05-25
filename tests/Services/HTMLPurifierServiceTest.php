@@ -11,7 +11,7 @@ class HTMLPurifierServiceTest extends TestCase
      */
     private $classBeingTested;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

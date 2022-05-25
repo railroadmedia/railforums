@@ -45,7 +45,7 @@ abstract class EventDispatchingRepository extends RepositoryBase
         $event = $this->getCreateEvent($entity);
 
         if ($event) {
-            $this->getDispatcher()->fire($event);
+            $this->getDispatcher()->dispatch($event);
         }
 
         $this->dispatching = false;
@@ -68,7 +68,7 @@ abstract class EventDispatchingRepository extends RepositoryBase
         $event = $this->getReadEvent($entity);
 
         if ($event) {
-            $this->getDispatcher()->fire($event);
+            $this->getDispatcher()->dispatch($event);
         }
 
         $this->dispatching = false;
@@ -92,7 +92,7 @@ abstract class EventDispatchingRepository extends RepositoryBase
         $event = $this->getUpdateEvent($entity);
 
         if ($event) {
-            $this->getDispatcher()->fire($event);
+            $this->getDispatcher()->dispatch($event);
         }
 
         $this->dispatching = false;
@@ -115,7 +115,7 @@ abstract class EventDispatchingRepository extends RepositoryBase
         $event = $this->getDestroyEvent($entity);
 
         if ($event) {
-            $this->getDispatcher()->fire($event);
+            $this->getDispatcher()->dispatch($event);
         }
 
         $this->dispatching = false;
@@ -138,7 +138,7 @@ abstract class EventDispatchingRepository extends RepositoryBase
         $event = $this->getDeleteEvent($id);
 
         if ($event) {
-            $this->getDispatcher()->fire($event);
+            $this->getDispatcher()->dispatch($event);
         }
 
         $this->dispatching = false;

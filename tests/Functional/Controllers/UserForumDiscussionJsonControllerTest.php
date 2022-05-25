@@ -3,14 +3,17 @@
 namespace Tests;
 
 use Carbon\Carbon;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Railroad\Permissions\Exceptions\NotAllowedException;
 use Railroad\Railforums\Services\ConfigService;
 
 class UserForumDiscussionJsonControllerTest extends TestCase
 {
+    use ArraySubsetAsserts;
+
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('testbench');
 
@@ -77,7 +80,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         $this->assertEquals(count($results['results']), $payload['amount']);
 
@@ -144,7 +147,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         // assert response status code
         $this->assertEquals(200, $response->getStatusCode());
 
-        $results = $response->decodeResponseJson();
+        $results = $response->json();
 
         $this->assertEquals(count($results['results']), count($discussions));
 
@@ -204,7 +207,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
                 'title' => $category['title'],
                 'description' => $category['description']
             ],
-            $response->decodeResponseJson()
+            $response->json()
         );
     }
 
@@ -389,7 +392,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
                 "source" => "title",
                 "detail" => "The title field is required.",
             ]
-        ], $response->decodeResponseJson()['errors']);
+        ], $response->json()['errors']);
     }
 
     public function test_discussion_update_with_permission()
@@ -426,8 +429,8 @@ class UserForumDiscussionJsonControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         // assert response data
-        $this->assertEquals($newTitle, $response->decodeResponseJson('title'));
-        $this->assertEquals($category['id'], $response->decodeResponseJson('id'));
+        $this->assertEquals($newTitle, $response->json('title'));
+        $this->assertEquals($category['id'], $response->json('id'));
     }
 
     public function test_discussion_update_without_permission()
@@ -489,7 +492,7 @@ class UserForumDiscussionJsonControllerTest extends TestCase
                     "detail" => "The title must be at least 1 characters.",
                 ],
             ],
-            $response->decodeResponseJson()['errors']
+            $response->json()['errors']
         );
     }
 
