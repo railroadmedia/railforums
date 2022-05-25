@@ -8,7 +8,7 @@ use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumPostControllerTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
     }

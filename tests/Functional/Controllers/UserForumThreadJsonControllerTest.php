@@ -10,7 +10,7 @@ class UserForumThreadJsonControllerTest extends TestCase
 {
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('testbench');
 

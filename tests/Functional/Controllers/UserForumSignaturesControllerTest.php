@@ -7,7 +7,7 @@ use Railroad\Railforums\Services\ConfigService;
 
 class UserForumSignaturesControllerTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('testbench');
 

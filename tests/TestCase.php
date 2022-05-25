@@ -51,13 +51,14 @@ class TestCase extends BaseTestCase
 
     protected $enablePermissionServiceMocking = true;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         if (!$this->getDefaultConnection()) {
             $this->setDefaultConnection('testbench');
         }
 
         parent::setUp();
+
         $this->faker = $this->app->make(Generator::class);
         $this->databaseManager = $this->app->make(DatabaseManager::class);
 

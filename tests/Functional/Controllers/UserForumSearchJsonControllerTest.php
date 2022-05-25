@@ -6,7 +6,7 @@ class UserForumSearchJsonControllerTest extends TestCase
 {
     const API_PREFIX = '/forums';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('mysql');
 

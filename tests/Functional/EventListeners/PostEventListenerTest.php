@@ -8,7 +8,7 @@ use Railroad\Railforums\Services\ConfigService;
 
 class PostEventListenerTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->setDefaultConnection('mysql');
 

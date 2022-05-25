@@ -8,7 +8,7 @@ use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumThreadControllerTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
        // $this->setDefaultConnection('mysql');
 
