@@ -72,10 +72,10 @@ class ThreadUserDecorator implements DecoratorInterface
                 (isset($users[$thread['author_id']])) ? $users[$thread['author_id']]->getDisplayName() : '';
 
             $threads[$threadIndex]['author_avatar_url'] =
-                $users[$thread['author_id']]->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
+                (isset($users[$thread['author_id']]))?$users[$thread['author_id']]->getProfilePictureUrl() : config('railforums.author_default_avatar_url');
 
             $threads[$threadIndex]['author_access_level'] =
-                $this->userProvider->getUserAccessLevel($thread['author_id']);
+                (isset($users[$thread['author_id']]))?$this->userProvider->getUserAccessLevel($thread['author_id']):'pack';
             $threads[$threadIndex]['published_on_formatted'] =
                 Carbon::parse($thread['published_on'])
                     ->format('M d, Y');
@@ -90,8 +90,8 @@ class ThreadUserDecorator implements DecoratorInterface
                             ->diffForHumans(null, null, true));
 
                     $threads[$threadIndex]['latest_post']['author_id'] = $lastPost['author_id'];
-                    $threads[$threadIndex]['latest_post']['author_display_name'] = $lastPost['author']['display_name'];
-                    $threads[$threadIndex]['latest_post']['author_avatar_url'] = $lastPost['author']['avatar_url'];
+                    $threads[$threadIndex]['latest_post']['author_display_name'] = $lastPost['author']['display_name'] ?? '';
+                    $threads[$threadIndex]['latest_post']['author_avatar_url'] = $lastPost['author']['avatar_url'] ?? config('railforums.author_default_avatar_url');
 
                     if (Carbon::parse($lastPost['published_on'])->greaterThanOrEqualTo(Carbon::now()->subDays(3))) {
                         $threads[$threadIndex]['is_read'] = isset($thread['is_read']) && $thread['is_read'] == 1;

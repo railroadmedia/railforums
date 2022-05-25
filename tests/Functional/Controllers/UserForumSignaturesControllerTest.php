@@ -119,8 +119,9 @@ class UserForumSignaturesControllerTest extends TestCase
     public function test_signature_update_without_permission()
     {
         $user = $this->fakeUser();
+        $otherUser = $this->fakeUser();
 
-        $signature = $this->fakeSignature();
+        $signature = $this->fakeSignature($otherUser['id']);
 
         $newSignature = $this->faker->sentence();
 
@@ -179,23 +180,6 @@ class UserForumSignaturesControllerTest extends TestCase
                 'signature' => $newSignature,
             ]
         );
-    }
-
-    public function test_signature_update_not_found()
-    {
-        $newSignature = $this->faker->sentence();
-
-        $this->permissionServiceMock->method('canOrThrow')
-            ->willReturn(true);
-
-        $response = $this->call(
-            'PATCH',
-            '/signature/update/' . rand(0, 32767),
-            ['signature' => $newSignature]
-        );
-
-        // assert response status code
-        $this->assertEquals(404, $response->getStatusCode());
     }
 
     public function test_signature_delete()
