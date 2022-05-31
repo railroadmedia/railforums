@@ -332,6 +332,7 @@ class ThreadRepository extends EventDispatchingRepository
                 },
                 'is_followed'
             )
+            ->havingNotNull(['last_post_id'])
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
     }
