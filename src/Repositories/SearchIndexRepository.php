@@ -59,10 +59,10 @@ class SearchIndexRepository extends RepositoryBase
     /**
      * Returns a page of matching results
      *
-     * @param  string  $term
-     * @param  int  $page
-     * @param  int  $limit
-     * @param  string  $sort
+     * @param string $term
+     * @param int $page
+     * @param int $limit
+     * @param string $sort
      *
      * @return array
      */
@@ -86,11 +86,11 @@ SQL;
             ->getSearchQuery($term)
             ->addSelect(
                 [
-                    $table.'.id',
-                    $table.'.high_value',
-                    $table.'.medium_value',
-                    $table.'.low_value',
-                    $table.'.published_on as published_on',
+                    $table . '.id',
+                    $table . '.high_value',
+                    $table . '.medium_value',
+                    $table . '.low_value',
+                    $table . '.published_on as published_on',
                     DB::raw($scoreSql),
                     DB::raw(
                         "MATCH (high_value) AGAINST ('$termsWithPrefix' IN BOOLEAN MODE) * $highMultiplier  *  (UNIX_TIMESTAMP(published_on) / 1000000000) AS high_score"
@@ -101,8 +101,8 @@ SQL;
                     DB::raw(
                         "MATCH (low_value) AGAINST ('$term' IN BOOLEAN MODE) * $lowMultiplier  *  (UNIX_TIMESTAMP(published_on) / 1000000000)  AS low_score"
                     ),
-                    $table.'.post_id',
-                    $table.'.thread_id',
+                    $table . '.post_id',
+                    $table . '.thread_id',
                 ]
             )
             ->limit($limit)
@@ -117,7 +117,7 @@ SQL;
      * Assembles the search results array of posts and/or threads
      * using the search indexes results collection
      *
-     * @param  Collection  $searchResults
+     * @param Collection $searchResults
      *
      * @return array
      */
@@ -160,7 +160,7 @@ SQL;
     /**
      * Returns the number of search index records that match term
      *
-     * @param  string  $term
+     * @param string $term
      *
      * @return int
      */
@@ -172,7 +172,7 @@ SQL;
     /**
      * Returns newQuery decorated with term filter
      *
-     * @param  string  $term
+     * @param string $term
      *
      * @return Builder
      */
@@ -201,13 +201,13 @@ SQL;
     /**
      * Returns a string containing all words from $term prefixed with '+'
      *
-     * @param  string  $term
+     * @param string $term
      *
      * @return string
      */
     protected function getPrefixedTerms($term)
     {
-        return $term ? '+'.implode(' +', explode(' ', $term)) : $term;
+        return $term ? '+' . implode(' +', explode(' ', $term)) : $term;
     }
 
     /**
@@ -217,34 +217,34 @@ SQL;
      *
      * @return void
      */
-    public function createSearchIndexes()
+    public function createSearchIndexes($brand)
     {
         DB::disableQueryLog();
 
 //        $this->deleteOldIndexes();
 
-        $query = $this->postRepository->query()
+        $query = $this->postRepository->newQuery()
             ->from(ConfigService::$tablePosts)
             ->join(
                 ConfigService::$tableThreads,
-                ConfigService::$tablePosts.'.thread_id',
+                ConfigService::$tablePosts . '.thread_id',
                 '=',
-                ConfigService::$tableThreads.'.id'
+                ConfigService::$tableThreads . '.id'
             )
             ->select(
-                ConfigService::$tablePosts.'.content',
-                ConfigService::$tablePosts.'.thread_id',
-                ConfigService::$tablePosts.'.author_id',
-                ConfigService::$tablePosts.'.id',
-                ConfigService::$tablePosts.'.published_on'
+                ConfigService::$tablePosts . '.content',
+                ConfigService::$tablePosts . '.thread_id',
+                ConfigService::$tablePosts . '.author_id',
+                ConfigService::$tablePosts . '.id',
+                ConfigService::$tablePosts . '.published_on'
             )
-            ->whereNull(ConfigService::$tablePosts.'.deleted_at')
-            ->whereNull(ConfigService::$tableThreads.'.deleted_at')
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereIn(
-                ConfigService::$tablePosts.'.state',
+                ConfigService::$tablePosts . '.state',
                 ['published']
             )
-            ->orderBy(ConfigService::$tablePosts.'.id');
+            ->orderBy(ConfigService::$tablePosts . '.id');
 
 
         $now =
@@ -277,28 +277,27 @@ SQL;
                     ];
                 }
 
-                DB::table(ConfigService::$tableSearchIndexes)->upsert(
-                    $searchIndexes,
-                    ['thread_id', 'post_id']
-                );
-
-                usleep(3500000);
+                DB::connection(ConfigService::$databaseConnectionName)
+                    ->table(ConfigService::$tableSearchIndexes)
+                    ->upsert(
+                        $searchIndexes,
+                        ['thread_id', 'post_id']
+                    );
+//                usleep(3500000);
             },
-            ConfigService::$tablePosts.'.id',
+            ConfigService::$tablePosts . '.id',
             'id'
         );
 
-        $threadsQuery = $this->threadRepository->query()
+        $threadsQuery = $this->threadRepository->newQuery()
             ->from(ConfigService::$tableThreads)
-            ->select(ConfigService::$tableThreads.'.*')
-            ->whereNull(ConfigService::$tableThreads.'.deleted_at')
-            ->orderBy(ConfigService::$tableThreads.'.id');
+            ->select(ConfigService::$tableThreads . '.*')
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->orderBy(ConfigService::$tableThreads . '.id');
 
         $threadsQuery->chunkById(
             500,
-            function (Collection $threadsData) use (
-                $now
-            ) {
+            function (Collection $threadsData) use ($now) {
                 $searchIndexes = [];
                 $userIds = $threadsData->pluck('author_id')
                     ->toArray();
@@ -317,14 +316,15 @@ SQL;
                     ];
                 }
 
-                DB::table(ConfigService::$tableSearchIndexes)->upsert(
-                    $searchIndexes,
-                    ['thread_id', 'post_id']
-                );
-
-                usleep(3500000);
+                DB::connection(ConfigService::$databaseConnectionName)
+                    ->table(ConfigService::$tableSearchIndexes)
+                    ->upsert(
+                        $searchIndexes,
+                        ['thread_id', 'post_id']
+                    );
+//                usleep(3500000);
             },
-            ConfigService::$tableThreads.'.id',
+            ConfigService::$tableThreads . '.id',
             'id'
         );
 

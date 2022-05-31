@@ -70,7 +70,7 @@ class UserForumDiscussionController extends Controller
         $message = ['success' => true];
 
         return redirect()
-            ->to('/members/forums')
+            ->to(config('railforums.forums_index_page_url'))
             ->with($message);
     }
 
@@ -101,7 +101,7 @@ class UserForumDiscussionController extends Controller
         $message = ['success' => true];
 
         return redirect()
-            ->to('/members/forums')
+            ->to(config('railforums.forums_index_page_url'))
             ->with($message);
     }
 
@@ -124,12 +124,8 @@ class UserForumDiscussionController extends Controller
 
         $message = ['success' => true];
 
-        return $request->has('redirect') ?
-            redirect()
-                ->away($request->get('redirect'))
-                ->with($message) :
-            redirect()
-                ->back()
-                ->with($message);
+        return redirect()
+            ->to(config('railforums.forums_index_page_url'))
+            ->with($message);
     }
 }

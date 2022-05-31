@@ -13,9 +13,19 @@ return [
     'database_connection_name' => 'mysql',
     'connection_mask_prefix' => 'railforums_',
 
+    // brand database connection names (each brand is on its own database for now)
+    // NOTE: all migrations will be run on each database if data mode is host
+    'brand_database_connection_names' => [
+        'drumeo' => 'drumeo_laravel_mysql_writer_only',
+        'pianote' => 'pianote_laravel_mysql_writer_only',
+        'guitareo' => 'guitareo_laravel_mysql_writer_only',
+        'singeo' => 'singeo_laravel_mysql_writer_only',
+    ],
+
     // url
     'jump_to_post_url_prefix' => '/members/forums/jump-to-post/',
     'jump_to_thread_url_prefix' => '/members/forums/jump-to-thread/',
+    'forums_index_page_url' => '/members/forums',
 
     // tables
     'table_prefix' => 'forum_',
