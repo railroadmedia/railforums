@@ -186,9 +186,7 @@ class UserForumPostController extends Controller
             $this->postReplyRepository->insert($replies);
         }
 
-        $message = ['success' => true];
-
-        return redirect()->to('/members/forums/jump-to-post/' . $post->id);
+        return redirect()->to(config('railforums.jump_to_post_url_prefix') . $post->id);
     }
 
     /**
@@ -225,16 +223,6 @@ class UserForumPostController extends Controller
             )
         );
 
-        $message = ['success' => true];
-
-        return redirect()->to('/members/forums/jump-to-post/' . $post->id);
-
-        return $request->has('redirect') ?
-            redirect()
-                ->away($request->get('redirect'))
-                ->with($message) :
-            redirect()
-                ->back()
-                ->with($message);
+        return redirect()->to(config('railforums.jump_to_post_url_prefix') . $post->id);
     }
 }

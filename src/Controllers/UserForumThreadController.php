@@ -226,7 +226,7 @@ class UserForumThreadController extends Controller
             ]
         );
 
-        return redirect()->to('/members/forums/jump-to-thread/' . $thread->id);
+        return redirect()->to(config('railforums.jump_to_thread_url_prefix') . $thread->id);
     }
 
     /**
@@ -263,7 +263,7 @@ class UserForumThreadController extends Controller
             )
         );
 
-        return redirect()->to('/members/forums/jump-to-thread/' . $thread->id);
+        return redirect()->to(config('railforums.jump_to_thread_url_prefix') . $thread->id);
     }
 
     /**

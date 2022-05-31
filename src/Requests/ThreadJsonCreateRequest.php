@@ -26,7 +26,9 @@ class ThreadJsonCreateRequest extends FormRequest
         return [
             'title' =>'required|string|max:255',
             'first_post_content' => 'required|string',
-            'category_id' => 'required|numeric|exists:'.ConfigService::$tableCategories.',id'
+            'category_id' => 'required|numeric|exists:' .
+                config('railforums.database_connection_name') .
+                '.'.ConfigService::$tableCategories.',id'
         ];
     }
 }

@@ -24,7 +24,9 @@ class PostJsonIndexRequest extends FormRequest
         return [
             'amount' =>'nullable|numeric',
             'page' => 'nullable|numeric|min:1',
-            'thread_id' => 'required|numeric|exists:forum_threads,id'
+            'thread_id' => 'required|numeric|exists:' .
+                config('railforums.database_connection_name') .
+                '.forum_threads,id'
         ];
     }
 }

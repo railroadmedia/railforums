@@ -13,6 +13,10 @@ return [
     'database_connection_name' => 'mysql',
     'connection_mask_prefix' => 'railforums_',
 
+    // url
+    'jump_to_post_url_prefix' => '/members/forums/jump-to-post/',
+    'jump_to_thread_url_prefix' => '/members/forums/jump-to-thread/',
+
     // tables
     'table_prefix' => 'forum_',
     'tables' => [

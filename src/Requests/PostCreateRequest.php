@@ -25,7 +25,9 @@ class PostCreateRequest extends FormRequest
     {
         return [
             'content' => 'required|string',
-            'prompting_post_id' => 'nullable|numeric|exists:forum_posts,id',
+            'prompting_post_id' => 'nullable|numeric|exists:' .
+                config('railforums.database_connection_name') .
+                '.forum_posts,id',
             'thread_id' => 'required|numeric|exists:' .
                 config('railforums.database_connection_name') .
                 '.forum_threads,id',
