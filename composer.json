@@ -39,7 +39,8 @@
   },
   "config": {
     "allow-plugins": {
-      "kylekatarnls/update-helper": true
+      "kylekatarnls/update-helper": true,
+      "composer/package-versions-deprecated": true
     }
   }
 }

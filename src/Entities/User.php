@@ -2,8 +2,7 @@
 
 namespace Railroad\Railforums\Entities;
 
-use Railroad\Doctrine\Contracts\UserEntityInterface;
-use Doctrine\ORM\Mapping as ORM;
+use Carbon\Carbon;
 
 /**
  * @ORM\Entity()
@@ -16,36 +15,25 @@ class User
      * @ORM\Id @ORM\GeneratedValue @ORM\Column(type="integer")
      * @var int
      */
-    private $id;
-
-    /**
-     * @var string
-     */
-    private $displayName;
-
-    /**
-     * @var string
-     */
-    private $profilePictureUrl;
-
-
-    private $createdAt;
-
-    private $timezone;
+    private int $id;
+    private string $displayName = '';
+    private string $profilePictureUrl = '';
+    private Carbon $createdAt;
+    private string $timezone = '';
 
     /**
      * @param int $id
-     * @param $displayName
-     * @param $profilePictureUrl
-     * @param $createdAt
+     * @param string $displayName
+     * @param string $profilePictureUrl
+     * @param Carbon $createdAt
      * @param string $timezone
      */
     public function __construct(
         int $id,
-        $displayName,
-        $profilePictureUrl,
-        $createdAt,
-        $timezone = 'Europe/Bucharest'
+        string $displayName,
+        string $profilePictureUrl,
+        Carbon $createdAt,
+        string $timezone = 'Europe/Bucharest'
     ) {
         $this->id = $id;
         $this->displayName = $displayName;
@@ -57,8 +45,7 @@ class User
     /**
      * @return int
      */
-    public function getId()
-    : int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -66,16 +53,15 @@ class User
     /**
      * @param mixed $id
      */
-    public function setId($id)
-    : void {
+    public function setId($id): void
+    {
         $this->id = $id;
     }
 
     /**
      * @return string
      */
-    public function getDisplayName()
-    : string
+    public function getDisplayName(): string
     {
         return $this->displayName;
     }
@@ -83,15 +69,15 @@ class User
     /**
      * @param $displayName
      */
-    public function setDisplayName($displayName)
-    : void {
+    public function setDisplayName($displayName): void
+    {
         $this->displayName = $displayName;
     }
 
     /**
      * @return string
      */
-    public function getProfilePictureUrl()
+    public function getProfilePictureUrl(): string
     {
         return $this->profilePictureUrl;
     }
@@ -99,24 +85,24 @@ class User
     /**
      * @param $profilePictureUrl
      */
-    public function setProfilePictureUrl($profilePictureUrl)
-    : void {
+    public function setProfilePictureUrl($profilePictureUrl): void
+    {
         $this->profilePictureUrl = $profilePictureUrl;
     }
 
     /**
-     * @return string
+     * @return Carbon
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): Carbon
     {
         return $this->createdAt;
     }
 
     /**
-     * @param $createdAt
+     * @param Carbon $createdAt
      */
-    public function setCreatedAt($createdAt)
-    : void {
+    public function setCreatedAt(Carbon $createdAt): void
+    {
         $this->createdAt = $createdAt;
     }
 

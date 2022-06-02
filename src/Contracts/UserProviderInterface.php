@@ -2,41 +2,43 @@
 
 namespace Railroad\Railforums\Contracts;
 
+use Railroad\Railforums\Entities\User;
+
 interface UserProviderInterface
 {
     /**
      * @param $userId
-     * @return mixed
+     * @return User|null
      */
-    public function getUserAccessLevel($userId);
+    public function getUser($userId): ?User;
+
+    /**
+     * @param array $userIds
+     * @return User[]
+     */
+    public function getUsersByIds(array $userIds): array;
 
     /**
      * @param $userId
-     * @return mixed
+     * @return string
      */
-    public function getUser($userId);
+    public function getUserAccessLevel($userId): string;
 
     /**
      * @param array $userIds
      * @return array
      */
-    public function getUsersByIds(array $userIds):array;
+    public function getUsersAccessLevel(array $userIds): array;
 
     /**
      * @param array $userIds
      * @return array
      */
-    public function getUsersAccessLevel(array $userIds):array;
+    public function getUsersXPAndRank(array $userIds): array;
 
     /**
      * @param array $userIds
      * @return array
      */
-    public function getUsersXPAndRank(array $userIds):array;
-
-    /**
-     * @param array $userIds
-     * @return array
-     */
-    public function getAssociatedCoaches(array $userIds):array;
+    public function getAssociatedCoaches(array $userIds): array;
 }
