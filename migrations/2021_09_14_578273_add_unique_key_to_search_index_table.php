@@ -14,7 +14,7 @@ class AddUniqueKeyToSearchIndexTable extends Migration
      */
     public function up()
     {
-        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
+        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
                     $table->unique(['thread_id', 'post_id'], 'search_index_unique_id');
@@ -29,7 +29,7 @@ class AddUniqueKeyToSearchIndexTable extends Migration
      */
     public function down()
     {
-        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
+        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
                     $table->dropIndex('search_index_unique_id');

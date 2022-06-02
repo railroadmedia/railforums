@@ -14,7 +14,7 @@ class AddPublishedOnToSearchIndexesTable extends Migration
      */
     public function up()
     {
-        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
+        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {
 
@@ -33,7 +33,7 @@ class AddPublishedOnToSearchIndexesTable extends Migration
      */
     public function down()
     {
-        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
+        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
 
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(ConfigService::$tableSearchIndexes, function (Blueprint $table) {

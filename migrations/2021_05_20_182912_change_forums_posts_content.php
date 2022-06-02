@@ -13,7 +13,7 @@ class ChangeForumsPostsContent extends Migration
      */
     public function up()
     {
-        if ((config()->get('database.default') != 'railforums_testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
+        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(
                     ConfigService::$tablePosts,
@@ -36,7 +36,7 @@ class ChangeForumsPostsContent extends Migration
      */
     public function down()
     {
-        if ((config()->get('database.default') != 'railforums_testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
+        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(
                     ConfigService::$tablePosts,
