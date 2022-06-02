@@ -14,7 +14,7 @@ class AddIndexesToCoreTables extends Migration
      */
     public function up()
     {
-        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(ConfigService::$tableCategories, function (Blueprint $table) {
                     $table->index('title');
@@ -99,7 +99,7 @@ class AddIndexesToCoreTables extends Migration
      */
     public function down()
     {
-        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(ConfigService::$tableCategories, function (Blueprint $table) {
 

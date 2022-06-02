@@ -14,7 +14,7 @@ class CreateForumsTableSearchIndexes extends Migration
      */
     public function up()
     {
-        if (ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') {
+        if ((ConfigService::$databaseConnectionName != ConfigService::$connectionMaskPrefix . 'testbench') || (config('database.connections.' . config('database.default') . '.database') === ':memory:')) {
 
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->create(
