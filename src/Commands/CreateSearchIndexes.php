@@ -24,31 +24,11 @@ class CreateSearchIndexes extends Command
     protected $description = 'Create search indexes';
 
     /**
-     * @var SearchIndexRepository
-     */
-    protected $searchIndexRepository;
-
-    /**
-     * Create a new command instance.
-     *
-     * @param SearchIndexRepository $searchIndexRepository
-     *
-     * @return void
-     */
-    public function __construct(
-        SearchIndexRepository $searchIndexRepository
-    ) {
-        parent::__construct();
-
-        $this->searchIndexRepository = $searchIndexRepository;
-    }
-
-    /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(SearchIndexRepository $searchIndexRepository)
     {
-        $this->info('Starting '.Carbon::now()->toDateTimeString());
+        $this->info('Starting ' . Carbon::now()->toDateTimeString());
         $this->info('RAM usage: ' . round(memory_get_usage(true) / 1048576, 2));
 
         foreach (config('railforums.brand_database_connection_names') as $brand => $dbConnectionName) {
@@ -59,12 +39,11 @@ class CreateSearchIndexes extends Command
             config()->set('railforums.brand', $brand);
 
             $this->info('Starting forums search indexes for: ' . $brand);
-            $this->searchIndexRepository->createSearchIndexes($brand);
+            $searchIndexRepository->createSearchIndexes($brand);
             $this->info('Finished forums search indexes for: ' . $brand);
-
         }
 
         $this->info('RAM usage: ' . round(memory_get_usage(true) / 1048576, 2));
-        $this->info('End '.Carbon::now()->toDateTimeString());
+        $this->info('End ' . Carbon::now()->toDateTimeString());
     }
 }
