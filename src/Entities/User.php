@@ -3,6 +3,8 @@
 namespace Railroad\Railforums\Entities;
 
 use Carbon\Carbon;
+use DateTimeZone;
+use Exception;
 
 /**
  * @ORM\Entity()
@@ -111,7 +113,25 @@ class User
      */
     public function getTimezone()
     {
-        return $this->timezone;
+        return $this->isValidTimezoneId($this->timezone) ? $this->timezone : 'America/Los_Angeles';
+    }
+
+    /**
+     * @param $timezoneId
+     * @return bool
+     */
+    public function isValidTimezoneId($timezoneId)
+    {
+        if (empty($timezoneId)) {
+            return false;
+        }
+
+        try {
+            new DateTimeZone($timezoneId);
+        } catch (Exception $e) {
+            return false;
+        }
+        return true;
     }
 
     /**
