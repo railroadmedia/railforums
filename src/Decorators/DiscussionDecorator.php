@@ -33,7 +33,7 @@ class DiscussionDecorator implements DecoratorInterface
     public function decorate($discussions)
     {
         foreach ($discussions as $discussion) {
-            $discussion['mobile_app_url'] = url()->route('railforums.mobile-app.show.discussion', [$discussion['id']]);
+            $discussion['mobile_app_url'] = url()->route('railforums.mobile-app.show.discussion', [$discussion['id'], 'brand' => config('railforums.brand')]);
             $discussion['icon_path'] = config('railforums.icons.'.$discussion['slug']);
             $posts =
                 $this->databaseManager->connection(config('railforums.database_connection'))

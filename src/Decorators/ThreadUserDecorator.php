@@ -66,7 +66,7 @@ class ThreadUserDecorator implements DecoratorInterface
 
 
             $threads[$threadIndex]['mobile_app_url'] =
-                url()->route('railforums.mobile-app.show.thread', [$thread['id']]);
+                url()->route('railforums.mobile-app.show.thread', [$thread['id'], 'brand'=> config('railforums.brand')]);
 
             $threads[$threadIndex]['author_display_name'] =
                 (isset($users[$thread['author_id']])) ? $users[$thread['author_id']]->getDisplayName() : '';
