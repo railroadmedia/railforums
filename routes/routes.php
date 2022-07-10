@@ -148,7 +148,7 @@ Route::group(
         Route::put(
             'thread/read/{id}',
             \Railroad\Railforums\Controllers\UserForumThreadJsonController::class.'@read'
-        )->name('railforums.thread.read');
+        )->name('railforums.api.thread.read');
 
         // post api
         Route::get(
@@ -238,7 +238,7 @@ Route::group(
         Route::delete(
             'signature/delete/{id}',
             \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class.'@delete'
-        )->name('railforums.api.discussions.delete');
+        )->name('railforums.api.signature.delete');
 
         //post-likes
         Route::get(

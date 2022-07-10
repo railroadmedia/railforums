@@ -54,11 +54,6 @@ Route::group(
 
         // post api
         Route::get(
-            'post/index',
-            \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@index'
-        )->name('railforums.api.post.index');
-
-        Route::get(
             'post/show/{id}',
             \Railroad\Railforums\Controllers\UserForumPostJsonController::class . '@show'
         );
