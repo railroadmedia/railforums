@@ -302,4 +302,26 @@ class PostRepository extends EventDispatchingRepository
 
         return array_combine(array_column($postsAuthors, 'id'), array_column($postsAuthors, 'author_id'));
     }
+
+    /**
+     * @return Collection
+     */
+    public function getPopularConversations()
+    {
+        return $this->getDecoratedQuery()
+            ->select([ConfigService::$tablePosts.'.*', ConfigService::$tableThreads.'.title'])
+            ->leftJoin(ConfigService::$tableThreads, ConfigService::$tableThreads.'.id', '=', ConfigService::$tablePosts.'.thread_id')
+            ->leftJoin(ConfigService::$tableCategories, ConfigService::$tableThreads.'.category_id', '=', ConfigService::$tableCategories.'.id')
+            ->limit(100)
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->whereNull(ConfigService::$tableCategories . '.deleted_at')
+            ->whereIn(
+                ConfigService::$tablePosts . '.state',
+                self::ACCESSIBLE_STATES
+            )
+            ->orderBy(ConfigService::$tablePosts.'.created_at', 'desc')
+            ->get()
+            ->groupBy('thread_id');
+    }
 }

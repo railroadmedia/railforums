@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostLikeRepository;
@@ -363,5 +364,27 @@ class UserForumPostJsonController extends Controller
 
         }
         return response()->json($results);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPopularConversations(Request $request)
+    {
+        $forumPosts = $this->postRepository->getPopularConversations();
+
+        $limit = $request->get('limit', 3);
+        $forumThreadPosts = $forumPosts->splice(0, $limit);
+
+        $forumPosts = new Collection();
+        foreach ($forumThreadPosts as $threadId => $forumThreadPosts) {
+            $forumPosts[] = $forumThreadPosts[0];
+        }
+
+        foreach ($forumPosts as $postsDatum) {
+            $postsDatum['content'] = $this->postRepository->getFilteredPostContent($postsDatum['content']);
+        }
+        return response()->json($forumPosts);
     }
 }

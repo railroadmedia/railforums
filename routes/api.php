@@ -151,4 +151,12 @@ Route::group(
             ]
         );
 
+        Route::get(
+            '/popular-conversations',
+            [
+                'as' => 'forums.api.forum.popular-conversations',
+                'uses' => \Railroad\Railforums\Controllers\UserForumPostJsonController::class    .'@getPopularConversations'
+            ]
+        );
+
     });
