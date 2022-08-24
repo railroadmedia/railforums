@@ -10,7 +10,7 @@ Route::group(
         Route::get(
             'thread/index',
             \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@index'
-        );
+        )->name('railforums.mobile-app.show-category-threads');
 
         Route::get(
             'thread/show/{id}',
@@ -50,7 +50,7 @@ Route::group(
         Route::get(
             'thread/latest',
             \Railroad\Railforums\Controllers\UserForumThreadJsonController::class . '@latest'
-        );
+        )->name('railforums.mobile-app.show-all-latest-threads');
 
         // post api
         Route::get(
@@ -109,7 +109,7 @@ Route::group(
         Route::get(
             'discussions/index',
             \Railroad\Railforums\Controllers\UserForumDiscussionJsonController::class . '@index'
-        );
+        )->name('railforums.mobile-app.discussions');
 
         Route::patch(
             'discussions/update/{id}',
