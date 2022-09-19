@@ -32,21 +32,28 @@ class DiscussionDecorator implements DecoratorInterface
      */
     public function decorate($discussions)
     {
+        $dscussionsIds = $discussions->pluck('id')->toArray();
+
+        $posts =
+            $this->databaseManager->connection(config('railforums.database_connection'))
+                ->table(ConfigService::$tablePosts . ' as p')
+                ->join(ConfigService::$tableThreads . ' as t', 't.id', '=', 'p.thread_id')
+                ->selectRaw(
+                    'COUNT(*) as post_count, t.category_id'
+                )
+                ->whereNull('p.deleted_at')
+                ->whereNull('t.deleted_at')
+                ->whereIn('t.category_id', $dscussionsIds)
+                ->groupBy('t.category_id')
+                ->get()->toArray();
+
+        $discussionPostCount = array_combine(array_column($posts, 'category_id'), array_column($posts, 'post_count'));
+
         foreach ($discussions as $discussion) {
             $discussion['mobile_app_url'] = url()->route('railforums.mobile-app.show.discussion', [$discussion['id'], 'brand' => config('railforums.brand')]);
             $discussion['icon_path'] = config('railforums.icons.'.$discussion['slug']);
-            $posts =
-                $this->databaseManager->connection(config('railforums.database_connection'))
-                    ->table(ConfigService::$tablePosts . ' as p')
-                    ->join(ConfigService::$tableThreads . ' as t', 't.id', '=', 'p.thread_id')
-                    ->selectRaw(
-                        'COUNT(*) as post_count'
-                    )
-                    ->whereNull('p.deleted_at')
-                    ->whereNull('t.deleted_at')
-                    ->where('t.category_id', $discussion['id'])->first();
 
-            $discussion['post_count'] = $posts->post_count;
+            $discussion['post_count'] = $discussionPostCount[$discussion['id']];
 
             $latestPosts =
                 $this->databaseManager->connection(config('railforums.database_connection'))

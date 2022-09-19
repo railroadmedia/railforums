@@ -324,4 +324,19 @@ class PostRepository extends EventDispatchingRepository
             ->get()
             ->groupBy('thread_id');
     }
+
+    /**
+     * Returns the posts and associated data
+     *
+     * @param array $ids
+     *
+     * @return Collection
+     */
+    public function getPostsByIds($ids)
+    {
+        return  $this->baseQuery()
+            ->from(ConfigService::$tablePosts)
+            ->whereIn('id', $ids)
+            ->get()->keyBy('id');
+    }
 }

@@ -9,7 +9,7 @@ use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Collections\BaseCollection;
 use Railroad\Resora\Decorators\DecoratorInterface;
 
-class PostUserDecorator implements DecoratorInterface
+class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
 {
     /**
      * @var DatabaseManager
@@ -50,23 +50,35 @@ class PostUserDecorator implements DecoratorInterface
                 ->toArray();
 
         $userIds = array_unique($userIds);
-
-        $postsCount =
-            $this->databaseManager->connection(config('railforums.database_connection'))
-                ->table(ConfigService::$tablePosts)
-                ->selectRaw('author_id, COUNT(' . ConfigService::$tablePosts . '.id) as count')
-                ->whereIn('author_id', $userIds)
-                ->groupBy('author_id')
-                ->get()
-                ->toArray();
-
-        $userPosts = array_combine(array_column($postsCount, 'author_id'), array_column($postsCount, 'count'));
-
         $users = $this->userProvider->getUsersByIds($userIds);
+        $currentUser = $this->userProvider->getUser(auth()->id());
 
-        $usersAccessLevel = $this->userProvider->getUsersAccessLevel($userIds);
+        if (self::$decorationMode !== self::DECORATION_MODE_MAXIMUM) {
+            foreach ($posts as $postIndex => $post) {
+                $posts[$postIndex]['published_on_formatted'] =
+                    Carbon::parse($post['published_on'])
+                        ->timezone($currentUser->getTimezone())
+                        ->format('M j, Y') .
+                    ' AT ' .
+                    Carbon::parse($post['published_on'])
+                        ->timezone($currentUser->getTimezone())
+                        ->format('g:i A');
 
-        $usersXp = $this->userProvider->getUsersXPAndRank($userIds);
+                $posts[$postIndex]['is_liked_by_viewer'] =
+                    isset($post['is_liked_by_viewer']) && $post['is_liked_by_viewer'] == 1;
+
+                if (!empty($users[$post['author_id']])) {
+                    $user = $users[$post['author_id']];
+                    $posts[$postIndex]['author']['display_name'] = $user->getDisplayName();
+                    $posts[$postIndex]['author']['avatar_url'] =
+                        $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
+                    $posts[$postIndex]['author']['created_at'] =
+                        $user->getCreatedAt()
+                            ->toDateTimeString();
+                }
+            }
+            return $posts;
+        }
 
         $signatures =
             $this->databaseManager->connection(config('railforums.database_connection'))
@@ -91,9 +103,18 @@ class PostUserDecorator implements DecoratorInterface
 
         $userLikes = array_combine(array_column($postLikes, 'liker_id'), array_column($postLikes, 'count'));
 
-        $currentUser = $this->userProvider->getUser(auth()->id());
-
         $associatedCoaches = $this->userProvider->getAssociatedCoaches($userIds);
+
+        $postsCount =
+            $this->databaseManager->connection(config('railforums.database_connection'))
+                ->table(ConfigService::$tablePosts)
+                ->selectRaw('author_id, COUNT(' . ConfigService::$tablePosts . '.id) as count')
+                ->whereIn('author_id', $userIds)
+                ->groupBy('author_id')
+                ->get()
+                ->toArray();
+
+        $userPosts = array_combine(array_column($postsCount, 'author_id'), array_column($postsCount, 'count'));
 
         foreach ($posts as $postIndex => $post) {
             $posts[$postIndex]['published_on_formatted'] =
@@ -118,10 +139,9 @@ class PostUserDecorator implements DecoratorInterface
                     Carbon::parse($user->getCreatedAt())
                         ->diffInDays(Carbon::now());
                 $posts[$postIndex]['author']['signature'] = $userSignatures[$post['author_id']] ?? null;
-                $posts[$postIndex]['author']['access_level'] = $usersAccessLevel[$post['author_id']] ?? null;
-                $posts[$postIndex]['author']['xp'] =
-                    (array_key_exists($post['author_id'], $usersXp)) ? $usersXp[$post['author_id']]['xp'] : 0;
-                $posts[$postIndex]['author']['xp_rank'] = $usersXp[$post['author_id']]['xp_rank'];
+                $posts[$postIndex]['author']['access_level'] = $user->getAccessLevel();
+                $posts[$postIndex]['author']['xp'] = $user->getXp();
+                $posts[$postIndex]['author']['xp_rank'] = $user->getXpRank();
                 $posts[$postIndex]['author']['total_post_likes'] = $userLikes[$post['author_id']] ?? 0;
                 $posts[$postIndex]['author']['created_at'] =
                     $user->getCreatedAt()
