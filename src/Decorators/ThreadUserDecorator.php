@@ -42,10 +42,15 @@ class ThreadUserDecorator implements DecoratorInterface
      */
     public function decorate($threads)
     {
+        $postsIds =  $threads->pluck('last_post_id')
+            ->toArray();
+
+        $posts = $this->postRepository->getPostsByIds($postsIds);
+
         $userIds = array_merge(
             $threads->pluck('author_id')
                 ->toArray(),
-            $threads->pluck('last_post_user_id')
+            $posts->pluck('author_id')
                 ->toArray()
         );
 
@@ -53,10 +58,7 @@ class ThreadUserDecorator implements DecoratorInterface
 
         $users = $this->userProvider->getUsersByIds($userIds);
 
-        $postsIds =  $threads->pluck('last_post_id')
-            ->toArray();
 
-        $posts = $this->postRepository->getPostsByIds($postsIds);
 
         foreach ($threads as $threadIndex => $thread) {
 

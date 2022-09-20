@@ -249,19 +249,19 @@ class ThreadRepository extends EventDispatchingRepository
                 '=',
                 ConfigService::$tableCategories . '.id'
             )
-            ->selectSub(
-                function (Builder $builder) {
-
-                    return $builder->selectRaw('COUNT(*)')
-                        ->from(ConfigService::$tablePosts)
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->limit(1);
-                },
-                'post_count'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//
+//                    return $builder->selectRaw('COUNT(*)')
+//                        ->from(ConfigService::$tablePosts)
+//                        ->whereRaw(
+//                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
+//                        )
+//                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+//                        ->limit(1);
+//                },
+//                'post_count'
+//            )
             ->selectSub(
                 function (Builder $builder) {
 
@@ -276,32 +276,32 @@ class ThreadRepository extends EventDispatchingRepository
                 },
                 'last_post_published_on'
             )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select(['id'])
-                        ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->limit(1)
-                        ->orderBy('published_on', 'desc');
-                },
-                'last_post_id'
-            )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select(['author_id'])
-                        ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->limit(1)
-                        ->orderBy('published_on', 'desc');
-                },
-                'last_post_user_id'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//                    return $builder->select(['id'])
+//                        ->from(ConfigService::$tablePosts)
+//                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+//                        ->whereRaw(
+//                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
+//                        )
+//                        ->limit(1)
+//                        ->orderBy('published_on', 'desc');
+//                },
+//                'last_post_id'
+//            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//                    return $builder->select(['author_id'])
+//                        ->from(ConfigService::$tablePosts)
+//                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+//                        ->whereRaw(
+//                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
+//                        )
+//                        ->limit(1)
+//                        ->orderBy('published_on', 'desc');
+//                },
+//                'last_post_user_id'
+//            )
             ->selectSub(
                 function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*) > 0')
@@ -420,5 +420,12 @@ class ThreadRepository extends EventDispatchingRepository
             ->limit($limit)
             ->groupBy('forum_threads.id')
             ->get();
+    }
+
+    public function setLastPostId($threadId, $postId)
+    {
+        $query = $this->query();
+
+        return $query->update($threadId, ['last_post_id' => $postId]);
     }
 }

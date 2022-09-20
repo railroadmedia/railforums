@@ -146,4 +146,11 @@ class CategoryRepository extends EventDispatchingRepository
     {
         return null;
     }
+
+    public function setLastPostId($categoryId, $postId)
+    {
+        $query = $this->query();
+
+        return $query->update($categoryId, ['last_post_id' => $postId]);
+    }
 }
