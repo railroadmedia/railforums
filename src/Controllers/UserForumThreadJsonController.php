@@ -372,7 +372,7 @@ class UserForumThreadJsonController extends Controller
 
     public function getForumRules()
     {
-        return $this->jumpToPost(config('railforums.forum_rules_post_id', 1));
+        return $this->jumpToPost(config('railforums.forum_rules_post_id.'.config('railforums.brand'), 1));
     }
 
     /**
