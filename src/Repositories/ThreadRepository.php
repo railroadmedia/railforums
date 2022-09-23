@@ -154,7 +154,9 @@ class ThreadRepository extends EventDispatchingRepository
         if ($pinned !== null) {
             $query->where('pinned', $pinned);
         }
-        
+        if($orderByColumn == 'last_post_published_on'){
+            $orderByColumn = 'last_post_id';
+        }
         $query->orderByRaw($orderByColumn . ' ' . $orderByDirection . ', id desc');
 
         return $query->get();
@@ -262,20 +264,20 @@ class ThreadRepository extends EventDispatchingRepository
 //                },
 //                'post_count'
 //            )
-            ->selectSub(
-                function (Builder $builder) {
-
-                    return $builder->select(['published_on'])
-                        ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->limit(1)
-                        ->orderBy('published_on', 'desc');
-                },
-                'last_post_published_on'
-            )
+//            ->selectSub(
+//                function (Builder $builder) {
+//
+//                    return $builder->select(['published_on'])
+//                        ->from(ConfigService::$tablePosts)
+//                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+//                        ->whereRaw(
+//                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
+//                        )
+//                        ->limit(1)
+//                        ->orderBy('published_on', 'desc');
+//                },
+//                'last_post_published_odn'
+//            )
 //            ->selectSub(
 //                function (Builder $builder) {
 //                    return $builder->select(['id'])

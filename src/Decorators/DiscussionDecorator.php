@@ -44,48 +44,15 @@ class DiscussionDecorator implements DecoratorInterface
         foreach ($discussions as $discussion) {
             $discussion['mobile_app_url'] = url()->route('railforums.mobile-app.show.discussion', [$discussion['id'], 'brand' => config('railforums.brand')]);
             $discussion['icon_path'] = config('railforums.icons.'.$discussion['slug']);
-//            $posts =
-//                $this->databaseManager->connection(config('railforums.database_connection'))
-//                    ->table(ConfigService::$tablePosts . ' as p')
-//                    ->join(ConfigService::$tableThreads . ' as t', 't.id', '=', 'p.thread_id')
-//                    ->selectRaw(
-//                        'COUNT(*) as post_count'
-//                    )
-//                    ->whereNull('p.deleted_at')
-//                    ->whereNull('t.deleted_at')
-//                    ->where('t.category_id', $discussion['id'])->first();
-//
-//            $discussion['post_count'] = $posts->post_count;
-
             $latestPosts = $discussion['last_post_id'];
-//                $this->databaseManager->connection(config('railforums.database_connection'))
-//                    ->table(ConfigService::$tablePosts . ' as p')
-//                    ->join(ConfigService::$tableThreads . ' as t', 't.id', '=', 'p.thread_id')
-//                    ->select(
-//                        'p.id as post_id',
-//                        't.*',
-//                        'p.content',
-//                        'p.author_id',
-//                        'p.published_on as last_post_created_at'
-//                    )
-//                    ->whereNull('p.deleted_at')
-//                    ->whereNull('t.deleted_at')
-//                    ->where('t.category_id', $discussion['id'])
-//                    ->orderBy('p.published_on', 'desc')
-//                    ->limit(1)
-//                    ->first();
-
             if ($latestPosts && $posts[$latestPosts]) {
-                //dd($posts[$latestPosts]);
                 $user = $this->userProvider->getUser($posts[$latestPosts]->author_id);
 
                 $discussion['latest_post']['id'] = $latestPosts;
                 $discussion['latest_post']['created_at'] = $posts[$latestPosts]->created_at;
-//
                 $discussion['latest_post']['created_at_diff'] = Carbon::parse($posts[$latestPosts]->created_at)->diffForHumans();
-//
-//
-                $discussion['latest_post']['thread_title'] = 'fffff'; //$latestPosts->title;
+
+                $discussion['latest_post']['thread_title'] = 'fffff'; //TODO
                 $discussion['latest_post']['author_id'] = $posts[$latestPosts]->author_id;
 
                 $discussion['latest_post']['author_display_name'] = $user->getDisplayName();
