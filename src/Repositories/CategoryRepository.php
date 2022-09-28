@@ -49,7 +49,7 @@ class CategoryRepository extends EventDispatchingRepository
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
                 )
-                ->whereNotIn(ConfigService::$tableCategories . '.id', config('railforums.excludedOldForumsIds', []));
+                ->whereNotIn(ConfigService::$tableCategories . '.id', config('railforums.excludedOldForumsIds.'.config('railforums.brand'), []));
 
         if ($amount) {
             $query =
