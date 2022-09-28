@@ -167,7 +167,7 @@ class User
      */
     public function getXp(): int
     {
-        return $this->xp;
+        return $this->xp ?? 0;
     }
 
     /**
