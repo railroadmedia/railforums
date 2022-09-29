@@ -40,6 +40,20 @@ class PostEventListener
         if (!$threadPostCount) {
             $this->threadRepository->delete($post->thread_id);
         }
+
+        $lastPostOnThread = $this->threadRepository->calculateLastPostId($post->thread_id);
+        $this->threadRepository->update($post->thread_id, [
+            'last_post_id' => $lastPostOnThread->post_id,
+            'post_count' => $threadPostCount,
+        ]);
+
+        $thread = $this->threadRepository->read($post->thread_id);
+        $lastPostOnDiscussion = $this->categoryRepository->calculateLastPostId($thread['category_id']);
+        $categoryThreadsCount = $this->threadRepository->getThreadsCount([$thread['category_id']]);
+        $this->categoryRepository->update($thread['category_id'], [
+            'last_post_id' => $lastPostOnDiscussion->post_id,
+            'post_count' => $categoryThreadsCount,
+        ]);
     }
 
     public function onPostCreated(PostCreated $event)

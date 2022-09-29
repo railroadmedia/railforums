@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Repositories;
 use Illuminate\Database\Query\Builder;
 use Railroad\Railforums\Decorators\DiscussionDecorator;
 use Railroad\Railforums\Services\ConfigService;
+use Railroad\Resora\Queries\BaseQuery;
 use Railroad\Resora\Queries\CachedQuery;
 
 class CategoryRepository extends EventDispatchingRepository
@@ -30,6 +31,11 @@ class CategoryRepository extends EventDispatchingRepository
     protected function newQuery()
     {
         return (new CachedQuery($this->connection()))->from(ConfigService::$tableCategories);
+    }
+
+    protected function baseQuery()
+    {
+        return new BaseQuery($this->connection());
     }
 
     protected function connection()
@@ -152,5 +158,25 @@ class CategoryRepository extends EventDispatchingRepository
         $query = $this->query();
 
         return $query->update($categoryId, ['last_post_id' => $postId]);
+    }
+
+    /**
+     * @param $threadId
+     * @return mixed
+     */
+    public function calculateLastPostId($discussionId)
+    {
+        return  $this->baseQuery()
+            ->from(ConfigService::$tablePosts . ' as p')
+            ->join(ConfigService::$tableThreads . ' as t', 't.id', '=', 'p.thread_id')
+            ->select(
+                'p.id as post_id',
+            )
+            ->whereNull('p.deleted_at')
+            ->whereNull('t.deleted_at')
+            ->where('t.category_id', $discussionId)
+            ->orderBy('p.published_on', 'desc')
+            ->limit(1)
+            ->first();
     }
 }

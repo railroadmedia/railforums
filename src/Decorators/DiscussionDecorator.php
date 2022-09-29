@@ -43,7 +43,7 @@ class DiscussionDecorator implements DecoratorInterface
         $postsIds =  $discussions->pluck('last_post_id')
             ->toArray();
 
-        $posts = $this->postRepository->getDecoratedPostsByIds($postsIds)->keyBy('id');
+        $posts = $this->postRepository->getPostsByIds($postsIds)->keyBy('id');
 	$threadIds = $posts->pluck('thread_id')->toArray();
 	$threads = $this->threadRepository->getDecoratedThreadsByIds($threadIds)->keyBy('id');
 
@@ -51,7 +51,8 @@ class DiscussionDecorator implements DecoratorInterface
             $discussion['mobile_app_url'] = url()->route('railforums.mobile-app.show.discussion', [$discussion['id'], 'brand' => config('railforums.brand')]);
             $discussion['icon_path'] = config('railforums.icons.'.$discussion['slug']);
             $latestPosts = $discussion['last_post_id'];
-            if ($latestPosts && $posts[$latestPosts]) {
+
+            if ($latestPosts && key_exists($latestPosts, $posts->toArray())) {
                 $user = $this->userProvider->getUser($posts[$latestPosts]->author_id);
 		$threadId = $posts[$latestPosts]->thread_id;
                 $discussion['latest_post']['id'] = $latestPosts;

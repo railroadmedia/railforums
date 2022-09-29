@@ -377,4 +377,22 @@ class ThreadRepository extends EventDispatchingRepository
 
         return $query->update($threadId, ['last_post_id' => $postId]);
     }
+
+    /**
+     * @param $threadId
+     * @return mixed
+     */
+    public function calculateLastPostId($threadId)
+    {
+         return $this->baseQuery()->from(ConfigService::$tableThreads)
+            ->join('forum_posts as p', 'forum_threads.id', '=', 'p.thread_id')
+            ->select(
+                'p.id as post_id',
+            )
+            ->whereNull('p.deleted_at')
+            ->where('p.thread_id', $threadId)
+            ->orderBy('p.published_on', 'desc')
+            ->limit(1)
+            ->first();
+    }
 }
