@@ -11,6 +11,7 @@ abstract class EventDispatchingRepository extends RepositoryBase
 {
     use SoftDelete, CreateReadUpdateDestroy {
         SoftDelete::delete as baseDelete;
+        SoftDelete::deleteByUserId as baseDeleteByUserId;
         CreateReadUpdateDestroy::create as baseCreate;
         CreateReadUpdateDestroy::read as baseRead;
         CreateReadUpdateDestroy::update as baseUpdate;
@@ -139,6 +140,23 @@ abstract class EventDispatchingRepository extends RepositoryBase
 
         if ($event) {
             $this->getDispatcher()->dispatch($event);
+        }
+
+        $this->dispatching = false;
+
+        return $deleteResult;
+    }
+
+    public function deleteByUserId($userId)
+    {
+        $dispatched = $this->dispatching;
+
+        $this->dispatching = true;
+
+        $deleteResult = $this->baseDeleteByUserId($userId);
+
+        if ($dispatched || !$deleteResult) {
+            return $deleteResult;
         }
 
         $this->dispatching = false;
