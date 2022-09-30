@@ -186,7 +186,7 @@ class UserForumPostController extends Controller
             $this->postReplyRepository->insert($replies);
         }
 
-        return redirect()->to(config('railforums.jump_to_post_url_prefix') . $post->id);
+        return redirect()->to(($request->get('redirect')??config('railforums.jump_to_post_url_prefix')) . $post->id);
     }
 
     /**

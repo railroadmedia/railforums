@@ -22,6 +22,10 @@ class User
     private string $profilePictureUrl = '';
     private Carbon $createdAt;
     private string $timezone = '';
+    private $xp = 0;
+    private string $xpRank = '';
+    private string $levelRank = '1.1';
+    private string $accessLevel = '';
 
     /**
      * @param int $id
@@ -29,19 +33,31 @@ class User
      * @param string $profilePictureUrl
      * @param Carbon $createdAt
      * @param string $timezone
+     * @param int $xp
+     * @param string $xpRank
+     * @param string $levelRank
+     * @param string $accessLevel
      */
     public function __construct(
         int $id,
         string $displayName,
         string $profilePictureUrl,
         Carbon $createdAt,
-        string $timezone = 'Europe/Bucharest'
+        string $timezone = 'Europe/Bucharest',
+        $xp = null,
+        $xpRank = '',
+        $levelRank = '1.1',
+        $accessLevel = 'pack'
     ) {
         $this->id = $id;
         $this->displayName = $displayName;
         $this->profilePictureUrl = $profilePictureUrl;
         $this->createdAt = $createdAt;
         $this->timezone = $timezone;
+        $this->xp = $xp;
+        $this->xpRank = $xpRank;
+        $this->levelRank = $levelRank;
+        $this->accessLevel = $accessLevel;
     }
 
     /**
@@ -144,5 +160,67 @@ class User
         https://www.doctrine-project.org/projects/doctrine-orm/en/2.6/cookbook/custom-mapping-types.html
         */
         return (string)$this->getId();
+    }
+
+    /**
+     * @return int
+     */
+    public function getXp(): int
+    {
+        return $this->xp ?? 0;
+    }
+
+    /**
+     * @param mixed $xp
+     */
+    public function setXp($xp): void
+    {
+        $this->xp = $xp;
+    }
+
+    /**
+     * @return string
+     */
+    public function getXpRank(): string
+    {
+        return $this->xpRank;
+    }
+
+    /**
+     * @param $profilePictureUrl
+     */
+    public function setXpRank($xpRank): void
+    {
+        $this->xpRank = $xpRank;
+    }
+    /**
+     * @return string
+     */
+    public function getLevelRank(): string
+    {
+        return $this->levelRank;
+    }
+
+    /**
+     * @param $levelRank
+     */
+    public function setLevelRank($levelRank): void
+    {
+        $this->levelRank = $levelRank;
+    }
+    /**
+     * @return string
+     */
+    public function getAccessLevel(): string
+    {
+        return $this->accessLevel;
+    }
+
+    /**
+     * @param $levelRank
+     */
+    public function setAccessLevel($accessLevel): void
+    {
+        $this->accessLevel = $accessLevel;
     }
 }

@@ -42,10 +42,15 @@ class ThreadUserDecorator implements DecoratorInterface
      */
     public function decorate($threads)
     {
+        $postsIds =  $threads->pluck('last_post_id')
+            ->toArray();
+
+        $posts = $this->postRepository->getPostsByIds($postsIds);
+
         $userIds = array_merge(
             $threads->pluck('author_id')
                 ->toArray(),
-            $threads->pluck('last_post_user_id')
+            $posts->pluck('author_id')
                 ->toArray()
         );
 
@@ -53,17 +58,13 @@ class ThreadUserDecorator implements DecoratorInterface
 
         $users = $this->userProvider->getUsersByIds($userIds);
 
-        $postsIds =  $threads->pluck('last_post_id')
-            ->toArray();
 
-        $posts = $this->postRepository->getDecoratedPostsByIds($postsIds)->keyBy('id');
 
         foreach ($threads as $threadIndex => $thread) {
 
             $threads[$threadIndex]['locked'] = $thread['locked'] == 1;
             $threads[$threadIndex]['pinned'] = $thread['pinned'] == 1;
             $threads[$threadIndex]['is_followed'] = isset($thread['is_followed']) && $thread['is_followed'] == 1;
-
 
             $threads[$threadIndex]['mobile_app_url'] =
                 url()->route('railforums.mobile-app.show.thread', [$thread['id'], 'brand'=> config('railforums.brand')]);
@@ -75,7 +76,7 @@ class ThreadUserDecorator implements DecoratorInterface
                 (isset($users[$thread['author_id']]))?$users[$thread['author_id']]->getProfilePictureUrl() : config('railforums.author_default_avatar_url');
 
             $threads[$threadIndex]['author_access_level'] =
-                (isset($users[$thread['author_id']]))?$this->userProvider->getUserAccessLevel($thread['author_id']):'pack';
+                (isset($users[$thread['author_id']]))?$users[$thread['author_id']]->getLevelRank():'pack';
             $threads[$threadIndex]['published_on_formatted'] =
                 Carbon::parse($thread['published_on'])
                     ->format('M d, Y');
@@ -84,16 +85,16 @@ class ThreadUserDecorator implements DecoratorInterface
                 $lastPost = $posts[$thread['last_post_id']];
                 if ($lastPost) {
                     $threads[$threadIndex]['latest_post']['id'] = $thread['last_post_id'];
-                    $threads[$threadIndex]['latest_post']['created_at'] = $lastPost['published_on'];
+                    $threads[$threadIndex]['latest_post']['created_at'] = $lastPost->published_on;
                     $threads[$threadIndex]['latest_post']['created_at_diff'] =
-                        str_replace(['mo', 'mos'], ['M', 'M'], Carbon::parse($lastPost['published_on'])
+                        str_replace(['mo', 'mos'], ['M', 'M'], Carbon::parse($lastPost->published_on)
                             ->diffForHumans(null, null, true));
 
-                    $threads[$threadIndex]['latest_post']['author_id'] = $lastPost['author_id'];
-                    $threads[$threadIndex]['latest_post']['author_display_name'] = $lastPost['author']['display_name'] ?? '';
-                    $threads[$threadIndex]['latest_post']['author_avatar_url'] = $lastPost['author']['avatar_url'] ?? config('railforums.author_default_avatar_url');
+                    $threads[$threadIndex]['latest_post']['author_id'] = $lastPost->author_id;
+                    $threads[$threadIndex]['latest_post']['author_display_name'] = $users[$lastPost->author_id]->getDisplayName();
+                    $threads[$threadIndex]['latest_post']['author_avatar_url'] = $users[$lastPost->author_id]->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
 
-                    if (Carbon::parse($lastPost['published_on'])->greaterThanOrEqualTo(Carbon::now()->subDays(3))) {
+                    if (Carbon::parse($lastPost->published_on)->greaterThanOrEqualTo(Carbon::now()->subDays(3))) {
                         $threads[$threadIndex]['is_read'] = isset($thread['is_read']) && $thread['is_read'] == 1;
                     } else {
                         $threads[$threadIndex]['is_read'] = true;

@@ -154,7 +154,9 @@ class ThreadRepository extends EventDispatchingRepository
         if ($pinned !== null) {
             $query->where('pinned', $pinned);
         }
-        
+        if($orderByColumn == 'last_post_published_on'){
+            $orderByColumn = 'last_post_id';
+        }
         $query->orderByRaw($orderByColumn . ' ' . $orderByDirection . ', id desc');
 
         return $query->get();
@@ -251,59 +253,6 @@ class ThreadRepository extends EventDispatchingRepository
             )
             ->selectSub(
                 function (Builder $builder) {
-
-                    return $builder->selectRaw('COUNT(*)')
-                        ->from(ConfigService::$tablePosts)
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->limit(1);
-                },
-                'post_count'
-            )
-            ->selectSub(
-                function (Builder $builder) {
-
-                    return $builder->select(['published_on'])
-                        ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->limit(1)
-                        ->orderBy('published_on', 'desc');
-                },
-                'last_post_published_on'
-            )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select(['id'])
-                        ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->limit(1)
-                        ->orderBy('published_on', 'desc');
-                },
-                'last_post_id'
-            )
-            ->selectSub(
-                function (Builder $builder) {
-                    return $builder->select(['author_id'])
-                        ->from(ConfigService::$tablePosts)
-                        ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-                        ->whereRaw(
-                            ConfigService::$tablePosts . '.thread_id = ' . ConfigService::$tableThreads . '.id'
-                        )
-                        ->limit(1)
-                        ->orderBy('published_on', 'desc');
-                },
-                'last_post_user_id'
-            )
-            ->selectSub(
-                function (Builder $builder) {
                     return $builder->selectRaw('COUNT(*) > 0')
                         ->from(ConfigService::$tableThreadReads)
                         ->where(
@@ -332,7 +281,7 @@ class ThreadRepository extends EventDispatchingRepository
                 },
                 'is_followed'
             )
-            ->groupBy(ConfigService::$tableThreads . '.id')
+            ->groupBy(ConfigService::$tableThreads . '.id', ConfigService::$tableCategories.'.slug', ConfigService::$tableCategories.'.title')
             ->havingNotNull(['last_post_id'])
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
@@ -420,5 +369,30 @@ class ThreadRepository extends EventDispatchingRepository
             ->limit($limit)
             ->groupBy('forum_threads.id')
             ->get();
+    }
+
+    public function setLastPostId($threadId, $postId)
+    {
+        $query = $this->query();
+
+        return $query->update($threadId, ['last_post_id' => $postId]);
+    }
+
+    /**
+     * @param $threadId
+     * @return mixed
+     */
+    public function calculateLastPostId($threadId)
+    {
+         return $this->baseQuery()->from(ConfigService::$tableThreads)
+            ->join('forum_posts as p', 'forum_threads.id', '=', 'p.thread_id')
+            ->select(
+                'p.id as post_id',
+            )
+            ->whereNull('p.deleted_at')
+            ->where('p.thread_id', $threadId)
+            ->orderBy('p.published_on', 'desc')
+            ->limit(1)
+            ->first();
     }
 }

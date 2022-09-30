@@ -32,15 +32,17 @@ class CreateSearchIndexes extends Command
         $this->info('RAM usage: ' . round(memory_get_usage(true) / 1048576, 2));
 
         foreach (config('railforums.brand_database_connection_names') as $brand => $dbConnectionName) {
-            $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
-            ConfigService::$databaseConnectionName = $railforumsConnectionName;
-            config()->set('railforums.database_connection', $railforumsConnectionName);
-            config()->set('railforums.database_connection_name', $railforumsConnectionName);
-            config()->set('railforums.brand', $brand);
+            if($brand != 'musora') {
+                $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
+                ConfigService::$databaseConnectionName = $railforumsConnectionName;
+                config()->set('railforums.database_connection', $railforumsConnectionName);
+                config()->set('railforums.database_connection_name', $railforumsConnectionName);
+                config()->set('railforums.brand', $brand);
 
-            $this->info('Starting forums search indexes for: ' . $brand);
-            $searchIndexRepository->createSearchIndexes($brand);
-            $this->info('Finished forums search indexes for: ' . $brand);
+                $this->info('Starting forums search indexes for: '.$brand);
+                $searchIndexRepository->createSearchIndexes($brand);
+                $this->info('Finished forums search indexes for: '.$brand);
+            }
         }
 
         $this->info('RAM usage: ' . round(memory_get_usage(true) / 1048576, 2));
