@@ -146,7 +146,7 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
                 $posts[$postIndex]['author']['created_at'] =
                     $user->getCreatedAt()
                         ->toDateTimeString();
-                $posts[$postIndex]['author']['level_rank'] = $usersXp[$post['author_id']]['level_rank'] ?? '1.1';
+                $posts[$postIndex]['author']['level_rank'] = $user->getLevelRank() ?? '1.1';
                 $posts[$postIndex]['author']['associated_coach'] =
                     array_key_exists($post['author_id'], $associatedCoaches) ? $associatedCoaches[$post['author_id']] :
                         null;
