@@ -7,7 +7,9 @@ use Railroad\Railforums\Commands\CreateSearchIndexes;
 use Railroad\Railforums\Commands\PopulateLastPostOnForums;
 use Railroad\Railforums\Decorators\PostUserDecorator;
 use Railroad\Railforums\Decorators\ThreadUserDecorator;
+use Railroad\Railforums\EventListeners\ThreadEventListener;
 use Railroad\Railforums\Events\PostCreated;
+use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\EventListeners\PostEventListener;
 use Railroad\Railforums\Events\PostDeleted;
@@ -21,6 +23,9 @@ class ForumServiceProvider extends EventServiceProvider
         PostCreated::class=> [
             PostEventListener::class . '@onPostCreated',
         ],
+        ThreadDeleted::class => [
+            ThreadEventListener::class.'onDeleted',
+        ]
     ];
 
     /**
