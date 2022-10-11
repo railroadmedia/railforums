@@ -352,6 +352,10 @@ class UserForumThreadJsonController extends Controller
     public function jumpToPost($id)
     {
         $post = $this->postRepository->read($id);
+        if (!$post) {
+            throw new NotFoundHttpException();
+        }
+
         $thread = $this->threadRepository->read($post->thread_id);
 
         $allPostIdsInThread = collect(
