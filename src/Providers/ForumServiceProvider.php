@@ -115,7 +115,8 @@ class ForumServiceProvider extends EventServiceProvider
                 config()->get('resora.decorators.threads', []),
                 [
                     ThreadUserDecorator::class,
-                ]
+                ],
+                config()->get('railforums.decorators.threads',[])
             )
         );
 
@@ -125,7 +126,8 @@ class ForumServiceProvider extends EventServiceProvider
                 config()->get('resora.decorators.posts', []),
                 [
                     PostUserDecorator::class,
-                ]
+                ],
+                config()->get('railforums.decorators.posts',[])
             )
         );
 
