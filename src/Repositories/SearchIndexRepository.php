@@ -221,8 +221,6 @@ SQL;
     {
         DB::disableQueryLog();
 
-//        $this->deleteOldIndexes();
-
         $query = $this->postRepository->newQuery()
             ->from(ConfigService::$tablePosts)
             ->join(
@@ -252,7 +250,7 @@ SQL;
                 ->toDateTimeString();
 
         $query->chunkById(
-            500,
+            2000,
             function (Collection $postsData) use (&$count, $now, &$command) {
                 $searchIndexes = [];
                 $userIds = $postsData->pluck('author_id')
@@ -283,7 +281,7 @@ SQL;
                         $searchIndexes,
                         ['thread_id', 'post_id']
                     );
-//                usleep(3500000);
+                usleep(250000); //delay 250 ms to reduce load
             },
             ConfigService::$tablePosts . '.id',
             'id'
@@ -296,7 +294,7 @@ SQL;
             ->orderBy(ConfigService::$tableThreads . '.id');
 
         $threadsQuery->chunkById(
-            500,
+            2000,
             function (Collection $threadsData) use ($now) {
                 $searchIndexes = [];
                 $userIds = $threadsData->pluck('author_id')
@@ -322,13 +320,11 @@ SQL;
                         $searchIndexes,
                         ['thread_id', 'post_id']
                     );
-//                usleep(3500000);
+                usleep(250000); //delay 250 ms to reduce load
             },
             ConfigService::$tableThreads . '.id',
             'id'
         );
-
-//        DB::statement('OPTIMIZE table '.ConfigService::$tableSearchIndexes);
 
         return true;
     }
