@@ -63,12 +63,15 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
                     Carbon::parse($post['published_on'])
                         ->timezone($currentUser->getTimezone())
                         ->format('g:i A');
+                $posts[$postIndex]['published_on_formatted'] =  $posts[$postIndex]['created_at_diff'] = Carbon::parse($posts[$postIndex]['created_at'])
+                                        ->diffForHumans();
 
                 $posts[$postIndex]['is_liked_by_viewer'] =
                     isset($post['is_liked_by_viewer']) && $post['is_liked_by_viewer'] == 1;
 
                 if (!empty($users[$post['author_id']])) {
                     $user = $users[$post['author_id']];
+                    $posts[$postIndex]['author']['id'] = $post['author_id'];
                     $posts[$postIndex]['author']['display_name'] = $user->getDisplayName();
                     $posts[$postIndex]['author']['avatar_url'] =
                         $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
@@ -117,6 +120,9 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
         $userPosts = array_combine(array_column($postsCount, 'author_id'), array_column($postsCount, 'count'));
 
         foreach ($posts as $postIndex => $post) {
+            $posts[$postIndex]['created_at_diff'] = Carbon::parse($posts[$postIndex]['created_at'])
+                ->diffForHumans();
+
             $posts[$postIndex]['published_on_formatted'] =
                 Carbon::parse($post['published_on'])
                     ->timezone($currentUser->getTimezone())
@@ -131,6 +137,7 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
 
             if (!empty($users[$post['author_id']])) {
                 $user = $users[$post['author_id']];
+                $posts[$postIndex]['author']['id'] = $post['author_id'];
                 $posts[$postIndex]['author']['display_name'] = $user->getDisplayName();
                 $posts[$postIndex]['author']['avatar_url'] =
                     $user->getProfilePictureUrl() ?? config('railforums.author_default_avatar_url');
