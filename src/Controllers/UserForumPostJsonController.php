@@ -125,7 +125,7 @@ class UserForumPostJsonController extends Controller
                 )
             );
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(['success' => true], 204);
     }
 
     /**
