@@ -26,6 +26,7 @@ class User
     private string $xpRank = '';
     private string $levelRank = '1.1';
     private string $accessLevel = '';
+    private bool $isReported = false;
 
     /**
      * @param int $id
@@ -47,7 +48,8 @@ class User
         $xp = null,
         $xpRank = '',
         $levelRank = '1.1',
-        $accessLevel = 'pack'
+        $accessLevel = 'pack',
+        $isReported = false
     ) {
         $this->id = $id;
         $this->displayName = $displayName;
@@ -58,6 +60,7 @@ class User
         $this->xpRank = $xpRank;
         $this->levelRank = $levelRank;
         $this->accessLevel = $accessLevel;
+        $this->isReported = $isReported;
     }
 
     /**
@@ -222,5 +225,17 @@ class User
     public function setAccessLevel($accessLevel): void
     {
         $this->accessLevel = $accessLevel;
+    }
+
+
+    public function getIsReported(): bool
+    {
+        return $this->isReported;
+    }
+
+
+    public function setIsReported(bool $isReported): bool
+    {
+        $this->isReported = $isReported;
     }
 }

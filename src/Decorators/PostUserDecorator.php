@@ -78,6 +78,7 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
                     $posts[$postIndex]['author']['created_at'] =
                         $user->getCreatedAt()
                             ->toDateTimeString();
+                    $posts[$postIndex]['author']['is_reported_by_viewer'] = $user->getIsReported();
                 }
             }
             return $posts;
@@ -157,6 +158,7 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
                 $posts[$postIndex]['author']['associated_coach'] =
                     array_key_exists($post['author_id'], $associatedCoaches) ? $associatedCoaches[$post['author_id']] :
                         null;
+                $posts[$postIndex]['author']['is_reported_by_viewer'] = $user->getIsReported();
             }
         }
 

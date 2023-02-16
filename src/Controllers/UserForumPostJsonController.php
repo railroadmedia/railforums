@@ -12,6 +12,7 @@ use Railroad\Permissions\Services\PermissionService;
 use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Repositories\PostLikeRepository;
 use Railroad\Railforums\Repositories\PostReplyRepository;
+use Railroad\Railforums\Repositories\PostReportRepository;
 use Railroad\Railforums\Repositories\PostRepository;
 use Railroad\Railforums\Repositories\ThreadRepository;
 use Railroad\Railforums\Requests\PostJsonCreateRequest;
@@ -55,6 +56,11 @@ class UserForumPostJsonController extends Controller
     protected $userProvider;
 
     /**
+     * @var PostReportRepository
+     */
+    protected $postReportRepository;
+
+    /**
      * UserForumPostJsonController constructor.
      *
      * @param PostLikeRepository $postLikeRepository
@@ -68,7 +74,8 @@ class UserForumPostJsonController extends Controller
         PostRepository $postRepository,
         PermissionService $permissionService,
         ThreadRepository $threadRepository,
-        UserProviderInterface $userProvider
+        UserProviderInterface $userProvider,
+        PostReportRepository $postReportRepository
     ) {
         $this->postLikeRepository = $postLikeRepository;
         $this->postReplyRepository = $postReplyRepository;
@@ -76,6 +83,7 @@ class UserForumPostJsonController extends Controller
         $this->permissionService = $permissionService;
         $this->threadRepository = $threadRepository;
         $this->userProvider = $userProvider;
+        $this->postReportRepository = $postReportRepository;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -94,6 +102,18 @@ class UserForumPostJsonController extends Controller
         if (!$post) {
             throw new NotFoundHttpException();
         }
+
+        $now =
+            Carbon::now()
+                ->toDateTimeString();
+
+        $this->postReportRepository->create([
+                                                  'post_id' => $post->id,
+                                                  'reporter_id' => auth()->id(),
+                                                  'reported_on' => $now,
+                                                  'created_at' => $now,
+                                                  'updated_at' => $now,
+                                              ]);
 
         (new AnonymousNotifiable)->route(
             ConfigService::$postReportNotificationChannel,
