@@ -211,6 +211,20 @@ class PostRepository extends EventDispatchingRepository
                 },
                 'is_liked_by_viewer'
             );
+            $query->selectSub(
+                function (Builder $builder) {
+                    return $builder->selectRaw('COUNT(*) > 0')
+                        ->from(ConfigService::$tablePostReports)
+                        ->limit(1)
+                        ->whereRaw(
+                            ConfigService::$tablePostReports . '.post_id = ' . ConfigService::$tablePosts . '.id'
+                        )
+                        ->whereRaw(
+                            ConfigService::$tablePostReports . '.reporter_id = ' . auth()->id() ?? 0
+                        );
+                },
+                'is_reported_by_viewer'
+            );
         }
 
         return $query;
