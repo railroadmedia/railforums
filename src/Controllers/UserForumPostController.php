@@ -145,13 +145,6 @@ class UserForumPostController extends Controller
      */
     public function store(PostCreateRequest $request)
     {
-        $brand = $request->get('brand');
-        $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
-        \Railroad\Railforums\Services\ConfigService::$databaseConnectionName = $railforumsConnectionName;
-        config()->set('railforums.database_connection', $railforumsConnectionName);
-        config()->set('railforums.database_connection_name', $railforumsConnectionName);
-        config()->set('railforums.brand', $brand);
-
         $this->permissionService->canOrThrow(auth()->id(), 'create-posts');
 
         $now =

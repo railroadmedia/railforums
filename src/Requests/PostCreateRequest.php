@@ -31,7 +31,6 @@ class PostCreateRequest extends FormRequest
             'thread_id' => 'required|numeric|exists:' .
                 config('railforums.database_connection_name') .
                 '.forum_threads,id',
-            'brand' => 'required|string'
         ];
     }
 }
