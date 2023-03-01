@@ -18,6 +18,8 @@ use Railroad\Railforums\Requests\ThreadJsonUpdateRequest;
 use Railroad\Railforums\Responses\JsonPaginatedResponse;
 use Railroad\Railforums\Services\ConfigService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Railroad\Railforums\Contracts\UserProviderInterface;
+
 
 class UserForumThreadJsonController extends Controller
 {
@@ -54,6 +56,8 @@ class UserForumThreadJsonController extends Controller
      */
     private $emojiesDecorator;
 
+    protected UserProviderInterface $userProvider;
+
     /**
      * @param ThreadRepository $threadRepository
      * @param ThreadReadRepository $threadReadRepository
@@ -68,7 +72,8 @@ class UserForumThreadJsonController extends Controller
         ThreadFollowRepository $threadFollowRepository,
         PostRepository $postRepository,
         PermissionService $permissionService,
-        EmojiesDecorator $emojiesDecorator
+        EmojiesDecorator $emojiesDecorator,
+        UserProviderInterface $userProvider
     ) {
         $this->threadRepository = $threadRepository;
         $this->threadReadRepository = $threadReadRepository;
@@ -76,6 +81,7 @@ class UserForumThreadJsonController extends Controller
         $this->postRepository = $postRepository;
         $this->permissionService = $permissionService;
         $this->emojiesDecorator = $emojiesDecorator;
+        $this->userProvider = $userProvider;
 
         $this->middleware(ConfigService::$controllerMiddleware);
     }
@@ -88,6 +94,8 @@ class UserForumThreadJsonController extends Controller
     public function read($id)
     {
         $this->permissionService->canOrThrow(auth()->id(), 'read-threads');
+
+        PostRepository::$blockedUserIds =  $this->userProvider->getBlockedUsers();
 
         $thread = $this->threadRepository->read($id);
 
@@ -175,6 +183,8 @@ class UserForumThreadJsonController extends Controller
         $followed = $request->has('followed') ? (boolean)$request->get('followed') : null;
         $sortBy = $request->get('sort', '-last_post_published_on');
 
+        PostRepository::$blockedUserIds =  $this->userProvider->getBlockedUsers();
+
         $pinnedThreads = $this->threadRepository->getDecoratedThreads(
             $amount,
             $page,
@@ -213,6 +223,7 @@ class UserForumThreadJsonController extends Controller
     public function show($id, Request $request)
     {
         //$this->permissionService->canOrThrow(auth()->id(), 'show-threads');
+        PostRepository::$blockedUserIds =  $this->userProvider->getBlockedUsers();
 
         $thread =
             $this->threadRepository->getDecoratedThreadsByIds([$id])
@@ -351,6 +362,8 @@ class UserForumThreadJsonController extends Controller
      */
     public function jumpToPost($id)
     {
+        PostRepository::$blockedUserIds =  $this->userProvider->getBlockedUsers();
+
         $post = $this->postRepository->read($id);
         if (!$post) {
             throw new NotFoundHttpException();
@@ -392,6 +405,8 @@ class UserForumThreadJsonController extends Controller
         $page = $request->get('page') ? (int)$request->get('page') : self::PAGE;
 
         $sortBy = $request->get('sort', '-last_post_published_on');
+
+        PostRepository::$blockedUserIds =  $this->userProvider->getBlockedUsers();
 
         $threads = $this->threadRepository->getDecoratedThreads($amount, $page, [], null, null, $sortBy);
         $threadsCount = $this->threadRepository->getThreadsCount([]);
