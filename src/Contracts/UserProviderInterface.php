@@ -41,4 +41,9 @@ interface UserProviderInterface
      * @return array
      */
     public function getAssociatedCoaches(array $userIds): array;
+
+    /**
+     * @return array|null
+     */
+    public function getBlockedUsers(): ?array;
 }

@@ -13,6 +13,7 @@ use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Decorators\Decorator;
 use Railroad\Resora\Queries\BaseQuery;
 use Railroad\Resora\Queries\CachedQuery;
+use Railroad\Railforums\Repositories\PostRepository;
 
 class ThreadRepository extends EventDispatchingRepository
 {
@@ -130,6 +131,10 @@ class ThreadRepository extends EventDispatchingRepository
                         ConfigService::$tableThreads . '.id = ' . ConfigService::$tableThreadFollows . '.thread_id'
                     );
             });
+        }
+
+        if(!empty(PostRepository::$blockedUserIds)){
+            $query->whereNotIn('author_id', PostRepository::$blockedUserIds);
         }
 
         if (!empty($categoryIds)) {

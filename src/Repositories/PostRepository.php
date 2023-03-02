@@ -18,6 +18,13 @@ class PostRepository extends EventDispatchingRepository
     const ACCESSIBLE_STATES = [self::STATE_PUBLISHED];
     const CHUNK_SIZE = 1000;
 
+    /**
+     * If this is empty posts for any authors will be pulled. If its defined, the users posts will not be pulled.
+     *
+     * @var integer|bool
+     */
+    public static $blockedUserIds = [];
+
     public static $onlyMine = false;
 
     public function getCreateEvent($entity)
@@ -92,6 +99,10 @@ class PostRepository extends EventDispatchingRepository
             $query->where('author_id', auth()->id());
         }
 
+        if(!empty(self::$blockedUserIds)){
+            $query->whereNotIn('author_id', self::$blockedUserIds);
+        }
+
         return $query->value('count');
     }
 
@@ -128,6 +139,10 @@ class PostRepository extends EventDispatchingRepository
 
             $orderByDirection = 'desc';
             $orderByColumn = 'published_on';
+        }
+
+        if(!empty(self::$blockedUserIds)){
+            $query->whereNotIn('author_id', self::$blockedUserIds);
         }
 
         $query->orderBy($orderByColumn, $orderByDirection);
