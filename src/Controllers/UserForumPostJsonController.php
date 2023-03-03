@@ -404,6 +404,9 @@ class UserForumPostJsonController extends Controller
 
         foreach ($forumPosts as $postsDatum) {
             $postsDatum['content'] = $this->postRepository->getFilteredPostContent($postsDatum['content']);
+            if($postsDatum['content'] == ''){
+                $postsDatum['content'] = ' ';
+            }
         }
         return response()->json($forumPosts);
     }
