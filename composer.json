@@ -21,7 +21,6 @@
     "railroad/resora": "^1.0",
     "railroad/permissions": "^1.0",
     "symfony/dom-crawler": "^5.1",
-    "staudenmeir/laravel-upsert": "^1.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^7.0",

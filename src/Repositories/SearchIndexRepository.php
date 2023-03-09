@@ -219,116 +219,116 @@ SQL;
      */
     public function createSearchIndexes()
     {
-        DB::disableQueryLog();
-
-//        $this->deleteOldIndexes();
-
-        $query = $this->postRepository->query()
-            ->from(ConfigService::$tablePosts)
-            ->join(
-                ConfigService::$tableThreads,
-                ConfigService::$tablePosts.'.thread_id',
-                '=',
-                ConfigService::$tableThreads.'.id'
-            )
-            ->select(
-                ConfigService::$tablePosts.'.content',
-                ConfigService::$tablePosts.'.thread_id',
-                ConfigService::$tablePosts.'.author_id',
-                ConfigService::$tablePosts.'.id',
-                ConfigService::$tablePosts.'.published_on'
-            )
-            ->whereNull(ConfigService::$tablePosts.'.deleted_at')
-            ->whereNull(ConfigService::$tableThreads.'.deleted_at')
-            ->whereIn(
-                ConfigService::$tablePosts.'.state',
-                ['published']
-            )
-            ->orderBy(ConfigService::$tablePosts.'.id');
-
-
-        $now =
-            Carbon::now()
-                ->toDateTimeString();
-
-        $query->chunkById(
-            500,
-            function (Collection $postsData) use (&$count, $now, &$command) {
-                $searchIndexes = [];
-                $userIds = $postsData->pluck('author_id')
-                    ->toArray();
-                $userIds = array_unique($userIds);
-                $users = $this->userProvider->getUsersByIds($userIds);
-
-                foreach ($postsData as $postData) {
-                    $author = $users[$postData->author_id] ?? null;
-                    $searchIndexes[] = [
-                        'high_value' => substr(
-                            utf8_encode($this->postRepository->getFilteredPostContent($postData->content)),
-                            0,
-                            65535
-                        ),
-                        'low_value' => $author ? $author->getDisplayName() : '',
-                        'thread_id' => $postData->thread_id,
-                        'post_id' => $postData->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                        'published_on' => $postData->published_on,
-                    ];
-                }
-
-                DB::table(ConfigService::$tableSearchIndexes)->upsert(
-                    $searchIndexes,
-                    ['thread_id', 'post_id']
-                );
-
-                usleep(3500000);
-            },
-            ConfigService::$tablePosts.'.id',
-            'id'
-        );
-
-        $threadsQuery = $this->threadRepository->query()
-            ->from(ConfigService::$tableThreads)
-            ->select(ConfigService::$tableThreads.'.*')
-            ->whereNull(ConfigService::$tableThreads.'.deleted_at')
-            ->orderBy(ConfigService::$tableThreads.'.id');
-
-        $threadsQuery->chunkById(
-            500,
-            function (Collection $threadsData) use (
-                $now
-            ) {
-                $searchIndexes = [];
-                $userIds = $threadsData->pluck('author_id')
-                    ->toArray();
-                $userIds = array_unique($userIds);
-                $users = $this->userProvider->getUsersByIds($userIds);
-
-                foreach ($threadsData as $threadData) {
-                    $author = $users[$threadData->author_id] ?? null;
-                    $searchIndexes[] = [
-                        'medium_value' => $threadData->title,
-                        'low_value' => $author ? $author->getDisplayName() : '',
-                        'thread_id' => $threadData->id,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                        'published_on' => $threadData->published_on,
-                    ];
-                }
-
-                DB::table(ConfigService::$tableSearchIndexes)->upsert(
-                    $searchIndexes,
-                    ['thread_id', 'post_id']
-                );
-
-                usleep(3500000);
-            },
-            ConfigService::$tableThreads.'.id',
-            'id'
-        );
-
-//        DB::statement('OPTIMIZE table '.ConfigService::$tableSearchIndexes);
+//        DB::disableQueryLog();
+//
+////        $this->deleteOldIndexes();
+//
+//        $query = $this->postRepository->query()
+//            ->from(ConfigService::$tablePosts)
+//            ->join(
+//                ConfigService::$tableThreads,
+//                ConfigService::$tablePosts.'.thread_id',
+//                '=',
+//                ConfigService::$tableThreads.'.id'
+//            )
+//            ->select(
+//                ConfigService::$tablePosts.'.content',
+//                ConfigService::$tablePosts.'.thread_id',
+//                ConfigService::$tablePosts.'.author_id',
+//                ConfigService::$tablePosts.'.id',
+//                ConfigService::$tablePosts.'.published_on'
+//            )
+//            ->whereNull(ConfigService::$tablePosts.'.deleted_at')
+//            ->whereNull(ConfigService::$tableThreads.'.deleted_at')
+//            ->whereIn(
+//                ConfigService::$tablePosts.'.state',
+//                ['published']
+//            )
+//            ->orderBy(ConfigService::$tablePosts.'.id');
+//
+//
+//        $now =
+//            Carbon::now()
+//                ->toDateTimeString();
+//
+//        $query->chunkById(
+//            500,
+//            function (Collection $postsData) use (&$count, $now, &$command) {
+//                $searchIndexes = [];
+//                $userIds = $postsData->pluck('author_id')
+//                    ->toArray();
+//                $userIds = array_unique($userIds);
+//                $users = $this->userProvider->getUsersByIds($userIds);
+//
+//                foreach ($postsData as $postData) {
+//                    $author = $users[$postData->author_id] ?? null;
+//                    $searchIndexes[] = [
+//                        'high_value' => substr(
+//                            utf8_encode($this->postRepository->getFilteredPostContent($postData->content)),
+//                            0,
+//                            65535
+//                        ),
+//                        'low_value' => $author ? $author->getDisplayName() : '',
+//                        'thread_id' => $postData->thread_id,
+//                        'post_id' => $postData->id,
+//                        'created_at' => $now,
+//                        'updated_at' => $now,
+//                        'published_on' => $postData->published_on,
+//                    ];
+//                }
+//
+//                DB::table(ConfigService::$tableSearchIndexes)->upsert(
+//                    $searchIndexes,
+//                    ['thread_id', 'post_id']
+//                );
+//
+//                usleep(3500000);
+//            },
+//            ConfigService::$tablePosts.'.id',
+//            'id'
+//        );
+//
+//        $threadsQuery = $this->threadRepository->query()
+//            ->from(ConfigService::$tableThreads)
+//            ->select(ConfigService::$tableThreads.'.*')
+//            ->whereNull(ConfigService::$tableThreads.'.deleted_at')
+//            ->orderBy(ConfigService::$tableThreads.'.id');
+//
+//        $threadsQuery->chunkById(
+//            500,
+//            function (Collection $threadsData) use (
+//                $now
+//            ) {
+//                $searchIndexes = [];
+//                $userIds = $threadsData->pluck('author_id')
+//                    ->toArray();
+//                $userIds = array_unique($userIds);
+//                $users = $this->userProvider->getUsersByIds($userIds);
+//
+//                foreach ($threadsData as $threadData) {
+//                    $author = $users[$threadData->author_id] ?? null;
+//                    $searchIndexes[] = [
+//                        'medium_value' => $threadData->title,
+//                        'low_value' => $author ? $author->getDisplayName() : '',
+//                        'thread_id' => $threadData->id,
+//                        'created_at' => $now,
+//                        'updated_at' => $now,
+//                        'published_on' => $threadData->published_on,
+//                    ];
+//                }
+//
+//                DB::table(ConfigService::$tableSearchIndexes)->upsert(
+//                    $searchIndexes,
+//                    ['thread_id', 'post_id']
+//                );
+//
+//                usleep(3500000);
+//            },
+//            ConfigService::$tableThreads.'.id',
+//            'id'
+//        );
+//
+////        DB::statement('OPTIMIZE table '.ConfigService::$tableSearchIndexes);
 
         return true;
     }
