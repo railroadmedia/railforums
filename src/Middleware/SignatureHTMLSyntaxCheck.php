@@ -14,7 +14,7 @@ class SignatureHTMLSyntaxCheck
         $ret = $doc->loadXML('<div>' . html_entity_decode($request->get('signature')) . '</div>');
         libxml_clear_errors();
         if (!$ret) {
-           return redirect()->back()->withErrors(['message' => 'Invalid syntax!']);
+           return redirect()->back()->with('error', 'Invalid signature. Check its syntax.');
         }
         return $next($request);
     }
