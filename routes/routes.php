@@ -88,7 +88,6 @@ Route::group(
                 )
                     ->middleware([
                         \Railroad\Railforums\Middleware\HTMLSanitization::class,
-                        \Railroad\Railforums\Middleware\SignatureHTMLSyntaxCheck::class
                     ])
                     ->name('railforums.signature.store');
 
@@ -98,7 +97,6 @@ Route::group(
                 )
                     ->middleware([
                         \Railroad\Railforums\Middleware\HTMLSanitization::class,
-                        \Railroad\Railforums\Middleware\SignatureHTMLSyntaxCheck::class
                     ])
                     ->name('railforums.signature.update');
 
