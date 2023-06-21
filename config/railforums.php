@@ -85,7 +85,10 @@ return [
                 'CSS.AllowedProperties' => 'font,font-size,font-weight,font-style,font-family,text-decoration,padding-left,color,background-color,text-align',
                 'AutoFormat.AutoParagraph' => true,
                 'AutoFormat.RemoveEmpty' => true,
-                'Cache.DefinitionImpl' => null
+                'Cache.DefinitionImpl' => null,
+                'Core.DefinitionCache' => null,
+                'Cache.SerializerPermissions' => null,
+                'Cache.SerializerPath' => null
             ],
         ],
     ],
