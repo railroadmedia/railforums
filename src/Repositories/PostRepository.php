@@ -341,7 +341,7 @@ class PostRepository extends EventDispatchingRepository
             ->select([ConfigService::$tablePosts.'.*', ConfigService::$tableThreads.'.title'])
             ->leftJoin(ConfigService::$tableThreads, ConfigService::$tableThreads.'.id', '=', ConfigService::$tablePosts.'.thread_id')
             ->leftJoin(ConfigService::$tableCategories, ConfigService::$tableThreads.'.category_id', '=', ConfigService::$tableCategories.'.id')
-            ->limit(100)
+            ->limit(10)
             ->whereNull(ConfigService::$tablePosts . '.deleted_at')
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereNull(ConfigService::$tableCategories . '.deleted_at')
