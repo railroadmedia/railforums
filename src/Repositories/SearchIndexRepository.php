@@ -264,7 +264,7 @@ SQL;
                         'high_value' => substr(
                             utf8_encode($this->postRepository->getFilteredPostContent($postData->content)),
                             0,
-                            65535
+                            10000
                         ),
                         'low_value' => $author ? $author->getDisplayName() : '',
                         'thread_id' => $postData->thread_id,
