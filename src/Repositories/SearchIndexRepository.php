@@ -226,6 +226,11 @@ SQL;
             ->limit(1)
             ->value("updated_at");
 
+        // safety in case of first run
+        if (is_null($lastUpdate)) {
+            $lastUpdate = Carbon::createFromTimestamp(0)->toDateTimeString();
+        }
+
         $postsQuery = $this->getQueryForPostSearchIndexValues($lastUpdate);
 
         $users = $this->getAuthors($postsQuery);
