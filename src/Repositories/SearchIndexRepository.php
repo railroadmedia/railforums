@@ -7,6 +7,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Railroad\Railforums\Contracts\UserProviderInterface;
+use Railroad\Railforums\Entities\User;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Queries\CachedQuery;
 use Railroad\Resora\Repositories\RepositoryBase;
@@ -225,37 +226,13 @@ SQL;
             ->limit(1)
             ->value("updated_at");
 
-        $query = $this->postRepository->newQuery()
-            ->from(ConfigService::$tablePosts)  // forum_posts
-            ->join(
-                ConfigService::$tableThreads,   // forum_threads
-                ConfigService::$tablePosts . '.thread_id',
-                '=',
-                ConfigService::$tableThreads . '.id'
-            )
-            ->select(
-                ConfigService::$tablePosts . '.content',
-                ConfigService::$tablePosts . '.thread_id',
-                ConfigService::$tablePosts . '.author_id',
-                ConfigService::$tablePosts . '.id',
-                ConfigService::$tablePosts . '.published_on'
-            )
-            ->whereDate(ConfigService::$tablePosts . ".updated_at", ">=", $lastUpdate)
-            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
-            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-            ->whereIn(
-                ConfigService::$tablePosts . '.state',
-                ['published']
-            )
-            ->orderBy(ConfigService::$tablePosts . '.id');
+        $postsQuery = $this->getQueryForPostSearchIndexValues($lastUpdate);
 
-        $now =
-            Carbon::now()
-                ->toDateTimeString();
+        $users = $this->getAuthors($postsQuery);
 
-        $users = $this->getAuthors($query);
+        $now = Carbon::now()->toDateTimeString();
 
-        $query->chunkById(
+        $postsQuery->chunkById(
             2000,
             function (Collection $postsData) use ($now, $users) {
                 $searchIndexes = [];
@@ -289,16 +266,7 @@ SQL;
             'id'
         );
 
-        $threadsQuery = $this->threadRepository->newQuery()
-            ->from(ConfigService::$tableThreads)
-            ->select(ConfigService::$tableThreads . '.id',
-                ConfigService::$tableThreads . '.title',
-                ConfigService::$tableThreads . '.author_id',
-                ConfigService::$tableThreads . '.published_on'
-            )
-            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
-            ->whereDate(ConfigService::$tableThreads . ".updated_at", ">=", $lastUpdate)
-            ->orderBy(ConfigService::$tableThreads . '.id');
+        $threadsQuery = $this->getQueryForThreadSearchIndexValues($lastUpdate);
 
         $threadsQuery->chunkById(
             2000,
@@ -336,10 +304,69 @@ SQL;
         );
     }
 
+    /**
+     * Build up the query to get the data required for Post search index entries
+     *
+     * @param Carbon|String $lastUpdate
+     * @return PostRepository|CachedQuery
+     */
+    protected function getQueryForPostSearchIndexValues(Carbon|String $lastUpdate): PostRepository|CachedQuery
+    {
+        return $this->postRepository->newQuery()
+            ->from(ConfigService::$tablePosts)
+            ->join(
+                ConfigService::$tableThreads,
+                ConfigService::$tablePosts . '.thread_id',
+                '=',
+                ConfigService::$tableThreads . '.id'
+            )
+            ->select(
+                ConfigService::$tablePosts . '.content',
+                ConfigService::$tablePosts . '.thread_id',
+                ConfigService::$tablePosts . '.author_id',
+                ConfigService::$tablePosts . '.id',
+                ConfigService::$tablePosts . '.published_on'
+            )
+            ->where(ConfigService::$tablePosts . ".updated_at", ">=", $lastUpdate)
+            ->whereNull(ConfigService::$tablePosts . '.deleted_at')
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->whereIn(
+                ConfigService::$tablePosts . '.state',
+                ['published']
+            )
+            ->orderBy(ConfigService::$tablePosts . '.id');
+    }
+
+    /**
+     * Build up the query to get the data required for Thread search index entries
+     *
+     * @param Carbon|String $lastUpdate
+     * @return ThreadRepository|CachedQuery
+     */
+    protected function getQueryForThreadSearchIndexValues(Carbon|String $lastUpdate): ThreadRepository|CachedQuery
+    {
+        return $this->threadRepository->newQuery()
+            ->from(ConfigService::$tableThreads)
+            ->select(ConfigService::$tableThreads . '.id',
+                ConfigService::$tableThreads . '.title',
+                ConfigService::$tableThreads . '.author_id',
+                ConfigService::$tableThreads . '.published_on'
+            )
+            ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->where(ConfigService::$tableThreads . ".updated_at", ">=", $lastUpdate)
+            ->orderBy(ConfigService::$tableThreads . '.id');
+    }
+
+    /**
+     * Get an array of the User models for all unique Post authors
+     *
+     * @param CachedQuery $query
+     * @return User[]
+     */
     protected function getAuthors(CachedQuery $query): array
     {
         $key = "author_id";
-        $column = ConfigService::$tablePosts . ".{$key}";
+        $column = ConfigService::$tablePosts . ".$key";
         $usersQuery = $query->cloneWithout(["orders"]);
 
         $userIds = $usersQuery
@@ -348,6 +375,7 @@ SQL;
             ->distinct()
             ->get()
             ->pluck($key);
+
         return $this->userProvider->getUsersByIds($userIds->toArray());
     }
 
