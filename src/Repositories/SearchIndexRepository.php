@@ -13,24 +13,20 @@ use Railroad\Resora\Repositories\RepositoryBase;
 
 class SearchIndexRepository extends RepositoryBase
 {
-    const SEARCH_TYPE_POSTS = 'posts';
-    const SEARCH_TYPE_THREADS = 'threads';
-    const SEARCH_TYPE_FOLLOWED_THREADS = 'followed';
-
     /**
      * @var PostRepository
      */
-    protected $postRepository;
+    protected PostRepository $postRepository;
 
     /**
      * @var ThreadRepository
      */
-    protected $threadRepository;
+    protected ThreadRepository $threadRepository;
 
     /**
      * @var UserProviderInterface
      */
-    private $userProvider;
+    private UserProviderInterface $userProvider;
 
 
     public function __construct(
@@ -44,9 +40,9 @@ class SearchIndexRepository extends RepositoryBase
     }
 
     /**
-     * @return CachedQuery|$this
+     * @return CachedQuery
      */
-    protected function newQuery()
+    protected function newQuery(): CachedQuery
     {
         return (new CachedQuery($this->connection()))->from(ConfigService::$tableSearchIndexes);
     }
@@ -66,7 +62,7 @@ class SearchIndexRepository extends RepositoryBase
      *
      * @return array
      */
-    public function search($term, $page, $limit, $sort)
+    public function search(string $term, int $page, int $limit, string $sort): array
     {
         $highMultiplier = config('railforums.search.high_value_multiplier');
         $mediumMultiplier = config('railforums.search.medium_value_multiplier');
@@ -121,7 +117,7 @@ SQL;
      *
      * @return array
      */
-    public function getSearchContentResults(Collection $searchResults)
+    public function getSearchContentResults(Collection $searchResults): array
     {
         $postsIds = []; // key is post id, value is position in searchResults
         $threadsIds = []; // key is thread id, value is an array with positions of the posts in searchResults
@@ -164,7 +160,7 @@ SQL;
      *
      * @return int
      */
-    public function countTotalResults($term)
+    public function countTotalResults(string $term): int
     {
         return $this->getSearchQuery($term)->count();
     }
@@ -174,9 +170,9 @@ SQL;
      *
      * @param string $term
      *
-     * @return Builder
+     * @return CachedQuery|Builder
      */
-    protected function getSearchQuery($term)
+    protected function getSearchQuery(string $term): CachedQuery|Builder
     {
         $query = $this->newQuery();
 
@@ -205,7 +201,7 @@ SQL;
      *
      * @return string
      */
-    protected function getPrefixedTerms($term)
+    protected function getPrefixedTerms(string $term): string
     {
         return $term ? '+' . implode(' +', explode(' ', $term)) : $term;
     }
@@ -217,14 +213,22 @@ SQL;
      *
      * @return void
      */
-    public function createSearchIndexes($brand)
+    public function createSearchIndexes(): void
     {
         DB::disableQueryLog();
 
+        // figure out when the last update was done, so we can scope the query
+        $lastUpdate = DB::connection(ConfigService::$databaseConnectionName)
+            ->table(ConfigService::$tableSearchIndexes)
+            ->select("updated_at")
+            ->orderByDesc("updated_at")
+            ->limit(1)
+            ->value("updated_at");
+
         $query = $this->postRepository->newQuery()
-            ->from(ConfigService::$tablePosts)
+            ->from(ConfigService::$tablePosts)  // forum_posts
             ->join(
-                ConfigService::$tableThreads,
+                ConfigService::$tableThreads,   // forum_threads
                 ConfigService::$tablePosts . '.thread_id',
                 '=',
                 ConfigService::$tableThreads . '.id'
@@ -236,6 +240,7 @@ SQL;
                 ConfigService::$tablePosts . '.id',
                 ConfigService::$tablePosts . '.published_on'
             )
+            ->whereDate(ConfigService::$tablePosts . ".updated_at", ">=", $lastUpdate)
             ->whereNull(ConfigService::$tablePosts . '.deleted_at')
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereIn(
@@ -244,29 +249,26 @@ SQL;
             )
             ->orderBy(ConfigService::$tablePosts . '.id');
 
-
         $now =
             Carbon::now()
                 ->toDateTimeString();
 
+        $users = $this->getAuthors($query);
+
         $query->chunkById(
             2000,
-            function (Collection $postsData) use (&$count, $now, &$command) {
+            function (Collection $postsData) use ($now, $users) {
                 $searchIndexes = [];
-                $userIds = $postsData->pluck('author_id')
-                    ->toArray();
-                $userIds = array_unique($userIds);
-                $users = $this->userProvider->getUsersByIds($userIds);
-
                 foreach ($postsData as $postData) {
                     $author = $users[$postData->author_id] ?? null;
+
                     $searchIndexes[] = [
                         'high_value' => substr(
                             utf8_encode($this->postRepository->getFilteredPostContent($postData->content)),
                             0,
                             65535
                         ),
-                        'low_value' => $author ? $author->getDisplayName() : '',
+                        'low_value' => $author?->getDisplayName() ?? '',
                         'thread_id' => $postData->thread_id,
                         'post_id' => $postData->id,
                         'created_at' => $now,
@@ -289,19 +291,19 @@ SQL;
 
         $threadsQuery = $this->threadRepository->newQuery()
             ->from(ConfigService::$tableThreads)
-            ->select(ConfigService::$tableThreads . '.*')
+            ->select(ConfigService::$tableThreads . '.id',
+                ConfigService::$tableThreads . '.title',
+                ConfigService::$tableThreads . '.author_id',
+                ConfigService::$tableThreads . '.published_on'
+            )
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
+            ->whereDate(ConfigService::$tableThreads . ".updated_at", ">=", $lastUpdate)
             ->orderBy(ConfigService::$tableThreads . '.id');
 
         $threadsQuery->chunkById(
             2000,
-            function (Collection $threadsData) use ($now) {
+            function (Collection $threadsData) use ($now, $users) {
                 $searchIndexes = [];
-                $userIds = $threadsData->pluck('author_id')
-                    ->toArray();
-                $userIds = array_unique($userIds);
-                $users = $this->userProvider->getUsersByIds($userIds);
-
                 foreach ($threadsData as $threadData) {
                     $author = $users[$threadData->author_id] ?? null;
                     $searchIndexes[] = [
@@ -314,25 +316,45 @@ SQL;
                     ];
                 }
 
-                DB::connection(ConfigService::$databaseConnectionName)
-                    ->table(ConfigService::$tableSearchIndexes)
-                    ->upsert(
-                        $searchIndexes,
-                        ['thread_id', 'post_id']
-                    );
+                // perform the updateOrInsert inside a transaction, so we can push all of these in one transaction
+                // instead of causing A LOT of connections
+                DB::transaction(function () use ($searchIndexes) {
+                    foreach ($searchIndexes as $searchIndex) {
+                        DB::connection(ConfigService::$databaseConnectionName)
+                            ->table(ConfigService::$tableSearchIndexes)
+                            ->updateOrInsert(
+                                ["thread_id" => $searchIndex["thread_id"], "post_id" => null],
+                                $searchIndex
+                            );
+                    }
+                });
+
                 usleep(250000); //delay 250 ms to reduce load
             },
             ConfigService::$tableThreads . '.id',
             'id'
         );
+    }
 
-        return true;
+    protected function getAuthors(CachedQuery $query): array
+    {
+        $key = "author_id";
+        $column = ConfigService::$tablePosts . ".{$key}";
+        $usersQuery = $query->cloneWithout(["orders"]);
+
+        $userIds = $usersQuery
+            ->select($column)
+            ->orderBy($column)
+            ->distinct()
+            ->get()
+            ->pluck($key);
+        return $this->userProvider->getUsersByIds($userIds->toArray());
     }
 
     /**
      * Delete old indexes
      */
-    protected function deleteOldIndexes()
+    protected function deleteOldIndexes(): void
     {
         $this->query()->truncate();
     }
