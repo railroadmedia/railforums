@@ -14,7 +14,7 @@ class CreateSearchIndexes extends Command
      *
      * @var string
      */
-    protected $signature = 'forums:rebuildSearchIndexes';
+    protected $signature = 'forums:rebuildSearchIndexes {--fresh}';
 
     /**
      * The console command description.
@@ -43,7 +43,7 @@ class CreateSearchIndexes extends Command
                 config()->set('railforums.brand', $brand);
 
                 $this->info('Starting forums search indexes for: ' . $brand);
-                $searchIndexRepository->createSearchIndexes($brand);
+                $searchIndexRepository->rebuildSearchIndexes($this->option('fresh'));
                 $this->info('Finished forums search indexes for: ' . $brand);
             }
         }
