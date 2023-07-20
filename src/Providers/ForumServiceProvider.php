@@ -5,6 +5,7 @@ namespace Railroad\Railforums\Providers;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider;
 use Railroad\Railforums\Commands\CreateSearchIndexes;
 use Railroad\Railforums\Commands\PopulateLastPostOnForums;
+use Railroad\Railforums\Commands\ProfileSearchIndexes;
 use Railroad\Railforums\Decorators\PostUserDecorator;
 use Railroad\Railforums\Decorators\ThreadUserDecorator;
 use Railroad\Railforums\EventListeners\ThreadEventListener;
@@ -53,7 +54,8 @@ class ForumServiceProvider extends EventServiceProvider
 
         $this->commands([
             CreateSearchIndexes::class,
-            PopulateLastPostOnForums::class
+            PopulateLastPostOnForums::class,
+            ProfileSearchIndexes::class
         ]);
 
         parent::boot();

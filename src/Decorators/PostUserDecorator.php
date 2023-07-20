@@ -57,11 +57,11 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
             foreach ($posts as $postIndex => $post) {
                 $posts[$postIndex]['published_on_formatted'] =
                     Carbon::parse($post['published_on'])
-                        ->timezone($currentUser->getTimezone())
+                        ->timezone($currentUser?->getTimezone() ?? 'America/Los_Angeles')
                         ->format('M j, Y') .
                     ' AT ' .
                     Carbon::parse($post['published_on'])
-                        ->timezone($currentUser->getTimezone())
+                        ->timezone($currentUser?->getTimezone() ?? 'America/Los_Angeles')
                         ->format('g:i A');
                 $posts[$postIndex]['published_on_formatted'] =  $posts[$postIndex]['created_at_diff'] = Carbon::parse($posts[$postIndex]['created_at'])
                                         ->diffForHumans();
@@ -126,11 +126,11 @@ class PostUserDecorator extends ModeDecoratorBase implements DecoratorInterface
 
             $posts[$postIndex]['published_on_formatted'] =
                 Carbon::parse($post['published_on'])
-                    ->timezone($currentUser->getTimezone())
+                    ->timezone($currentUser?->getTimezone() ?? 'America/Los_Angeles')
                     ->format('M j, Y') .
                 ' AT ' .
                 Carbon::parse($post['published_on'])
-                    ->timezone($currentUser->getTimezone())
+                    ->timezone($currentUser?->getTimezone() ?? 'America/Los_Angeles')
                     ->format('g:i A');
 
             $posts[$postIndex]['is_liked_by_viewer'] =
