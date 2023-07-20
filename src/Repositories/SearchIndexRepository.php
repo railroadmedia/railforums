@@ -427,7 +427,11 @@ SQL;
             ->get()
             ->pluck($key);
 
-        return $this->userProvider->getUsersByIds($userIds->toArray());
+        $users = collect();
+        foreach ($userIds->chunk(1000) as $chunk) {
+            $users->push($this->userProvider->getUsersByIds($chunk->all()));
+        }
+        return $users->flatten()->toArray();
     }
 
     /**
