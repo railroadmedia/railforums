@@ -86,12 +86,18 @@ Route::group(
                     'signature/store',
                     \Railroad\Railforums\Controllers\UserForumSignaturesController::class.'@store'
                 )
+                    ->middleware([
+                        \Railroad\Railforums\Middleware\HTMLSanitization::class,
+                    ])
                     ->name('railforums.signature.store');
 
                 Route::patch(
                     'signature/update/{id}',
                     \Railroad\Railforums\Controllers\UserForumSignaturesController::class.'@update'
                 )
+                    ->middleware([
+                        \Railroad\Railforums\Middleware\HTMLSanitization::class,
+                    ])
                     ->name('railforums.signature.update');
 
                 Route::delete(

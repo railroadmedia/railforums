@@ -125,11 +125,15 @@ Route::group(
         Route::put(
             'signature/store',
             \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@store'
-        );
+        )->middleware([
+            \Railroad\Railforums\Middleware\HTMLSanitization::class,
+        ]);
         Route::patch(
             'signature/update/{id}',
             \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@update'
-        );
+        )->middleware([
+            \Railroad\Railforums\Middleware\HTMLSanitization::class,
+        ]);
         Route::delete(
             'signature/delete/{id}',
             \Railroad\Railforums\Controllers\UserForumSignaturesJsonController::class . '@delete'
