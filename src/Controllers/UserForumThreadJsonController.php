@@ -286,19 +286,7 @@ class UserForumThreadJsonController extends Controller
             'updated_at' => $now,
         ]);
 
-        $threads = $this->threadRepository->getDecoratedThreadsByIds([$thread->id]);
-        $thread = $threads->first();
-
-        $allThreadsdsInCategory = collect(
-            $this->threadRepository->getAllThreadIdsInCategory($thread['category_id'])
-        )
-            ->pluck('id')
-            ->all();
-        $threadPositionInCategory = array_search($thread['id'], $allThreadsdsInCategory);
-
-        $thread['page'] = ceil(($threadPositionInCategory + 1) / 10);
-
-        return response()->json($thread);
+        return $this->show($thread->id, $request);
     }
 
     /**
