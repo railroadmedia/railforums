@@ -286,6 +286,8 @@ class UserForumThreadJsonController extends Controller
             'updated_at' => $now,
         ]);
 
+        return $this->show($thread->id, $request);
+
         $threads = $this->threadRepository->getDecoratedThreadsByIds([$thread->id]);
         $thread = $threads->first();
 
