@@ -185,6 +185,23 @@ class UserForumThreadJsonController extends Controller
 
         PostRepository::$blockedUserIds =  $this->userProvider->getBlockedUsers();
 
+        if($request->get('tabs', false)  || $request->get('tab')){
+            $tabs = $request->get('tabs',$request->get('tab'));
+
+            if(!is_array($request->get('tabs', $request->get('tab')))){
+                $tabs = [$request->get('tabs',$request->get('tab'))];
+            }
+
+            foreach($tabs as $tab) {
+                $extra = explode(',', $tab);
+                if ($extra['0'] == 'followed') {
+                    $followed = (boolean)$extra['1'];
+                }elseif ($extra['0'] == 'all') {
+                    $followed = null;
+                }
+            }
+        }
+
         $pinnedThreads = $this->threadRepository->getDecoratedThreads(
             $amount,
             $page,
