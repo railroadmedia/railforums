@@ -48,6 +48,14 @@ class JsonPaginatedResponse implements Responsable
             'page' => $request->get('page', 1),
             'limit' => $request->get('amount', 10),
             'total_results' => $this->totalResults,
+            'data' =>
+                $this->results,
+                'meta' => [
+                    'totalResults' => $this->totalResults,
+                    'page' => $request->get('page', 1),
+                    'limit' => $request->get('amount', 10),
+                    'filterOptions' => [],
+                ],
             'results' => $this->results,
             'filter_options' => $this->filterOptions,
         ];
