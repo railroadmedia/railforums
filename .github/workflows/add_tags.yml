@@ -1,0 +1,12 @@
+name: Add Tags
+
+on:
+  push:
+    branches:
+      - v2.0
+
+jobs:
+  auto-tag:
+    uses: railroadmedia/docusora/.github/workflows/add_tags.yml@main
+    with:
+      version: "2.0"
