@@ -89,11 +89,12 @@ class UserForumPostJsonController extends Controller
     }
 
     /**
-     * @param integer $id
-     *
+     * @param $id
+     * @param Request $request
      * @return JsonResponse
+     * @throws \Railroad\Permissions\Exceptions\NotAllowedException
      */
-    public function report($id)
+    public function report($id, Request $request)
     {
         $this->permissionService->canOrThrow(auth()->id(), 'report-posts');
 
@@ -114,6 +115,7 @@ class UserForumPostJsonController extends Controller
                                                   'created_at' => $now,
                                                   'updated_at' => $now,
                                               ]);
+        $data = array_merge($post->getArrayCopy(), ['issue' => $request->get('issue')]);
 
         (new AnonymousNotifiable)->route(
             ConfigService::$postReportNotificationChannel,
@@ -121,7 +123,7 @@ class UserForumPostJsonController extends Controller
         )
             ->notify(
                 new ConfigService::$postReportNotificationClass(
-                    $post->getArrayCopy()
+                    $data
                 )
             );
 
