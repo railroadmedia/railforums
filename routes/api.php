@@ -3,7 +3,7 @@
 Route::group(
     [
         'prefix' => 'forums/api/',
-        'middleware' => config('railforums.api_middleware',[]),
+        'middleware' => config('railforums.api_middleware',config('railcontent.api_middleware',[])),
     ],
     function () {
         // thread api
