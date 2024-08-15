@@ -287,7 +287,7 @@ class ThreadRepository extends EventDispatchingRepository
                 'is_followed'
             )
             ->groupBy(ConfigService::$tableThreads . '.id', ConfigService::$tableCategories.'.slug', ConfigService::$tableCategories.'.title')
-            ->havingNotNull(['last_post_id'])
+            ->havingNotNull([ConfigService::$tableCategories . '.last_post_id'])
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
     }

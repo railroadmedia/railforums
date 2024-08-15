@@ -14,21 +14,23 @@ class ChangeSearchIndexHighValueToText extends Migration
      */
     public function up()
     {
-        foreach (config('railforums.brand_database_connection_names') as $brand => $dbConnectionName) {
-            $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
+        if (config('database.connections.' . config('database.default') . '.database') != ':memory:') {
+            foreach (config('railforums.brand_database_connection_names') as $brand => $dbConnectionName) {
+                $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
 
-            Schema::connection($railforumsConnectionName)
-                ->table(
-                    ConfigService::$tableSearchIndexes,
-                    function (Blueprint $table) use($railforumsConnectionName) {
-                        DB::connection($railforumsConnectionName)
-                            ->statement(
-                                'ALTER TABLE ' .
-                                ConfigService::$tableSearchIndexes .
-                                ' MODIFY high_value TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL;'
-                            );
-                    }
-                );
+                Schema::connection($railforumsConnectionName)
+                    ->table(
+                        ConfigService::$tableSearchIndexes,
+                        function (Blueprint $table) use ($railforumsConnectionName) {
+                            DB::connection($railforumsConnectionName)
+                                ->statement(
+                                    'ALTER TABLE ' .
+                                    ConfigService::$tableSearchIndexes .
+                                    ' MODIFY high_value TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL;'
+                                );
+                        }
+                    );
+            }
         }
     }
 
@@ -39,20 +41,22 @@ class ChangeSearchIndexHighValueToText extends Migration
      */
     public function down()
     {
-        foreach (config('railforums.brand_database_connection_names') as $brand => $dbConnectionName) {
-            $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
-            Schema::connection($railforumsConnectionName)
-                ->table(
-                    ConfigService::$tableSearchIndexes,
-                    function (Blueprint $table) use($railforumsConnectionName) {
-                        DB::connection($railforumsConnectionName)
-                            ->statement(
-                                'ALTER TABLE ' .
-                                ConfigService::$tableSearchIndexes .
-                                ' MODIFY `high_value` `high_value` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL;'
-                            );
-                    }
-                );
+        if (config('database.connections.' . config('database.default') . '.database') != ':memory:') {
+            foreach (config('railforums.brand_database_connection_names') as $brand => $dbConnectionName) {
+                $railforumsConnectionName = config('railforums.brand_database_connection_names')[$brand];
+                Schema::connection($railforumsConnectionName)
+                    ->table(
+                        ConfigService::$tableSearchIndexes,
+                        function (Blueprint $table) use ($railforumsConnectionName) {
+                            DB::connection($railforumsConnectionName)
+                                ->statement(
+                                    'ALTER TABLE ' .
+                                    ConfigService::$tableSearchIndexes .
+                                    ' MODIFY `high_value` `high_value` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL;'
+                                );
+                        }
+                    );
+            }
         }
     }
 }

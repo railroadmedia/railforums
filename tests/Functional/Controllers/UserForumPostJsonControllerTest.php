@@ -3,7 +3,6 @@
 namespace Tests;
 
 use Carbon\Carbon;
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\Notifications\PostReport;
 use Illuminate\Support\Facades\Notification;
@@ -12,8 +11,6 @@ use Railroad\Permissions\Exceptions\NotAllowedException;
 
 class UserForumPostJsonControllerTest extends TestCase
 {
-    use ArraySubsetAsserts;
-
     const API_PREFIX = '/forums';
 
     protected function setUp(): void

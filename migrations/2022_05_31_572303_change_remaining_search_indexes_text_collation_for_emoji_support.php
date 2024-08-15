@@ -14,7 +14,7 @@ class ChangeRemainingSearchIndexesTextCollationForEmojiSupport extends Migration
      */
     public function up()
     {
-        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
+        if (config('database.connections.' . config('database.default') . '.database') != ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(
                     ConfigService::$tableSearchIndexes,
@@ -45,7 +45,7 @@ class ChangeRemainingSearchIndexesTextCollationForEmojiSupport extends Migration
      */
     public function down()
     {
-        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
+        if (config('database.connections.' . config('database.default') . '.database') != ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->table(
                     ConfigService::$tablePosts,

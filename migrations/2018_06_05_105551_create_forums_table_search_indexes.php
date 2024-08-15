@@ -14,8 +14,6 @@ class CreateForumsTableSearchIndexes extends Migration
      */
     public function up()
     {
-        if (config('database.connections.' . config('database.default') . '.database') === ':memory:') {
-
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->create(
                     ConfigService::$tableSearchIndexes,
@@ -35,6 +33,7 @@ class CreateForumsTableSearchIndexes extends Migration
                     }
                 );
 
+        if (config('database.connections.' . config('database.default') . '.database') != ':memory:') {
             Schema::connection(ConfigService::$databaseConnectionName)
                 ->getConnection()
                 ->getPdo()

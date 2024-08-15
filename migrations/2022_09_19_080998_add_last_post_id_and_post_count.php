@@ -38,6 +38,7 @@ class AddLastPostIdAndPostCount extends Migration
             if(Schema::connection($railforumsConnectionName)->hasColumn(ConfigService::$tableThreads, 'post_count')) {
                 Schema::connection($railforumsConnectionName)
                     ->table(ConfigService::$tableThreads, function (Blueprint $table) {
+                        $table->dropIndex('forum_threads_post_count_index');
                         $table->dropColumn('post_count');
                     });
             }

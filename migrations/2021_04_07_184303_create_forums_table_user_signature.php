@@ -20,7 +20,7 @@ class CreateForumsTableUserSignature extends Migration
                 function (Blueprint $table) {
                     $table->increments('id');
                     $table->integer('user_id')->unsigned();
-                    $table->text('signature')->collation('utf8_unicode_ci');
+                    $table->text('signature');
                     $table->string('brand')->nullable();
 
                     $table->timestamps();

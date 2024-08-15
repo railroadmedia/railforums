@@ -87,4 +87,9 @@ class UserProvider implements UserProviderInterface
     {
         return [];
     }
+
+    public function getBlockedUsers(): ?array
+    {
+        return [];
+    }
 }
