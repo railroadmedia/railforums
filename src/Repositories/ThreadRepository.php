@@ -2,10 +2,10 @@
 
 namespace Railroad\Railforums\Repositories;
 
-use DB;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Events\ThreadUpdated;
@@ -162,7 +162,8 @@ class ThreadRepository extends EventDispatchingRepository
         if($orderByColumn == 'last_post_published_on'){
             $orderByColumn = 'last_post_id';
         }
-        $query->orderByRaw($orderByColumn . ' ' . $orderByDirection . ', id desc');
+
+        $query->orderBy(DB::raw($orderByColumn . ' ' . $orderByDirection . ', id'), 'desc');
 
         return $query->get();
     }
@@ -248,7 +249,8 @@ class ThreadRepository extends EventDispatchingRepository
             ->select(
                 ConfigService::$tableThreads . '.*',
                 ConfigService::$tableCategories . '.slug as category_slug',
-                ConfigService::$tableCategories . '.title as category'
+                ConfigService::$tableCategories . '.title as category',
+                ConfigService::$tableCategories . '.last_post_id as category_last_post_id',
             )
             ->join(
                 ConfigService::$tableCategories,
