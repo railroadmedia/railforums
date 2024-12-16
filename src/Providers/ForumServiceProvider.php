@@ -36,6 +36,8 @@ class ForumServiceProvider extends EventServiceProvider
      */
     public function boot()
     {
+        parent::boot();
+
         // publish config file
         $this->publishes(
             [
@@ -57,17 +59,6 @@ class ForumServiceProvider extends EventServiceProvider
             PopulateLastPostOnForums::class,
             ProfileSearchIndexes::class
         ]);
-
-        parent::boot();
-    }
-
-    /**
-     * Register the application services.
-     *
-     * @return void
-     */
-    public function register()
-    {
     }
 
     /**
