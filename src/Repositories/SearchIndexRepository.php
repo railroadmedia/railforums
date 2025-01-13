@@ -71,6 +71,7 @@ class SearchIndexRepository extends RepositoryBase
 
         $table = ConfigService::$tableSearchIndexes;
 
+        $term = str_replace("'", "''", $term); //Fix sort with quote
         $termsWithPrefix = $this->getPrefixedTerms($term);
 
         $scoreSql = <<<SQL
@@ -163,6 +164,7 @@ SQL;
      */
     public function countTotalResults(string $term): int
     {
+        $term = str_replace("'", "''", $term); //Fix sort with quote
         return $this->getSearchQuery($term)->count();
     }
 
