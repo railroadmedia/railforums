@@ -88,6 +88,9 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function getDecoratedThreadsByIds($ids)
     {
+        if (count($ids) == 0) {
+            return collect();
+        }
         return $this->getDecoratedQuery()
             ->whereIn(ConfigService::$tableThreads . '.id', $ids)
             ->get();
