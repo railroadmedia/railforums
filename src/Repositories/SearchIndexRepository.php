@@ -147,6 +147,14 @@ SQL;
 
         $results = [];
         foreach ($searchResults as $key => $searchResult) {
+            if (!isset($postsData[$searchResult->post_id])) {
+                \Log::warning("Post $searchResult->post_id not found");
+                continue;
+            }
+            if (!isset($threadsData[$searchResult->thread_id])) {
+                \Log::warning("Thread $searchResult->thread_id not found");
+                continue;
+            }
             $results[$key] = $postsData[$searchResult->post_id];
             $results[$key]['mobile_app_url'] = url()->route('forums.api.post.jump-to', $searchResult->post_id);
             $results[$key]['thread'] = $threadsData[$searchResult->thread_id];
