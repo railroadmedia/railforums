@@ -46,4 +46,8 @@ interface UserProviderInterface
      * @return array|null
      */
     public function getBlockedUsers(): ?array;
+
+    public function getUserPermissionIds();
+    public function isAdmin();
+
 }
