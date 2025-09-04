@@ -3,6 +3,8 @@
 namespace Railroad\Railforums\Repositories;
 
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Decorators\DiscussionDecorator;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Resora\Queries\BaseQuery;
@@ -16,13 +18,60 @@ class CategoryRepository extends EventDispatchingRepository
     private $discussionDecorator;
 
     /**
+     * @var UserProviderInterface
+     */
+    private $userProvider;
+
+    /**
      * CategoryRepository constructor.
      *
      * @param DiscussionDecorator $discussionDecorator
      */
-    public function __construct(DiscussionDecorator $discussionDecorator)
-    {
+    public function __construct(
+        DiscussionDecorator $discussionDecorator,
+        UserProviderInterface $userProvider
+    ) {
         $this->discussionDecorator = $discussionDecorator;
+        $this->userProvider = $userProvider;
+    }
+
+    // Override the read method from EventDispatchingRepository
+    public function read($attributes)
+    {
+        // First get the category using the parent's read method
+        $entity = parent::read($attributes);
+
+        // If category doesn't exist, return null
+        if (!$entity) {
+            return null;
+        }
+
+        // Check if user is admin - admins can access all categories
+        $isAdmin = $this->userProvider->isAdmin();
+        if ($isAdmin) {
+            return $entity;
+        }
+
+        // Get user's permission IDs
+        $userPermissionIds = $this->userProvider->getUserPermissionIds();
+
+        // Check if category has no permissions required
+        $noPermissionsRequired = !$this->connection()->table('forum_categories_permissions')
+            ->where('forum_category_id', $entity->id)
+            ->exists();
+
+        if ($noPermissionsRequired) {
+            return $entity; // Return category if no permissions are required
+        }
+
+        // Check if user has at least one required permission
+        $hasPermission = $this->connection()->table('forum_categories_permissions')
+            ->where('forum_category_id', $entity->id)
+            ->whereIn('permission_id', $userPermissionIds)
+            ->exists();
+
+        // Return the entity only if user has permission, otherwise null
+        return $hasPermission ? $entity : null;
     }
 
     /**
@@ -55,7 +104,10 @@ class CategoryRepository extends EventDispatchingRepository
                     ConfigService::$tableCategories . '.brand',
                     config('railforums.brand')
                 )
-                ->whereNotIn(ConfigService::$tableCategories . '.id', config('railforums.excludedOldForumsIds.'.config('railforums.brand'), []));
+                ->whereNotIn(
+                    ConfigService::$tableCategories . '.id',
+                    config('railforums.excludedOldForumsIds.' . config('railforums.brand'), [])
+                );
 
         if ($amount) {
             $query =
@@ -93,9 +145,31 @@ class CategoryRepository extends EventDispatchingRepository
      */
     public function getDecoratedQuery()
     {
-        return $this->query()
+        $query = $this->query()
             ->select(ConfigService::$tableCategories . '.*')
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
+
+        $isAdmin = $this->userProvider->isAdmin();
+        if ($isAdmin) {
+            return $query;
+        }
+        $userIds = $this->userProvider->getUserPermissionIds();
+        $categoriesTable = ConfigService::$tableCategories;
+        return $query->where(function ($query) use ($userIds, $categoriesTable) {
+            // Include categories that don't require any permissions
+            $query->whereNotExists(function ($subquery) use ($categoriesTable) {
+                $subquery->select(DB::raw(1))
+                    ->from('forum_categories_permissions')
+                    ->whereColumn('forum_categories_permissions.forum_category_id', "$categoriesTable.id");
+            })
+                // OR include categories where the user has at least one of the required permissions
+                ->orWhereExists(function ($subquery) use ($userIds, $categoriesTable) {
+                    $subquery->select(DB::raw(1))
+                        ->from('forum_categories_permissions')
+                        ->whereColumn('forum_categories_permissions.forum_category_id', "$categoriesTable.id")
+                        ->whereIn('forum_categories_permissions.permission_id', $userIds);
+                });
+        });
     }
 
     /**
@@ -107,9 +181,11 @@ class CategoryRepository extends EventDispatchingRepository
      */
     public function getDecoratedCategoriesByIds($ids)
     {
-        return $this->discussionDecorator->decorate($this->getDecoratedQuery()
-            ->whereIn(ConfigService::$tableCategories . '.id', $ids)
-            ->get());
+        return $this->discussionDecorator->decorate(
+            $this->getDecoratedQuery()
+                ->whereIn(ConfigService::$tableCategories . '.id', $ids)
+                ->get()
+        );
     }
 
     /**
@@ -166,7 +242,7 @@ class CategoryRepository extends EventDispatchingRepository
      */
     public function calculateLastPostId($discussionId)
     {
-        return  $this->baseQuery()
+        return $this->baseQuery()
             ->from(ConfigService::$tablePosts . ' as p')
             ->join(ConfigService::$tableThreads . ' as t', 't.id', '=', 'p.thread_id')
             ->select(

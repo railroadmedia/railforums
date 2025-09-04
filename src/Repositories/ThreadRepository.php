@@ -6,6 +6,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Railroad\Railforums\Contracts\UserProviderInterface;
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Events\ThreadUpdated;
@@ -22,6 +23,13 @@ class ThreadRepository extends EventDispatchingRepository
     const CHUNK_SIZE = 1000;
 
     public static $onlyMine = false;
+
+    private UserProviderInterface $userProvider;
+
+    public function __construct(UserProviderInterface $userProvider)
+    {
+        $this->userProvider = $userProvider;
+    }
 
     public function getCreateEvent($entity)
     {
@@ -248,7 +256,7 @@ class ThreadRepository extends EventDispatchingRepository
      */
     public function getDecoratedQuery()
     {
-        return $this->query()
+        $query = $this->query()
             ->select(
                 ConfigService::$tableThreads . '.*',
                 ConfigService::$tableCategories . '.slug as category_slug',
@@ -295,6 +303,29 @@ class ThreadRepository extends EventDispatchingRepository
             ->havingNotNull([ConfigService::$tableCategories . '.last_post_id'])
             ->whereNull(ConfigService::$tableThreads . '.deleted_at')
             ->whereNull(ConfigService::$tableCategories . '.deleted_at');
+
+
+        $isAdmin = $this->userProvider->isAdmin();
+        if ($isAdmin) {
+            return $query;
+        }
+        $userIds = $this->userProvider->getUserPermissionIds();
+        $categoriesTable = ConfigService::$tableCategories;
+        return $query->where(function ($query) use ($userIds, $categoriesTable) {
+            // Include categories that don't require any permissions
+            $query->whereNotExists(function ($subquery) use ($categoriesTable) {
+                $subquery->select(DB::raw(1))
+                    ->from('forum_categories_permissions')
+                    ->whereColumn('forum_categories_permissions.forum_category_id', "$categoriesTable.id");
+            })
+                // OR include categories where the user has at least one of the required permissions
+                ->orWhereExists(function ($subquery) use ($userIds, $categoriesTable) {
+                    $subquery->select(DB::raw(1))
+                        ->from('forum_categories_permissions')
+                        ->whereColumn('forum_categories_permissions.forum_category_id', "$categoriesTable.id")
+                        ->whereIn('forum_categories_permissions.permission_id', $userIds);
+                });
+        });
     }
 
     /**
