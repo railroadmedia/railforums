@@ -25,7 +25,7 @@ class ForumServiceProvider extends EventServiceProvider
             PostEventListener::class . '@onPostCreated',
         ],
         ThreadDeleted::class => [
-            ThreadEventListener::class.'onDeleted',
+            ThreadEventListener::class . '@onDeleted',
         ]
     ];
 
