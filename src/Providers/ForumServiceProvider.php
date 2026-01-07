@@ -14,6 +14,7 @@ use Railroad\Railforums\Events\ThreadDeleted;
 use Railroad\Railforums\Services\ConfigService;
 use Railroad\Railforums\EventListeners\PostEventListener;
 use Railroad\Railforums\Events\PostDeleted;
+use Railroad\Railforums\Events\ThreadUpdated;
 
 class ForumServiceProvider extends EventServiceProvider
 {
@@ -26,6 +27,9 @@ class ForumServiceProvider extends EventServiceProvider
         ],
         ThreadDeleted::class => [
             ThreadEventListener::class . '@onDeleted',
+        ],
+        ThreadUpdated::class => [
+            ThreadEventListener::class . '@onUpdated',
         ]
     ];
 
