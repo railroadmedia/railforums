@@ -4,6 +4,7 @@ namespace Railroad\Railforums\EventListeners;
 
 use Railroad\Railforums\Events\ThreadCreated;
 use Railroad\Railforums\Events\ThreadDeleted;
+use Railroad\Railforums\Events\ThreadUpdated;
 use Railroad\Railforums\Repositories\CategoryRepository;
 use Railroad\Railforums\Repositories\ThreadFollowRepository;
 use Railroad\Railforums\Repositories\ThreadRepository;
