@@ -6,11 +6,14 @@ class ThreadUpdated extends EventBase
 {
     private $threadId;
 
-    public function __construct($threadId, $userId)
+    private $oldCategoryId;
+
+    public function __construct($threadId, $userId, $oldCategoryId = null)
     {
         parent::__construct($userId);
 
         $this->threadId = $threadId;
+        $this->oldCategoryId = $oldCategoryId;
     }
 
     /**
@@ -28,4 +31,13 @@ class ThreadUpdated extends EventBase
     {
         $this->threadId = $threadId;
     }
+
+    /**
+     * @return int|null $oldCategoryId
+     */
+    public function getOldCategoryId() {
+        return $this->oldCategoryId;
+    }
+
+
 }

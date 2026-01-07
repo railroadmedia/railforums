@@ -24,6 +24,8 @@ class ThreadRepository extends EventDispatchingRepository
 
     public static $onlyMine = false;
 
+    private $oldCategoryIdBeforeUpdate;
+
     private UserProviderInterface $userProvider;
 
     public function __construct(UserProviderInterface $userProvider)
@@ -47,9 +49,13 @@ class ThreadRepository extends EventDispatchingRepository
     {
         $id = is_object($entity) ? $entity->id : $entity;
 
-        return new ThreadUpdated(
-            $id, auth()->id()
-        );
+        // Pass the old category ID to the event if it was captured
+        $oldCategoryId = $this->oldCategoryIdBeforeUpdate;
+
+        // Reset the stored value
+        $this->oldCategoryIdBeforeUpdate = null;
+
+        return new ThreadUpdated($id, auth()->id(), $oldCategoryId);
     }
 
     public function getDestroyEvent($entity)
@@ -435,5 +441,26 @@ class ThreadRepository extends EventDispatchingRepository
             ->orderBy('p.published_on', 'desc')
             ->limit(1)
             ->first();
+    }
+
+    /**
+     * Override update to capture old category_id before update
+     *
+     * @param $id
+     * @param array|null $attributes
+     * @return mixed
+     */
+    public function update($id, $attributes = null)
+    {
+        $this->oldCategoryIdBeforeUpdate = null;
+
+        if (is_array($attributes) && isset($attributes['category_id'])) {
+            $existingThread = $this->baseRead($id);
+            if ($existingThread && $existingThread->category_id != $attributes['category_id']) {
+                $this->oldCategoryIdBeforeUpdate = $existingThread['category_id'];
+            }
+        }
+
+        return parent::update($id, $attributes);
     }
 }
